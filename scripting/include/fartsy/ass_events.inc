@@ -167,7 +167,7 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
   Format(name, sizeof(name), attacker == 0 ? "[INTENTIONAL GAME DESIGN]" : "%N", IsValidClient(attacker) ? client : attacker);
   char weapon[32];
   strcopy(weapon, sizeof(weapon), wep);
-  if (IsValidClient(attacker) && core.sacrificedByClient) SacrificeClient(client, attacker, core.bombReset); else if (IsFakeClient(attacker) && WaveSystem().IsWaveNull() && core.sacrificedByClient) { CPrintToChatAll("Oh dear, {red} %N has sacrificed %N!", attacker, client); }
+  if (IsValidClient(attacker) && core.sacrificedByClient) { SacrificeClient(client, attacker, core.bombReset); } else if (attacker > 0 && IsFakeClient(attacker) && WaveSystem().IsWaveNull() && core.sacrificedByClient) { CPrintToChatAll("Oh dear, {red} %N has sacrificed %N!", attacker, client); }
   if (damagebits & DMG_CRUSH) {
     CPrintToChatAll("{darkviolet}[{red}CORE{darkviolet}] {white}Client %N was crushed by a {red}FALLING ROCK FROM OUTER SPACE{white}!", client);
     strcopy(weapon, sizeof(weapon), "Meteor to the Face");
@@ -176,7 +176,7 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
     CPrintToChatAll("{darkviolet}[{red}CORE{darkviolet}] {white}Client %N was {red}MELTED{white}.", client);
     strcopy(weapon, sizeof(weapon), "Melted by Sharts or Ass Gas");
   }
-  if (damagebits & DMG_FREEZE) {
+  if (damagebits & DMG_VEHICLE) {
     CPrintToChatAll("{darkviolet}[{red}CORE{darkviolet}] {white}Client %N was flattened out by a {red}TRAIN{white}!", client);
     strcopy(weapon, sizeof(weapon), "Attempted Train Robbery");
   }

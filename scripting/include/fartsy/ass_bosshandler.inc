@@ -186,11 +186,10 @@ enum struct BOSSHANDLER {
   //For tracking model and skipping player ready check if boss is alive
   void Tick() {
     //PrintToServer("Boss %i, hp %i/%i", this.bossID, this.iBossEntHealth, this.iBossEntMaxHealth);
-    if (this.shouldTickBGM)(this.TickBGM());
-    if (this.isAlive && !WaveSystem().IsActive()) {
-      PrintToChatAll("PLACEHOLDER -- FORCE PLAYERS TO BE READY IF NOT IN WAVE.");
-    }
-    if (this.tickBuster)this.TickBuster();
+    if (this.shouldTickBGM) this.TickBGM();
+    if (this.isAlive && !WaveSystem().IsActive()) { PrintToChatAll("PLACEHOLDER -- FORCE PLAYERS TO BE READY IF NOT IN WAVE."); }
+    if (this.tickBuster) this.TickBuster();
+    if (this.tickBusterNuclear) this.TickBusterNuclear();
     switch (this.bossID) {
       case 0: {
         float pos[3], ang[3], vel[3], newPos[3];

@@ -527,6 +527,7 @@ enum struct WEATHERMANAGER {
   float fogColorGTarget;
   float fogColorBTarget;
   float sirenPos[3];
+  float skyHeight;
   int intensity;
   int mIntensity;
   bool CanFormTornado() {
@@ -851,7 +852,7 @@ enum struct WEATHERMANAGER {
     CreateTimer(t - 20.0, TimedOperator, 40);
     CreateTimer((t + GetRandomFloat(5.0, 25.0)), TimedOperator, 41);
   }
-  void TickFog() {
+  void Tick() {
     if (this.fogDensity != this.fogTarget || this.reset) {
       char targetAlpha[4];
       char targetDensity[24];
@@ -874,6 +875,8 @@ enum struct WEATHERMANAGER {
       FastFire2("Weather.FogSky", "Color", target);
       this.reset = false;
     }
+    for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
+    if (this.hasTornado) {for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) { float pos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos); if (pos[2] > this.skyHeight) SDKHooks_TakeDamage(i, 0, 0, 9000000.0, DMG_FALL); }}
   }
   void TickSiren() {
     if (this.TornadoWarning) {
@@ -1125,7 +1128,6 @@ public Action Command_SetVolumeReal(int client, int args) {
   ReplyToCommand(client, "Usage: sm_setvolumereal <sfx / music> <int 0-100>"); return Plugin_Handled;
 }
 
-bool g_LaserSystem;
 enum struct LaserData {
   char tName[16];
   float sPos[3];

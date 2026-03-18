@@ -17,7 +17,6 @@ methodmap DEFAULTSMANAGER {
   public DEFAULTS GetDefaults(int wave) { return DefaultsArray[wave]; }
   // Only called during plugin startup
   public void SetupDefaults(Handle confCoreData) {
-    g_LaserSystem = true;
     AssLogger(1, "[CORE] Setting up Wave Defaults...");
     char bufCoreData[256];
     PrintToServer("confCoreData returned %s", OVERRIDE_AND_GET_COREDATA());
@@ -577,6 +576,7 @@ void RegisterAndPrecacheAllFiles() {
   strcopy(WBLaserColors[0].cRGB, 16, "0 255 0");
   strcopy(WBLaserColors[1].cRGB, 16, "255 200 0");
   strcopy(WBLaserColors[2].cRGB, 16, "0 200 255");
+  InitAllZones();
 }
 //Wave Setup
 char WaveSetup[][] = {
@@ -657,6 +657,7 @@ public bool GenerateDefaultConfig(const int type, const char[] path)
       WriteFileLine(file, "    \"defFogDensity\": 0.55,");
       WriteFileLine(file, "    \"fogChangeRate\": 0.001,");
       WriteFileLine(file, "    \"fogChangeRateRGB\": 0.25,");
+      WriteFileLine(file, "    \"skyHeight\": 1200.0,");
       char out[40];
       for (int i = 0; i < sizeof(MapLighting); i++) {
         Format(out, sizeof(out), "    \"MapLighting%iArcs\": \" \",", i); WriteFileLine(file, out);
@@ -728,6 +729,7 @@ void LoadConfig(int type)
       WeatherManager.defFogDensity = json_object_get_float(jsHeader, "defFogDensity");
       WeatherManager.fogChangeRate = json_object_get_float(jsHeader, "fogChangeRate");
       WeatherManager.fogChangeRateRGB = json_object_get_float(jsHeader, "fogChangeRateRGB");
+      WeatherManager.skyHeight = json_object_get_float(jsHeader, "skyHeight");
       for (int i = 0; i < sizeof(MapLighting); i++) {
         char key[40];
         Format(key, sizeof(key), "MapLighting%iArcs", i); json_object_get_string(jsHeader, key, MapLighting[i].arcs, sizeof(MapLighting[i].arcs));

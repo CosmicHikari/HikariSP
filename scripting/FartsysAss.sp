@@ -6,9 +6,10 @@
  *   FIVE..... TIPS AND TRICKS MAY BE ADDED TO THE TIMER, SEE PerformAdverts(Handle timer);
  *        IF IT'S WAR THAT YOU WANT, THEN I'M READY TO PLAY. GLHF!
  */
-public char PLUGIN_VERSION[8] = "9.5.2";
+public char PLUGIN_VERSION[8] = "9.5.3";
 #include <sourcemod>
 #include <sdktools>
+#include <sdkhooks>
 #include <tf2_stocks>
 #include <fartsy/tf2_damagebits>
 #include <fartsy/newcolors>
@@ -16,6 +17,7 @@ public char PLUGIN_VERSION[8] = "9.5.2";
 #include <fartsy/ass_discord>
 #include <fartsy/ass_database>
 #include <fartsy/ass_serverutils>
+#include <fartsy/ass_triggers>
 #include <fartsy/ass_enhancer>
 #include <fartsy/ass_asshop>
 #include <fartsy/ass_bombstate>
@@ -37,12 +39,11 @@ public Plugin myinfo = {
   version = PLUGIN_VERSION,
   url = "https://wiki.hydrogenhosting.org"
 };
-
+//Check if extensions are loaded, send startup log
 public void OnPluginStart() {
   if (GetExtensionFileStatus("smjansson.ext") != 1) { SetFailState("Required extension (smjansson) is not loaded!"); }
   AssLogger(LOGLVL_INFO, "Starting up Fartsy's Framework! Waiting for Map Start...");
 }
-
 //Begin executing IO when ready
 public void OnFastFire2Ready() {
   AssLogger(LOGLVL_INFO, "####### FASTFIRE2 IS READY! INITIATE STARTUP SEQUENCE... PREPARE FOR THE END TIMES #######");
@@ -57,13 +58,12 @@ public void OnFastFire2Ready() {
   WeatherManager.Reset();
   AssLogger(LOGLVL_INFO, "####### STARTUP COMPLETE (v%s) #######", PLUGIN_VERSION);
 }
-
 //Process ticks and requests in real time
 public void OnGameFrame() {
   if (WeatherManager.TornadoWarning) WeatherManager.TickSiren();
   AudioManager.TickGlobal();
   if (BossHandler.shouldTick) BossHandler.Tick();
-  if (BossHandler.tickBusterNuclear) BossHandler.TickBusterNuclear();
   WaveSystem().Tick();
-  WeatherManager.TickFog();
+  WeatherManager.Tick();
+  TickAllTriggers();
 }

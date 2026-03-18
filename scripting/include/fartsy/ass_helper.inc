@@ -65,7 +65,7 @@ public int GetHealerOfClient(int client){
 
 //Check if the client is valid
 stock bool IsValidClient(int client) {
-  return (0 < client) ? (client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client)) : false;
+  if (0 < client) return (client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client)); else return false;
 }
 
 //Calculate time spent on server in seconds
@@ -413,7 +413,7 @@ float GetTotalWeaponDamageBonus()
       int weaponEnt = GetPlayerWeaponSlot(client, slot);
       if (weaponEnt == -1) continue;
       Address attr = TF2Attrib_GetByName(weaponEnt, "damage bonus");
-      if (attr <= 0) continue;
+      if (attr <= view_as<Address>(0)) continue;
       float dmgValue = TF2Attrib_GetValue(attr);
       totalDamageBonus += dmgValue;
       PrintToServer("Got damage bonus value %f from %N", dmgValue, client);
