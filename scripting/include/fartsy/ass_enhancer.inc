@@ -149,7 +149,7 @@ methodmap AUDIOMANAGER {
    * @param instant - True = stops music NOW and changes, False = play current song then change
   */
   public void setBGM(int client, int bgm, bool instant) {
-    g_indexBGM = bgm == 0 ? GetRandomInt(1, 4) : bgm;
+    //g_indexBGM = bgm == 0 ? GetRandomInt(1, 4) : bgm;
     if (IsValidClient(client)) PrintToChat(client, "Your BGM was changed. %i = %i > 0 ? %i : %i == 0 ? %i : %i, playing at sndlvl %i volume %f", AudioState[client].indexBGM, AudioState[client].VIPBGM, AudioState[client].VIPBGM, bgm, g_indexBGM, bgm, GetSNDLVL(client, true, BGMArray[AudioState[client].indexBGM].SNDLVL), GetVolume(client, true, 1.0));
     AudioState[client].indexBGM = AudioState[client].VIPBGM > 0 ? AudioState[client].VIPBGM : bgm == 0 ? g_indexBGM : bgm;
     PrintToServer("Set %i for %N", AudioState[client].indexBGM, client);
@@ -177,9 +177,9 @@ methodmap AUDIOMANAGER {
    * @param bgm - The bgm index to set them to
    * @param activate - true or false (active/inactive)
    */
-  public void setEventMode(int client, int bgm, bool activate) {
+  public void setEventMode(int client, int bgm, int activate) {
     int curBGM = AudioState[client].indexBGM;
-    if (activate) {
+    if (activate == 1) {
       PrintToChat(client, "Saving %i for you", AudioState[client].indexBGM);
       AudioState[client].VIPBGM = 0;
       AudioState[client].savedIndexBGM = AudioState[client].indexBGM;
@@ -834,7 +834,7 @@ enum struct WEATHERMANAGER {
       DispatchKeyValue(siren, "targetname", "WeatherSiren");
       ActivateEntity(siren);
       TeleportEntity(siren, this.sirenPos, NULL_VECTOR, NULL_VECTOR);
-      AssLogger(LOGLVL_INFO, "Injected info_target WeatherSiren to map!")
+      AssLogger(LOGLVL_INFO, "Injected info_target WeatherSiren to map!");
     }
     sirenRef = EntIndexToEntRef(siren);
   }
@@ -855,7 +855,7 @@ enum struct WEATHERMANAGER {
     if (this.fogDensity != this.fogTarget || this.reset) {
       char targetAlpha[4];
       char targetDensity[24];
-      this.fogDensity = (this.fogDensity < this.fogTarget) ? FloatMin(this.fogDensity += this.fogChangeRate, this.fogTarget) : FloatMax(this.fogDensity -= this.fogChangeRate, this.fogTarget);
+      this.fogDensity = (this.fogDensity < this.fogTarget) ? FloatMin(Maths().Adjust(this.fogDensity, this.fogChangeRate), this.fogTarget) : FloatMax(Maths().Adjust(this.fogDensity, -this.fogChangeRate), this.fogTarget);
       IntToString(RoundFloat(FloatMin(255.0 * (this.fogDensity * 1.20), 255.0)), targetAlpha, sizeof(targetAlpha));
       FloatToString(this.fogDensity, targetDensity, sizeof(targetDensity));
       FastFire2("Weather.FogOutdoor", "SetMaxDensity", targetDensity);
@@ -1134,6 +1134,6 @@ enum struct LaserData {
 LaserData WBLasers[3][28];
 
 enum struct LaserColors {
-  int iRGB[3];
+  char cRGB[16];
 }
 LaserColors WBLaserColors[3];

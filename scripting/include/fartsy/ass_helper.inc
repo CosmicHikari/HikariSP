@@ -65,7 +65,7 @@ public int GetHealerOfClient(int client){
 
 //Check if the client is valid
 stock bool IsValidClient(int client) {
-  return (0 < client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client));
+  return (0 < client) ? (client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client)) : false;
 }
 
 //Calculate time spent on server in seconds
@@ -422,3 +422,19 @@ float GetTotalWeaponDamageBonus()
   PrintToServer("Final value %f", totalDamageBonus);
   return totalDamageBonus;
 }
+
+// Check if <intent> entities can spawn
+bool ICanSummon(int intent) {
+  int count = 0;
+  int maxEntities = GetMaxEntities();
+  for (int i = 1; i <= maxEntities; i++) { if (IsValidEntity(i)) { count++; } }
+  return (count + intent) < maxEntities;
+}
+
+methodmap MATHS {
+  public float Adjust(float input, float rate) {
+    return (input + rate);
+  }
+}
+MATHS MathFunc;
+MATHS Maths() {return MathFunc;}

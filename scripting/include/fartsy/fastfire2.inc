@@ -6,8 +6,8 @@ int ff2Ref;
 * @param classname - The entity class name to be created
 * @param targetname - The name of the created entity
 */
-int CreateCustomEntity(const char[] classname, const char[] targetname) {
-  int cne = FindEntityByClassname(-1, classname);
+int CreateCustomEntity(char[] classname, char[] targetname) {
+  int cne = FindEntityByTargetname(targetname, classname);
   if (!IsValidEntity(cne)) {
     cne = CreateEntityByName(classname);
     if (!IsValidEdict(cne)) { AssLogger(LOGLVL_ERROR, "Could not create %s, aborting!", classname); return -2; }
@@ -16,6 +16,10 @@ int CreateCustomEntity(const char[] classname, const char[] targetname) {
     ActivateEntity(cne);
   }
   return cne;
+}
+
+void SetKv(int kvEnt, char[] kv, char[] val) {
+  if (IsValidEntity(kvEnt)) { DispatchKeyValue(kvEnt, kv, val); }
 }
 
 //Inject entity IO logic

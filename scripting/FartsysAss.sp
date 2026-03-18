@@ -6,7 +6,7 @@
  *   FIVE..... TIPS AND TRICKS MAY BE ADDED TO THE TIMER, SEE PerformAdverts(Handle timer);
  *        IF IT'S WAR THAT YOU WANT, THEN I'M READY TO PLAY. GLHF!
  */
-public char PLUGIN_VERSION[8] = "9.5.1";
+public char PLUGIN_VERSION[8] = "9.5.2";
 #include <sourcemod>
 #include <sdktools>
 #include <tf2_stocks>
@@ -64,6 +64,6 @@ public void OnGameFrame() {
   AudioManager.TickGlobal();
   if (BossHandler.shouldTick) BossHandler.Tick();
   if (BossHandler.tickBusterNuclear) BossHandler.TickBusterNuclear();
-  if (WaveSystem().IsWaveNull() && WaveSystem().IsActive()) WaveSystem().run_bodycheck();
+  WaveSystem().Tick();
   WeatherManager.TickFog();
 }

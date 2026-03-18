@@ -121,9 +121,6 @@ enum struct COREDATA {
   void init_post() {
     CPrintToChatAll("{gray}[Server]: Reloading!");
     AssLogger(LOGLVL_INFO, "[Server]: Reloading!");
-    char _path_WM[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, _path_WM, sizeof(_path_WM), "configs/FartsysAss/Weather/WeatherManager.json");
-    if (!FileExists(_path_WM)) { GenerateDefaultConfig(2, _path_WM); }
     strcopy(this.configDefault, sizeof(this.configDefault), "addons/sourcemod/configs/FartsysAss/Core/WaveDefaults.ini");
     strcopy(this.configTacoBell, sizeof(this.configTacoBell), "addons/sourcemod/configs/FartsysAss/Core/WaveDefaults_TacoBell.ini");
     strcopy(this.configWaveNull, sizeof(this.configWaveNull), "addons/sourcemod/configs/FartsysAss/Core/WaveDefaults_WaveNull.ini");
@@ -372,10 +369,13 @@ void RegisterAndPrecacheAllFiles() {
   int sfxIndex;
   char _path_BGM[PLATFORM_MAX_PATH];
   char _path_SFX[PLATFORM_MAX_PATH];
+  char _path_WM[PLATFORM_MAX_PATH];
   BuildPath(Path_SM, _path_BGM, sizeof(_path_BGM), "configs/FartsysAss/Files/Music.json");
   BuildPath(Path_SM, _path_SFX, sizeof(_path_SFX), "configs/FartsysAss/Files/SFX.json");
+  BuildPath(Path_SM, _path_WM, sizeof(_path_WM), "configs/FartsysAss/Weather/WeatherManager.json");
   if (!FileExists(_path_BGM)) { GenerateDefaultConfig(0, _path_BGM); }
   if (!FileExists(_path_SFX)) { GenerateDefaultConfig(1, _path_SFX); }
+  if (!FileExists(_path_WM)) { GenerateDefaultConfig(2, _path_WM); }
   AssLogger(LOGLVL_DEBUG, "Loading BGMs...");
   LoadConfig(0);
   AssLogger(LOGLVL_DEBUG, "Loading SFX...");
@@ -518,8 +518,8 @@ void RegisterAndPrecacheAllFiles() {
   WBLasers[2][13].ePos = {5928.0,-2374.0,22.0};
 
   // Center Top-Right
-  WBLasers[2][14].sPos = {5792.0,-2374.0,22.0};
-  WBLasers[2][14].ePos = {5792.0,-2377.0,22.0};
+  WBLasers[2][14].sPos = {5928.0,-2374.0,22.0};
+  WBLasers[2][14].ePos = {5928.0,-2508.0,22.0};
 
   // Center Middle-Right
   WBLasers[2][15].sPos = {5928.0,-2640.0,22.0};
@@ -572,6 +572,11 @@ void RegisterAndPrecacheAllFiles() {
   // Right Bottom
   WBLasers[2][27].sPos = {6392.0,-3042.0, 22.0};
   WBLasers[2][27].ePos = {6128.0,-3042.0, 22.0};
+
+  //Colors
+  strcopy(WBLaserColors[0].cRGB, 16, "0 255 0");
+  strcopy(WBLaserColors[1].cRGB, 16, "255 200 0");
+  strcopy(WBLaserColors[2].cRGB, 16, "0 200 255");
 }
 //Wave Setup
 char WaveSetup[][] = {
@@ -607,6 +612,7 @@ char[] OVERRIDE_AND_GET_COREDATA() {
 // Generates an example config, for version 9 specifically
 public bool GenerateDefaultConfig(const int type, const char[] path)
 {
+  PrintToServer("Generated %i at %s", type, path);
   Handle file = OpenFile(path, "w");
   if (file == null)
   {

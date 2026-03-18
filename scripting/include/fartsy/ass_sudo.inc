@@ -667,6 +667,7 @@ void sudo(int task) {
       AudioManager.SetEnabled(false);
       sudo(1001);
       crusader = true;
+      if (ICanSummon(84)) FastFire2("TheCrusaderTemplate", "ForceSpawn");
       CreateTimer(1.75, CRUSADERINCOMING);
       CreateTimer(25.20, TimedOperator, 9);
       CreateTimer(25.20, TimedOperator, 78);

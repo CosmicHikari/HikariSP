@@ -167,12 +167,23 @@ methodmap WAVESYSTEM {
     WSData.wave++;
   }
   // WIPE MECHANIC - If all players  die, the wave fails.
-  public void run_bodycheck() {
+  public bool run_bodycheck() {
     int alive = 0;
     for (int i = 1; i <= MaxClients; i++) if (IsValidClient(i)) if(IsPlayerAlive(i) && GetClientTeam(i) == 2) alive++;
     if (alive == 0) {
       CPrintToChatAll("{red}You've all died! Are you happy?");
       FastFire2("bots_win", "RoundWin");
+    }
+  }
+  // Check if player is in WB Realm.
+  public void run_wbPresence() {
+    for (int i = 1; i < MaxClients; i++) {
+      if (!IsClientInGame(i) || !IsPlayerAlive(i)) continue;
+      float pos[3];
+      GetClientAbsOrigin(i, pos);
+    // Check X, Y, Z separately
+     if (!AudioManager.isClientInEventMode(i)) { if (pos[0] >= 4708.0 && pos[0] <= 7000.0 && pos[1] >= -3712.0 && pos[1] <= 1408.0 && pos[2] >= -1270.0 && pos[2] <= 256.0) { AudioManager.setEventMode(i, 44, 1); } }
+     else if (AudioManager.isClientInEventMode(i) && !(pos[0] >= 4708.0 && pos[0] <= 7000.0 && pos[1] >= -3712.0 && pos[1] <= 1408.0 && pos[2] >= -1270.0 && pos[2] <= 256.0)) AudioManager.setEventMode(i, AudioManager.GetDefaultBGM(), 0);
     }
   }
   //Update internal gamemode identifier, reload configs if needed.
@@ -189,6 +200,10 @@ methodmap WAVESYSTEM {
       core.init_post();
     }
     WSData.wave = this.IsWaveNull() ? WSData.wave : GetEntData(ent, FindSendPropInfo("CTFObjectiveResource", "m_nMannVsMachineWaveCount"))
+  }
+  public void Tick() {
+    if (this.IsWaveNull() && this.IsActive()) this.run_bodycheck();
+    this.run_wbPresence();
   }
 }
 WAVESYSTEM WS;
