@@ -1,4 +1,5 @@
 // TF2 Damage Definitions
+#if !defined DMG_CRUSH
 #define DMG_CRUSH (1<<0)
 #define DMG_BURN (1<<3)
 #define DMG_FREEZE (1<<4)
@@ -15,3 +16,4 @@
 #define DMG_RADIATION (1<<18)
 #define DMG_DROWNRECOVER (1<<19)
 #define DMG_ACID (1<<20)
+#endif

@@ -1,4 +1,4 @@
-/*             WELCOME TO FARTSY'S ASS ROTTENBURG.
+/*             WELCOME TO HIKARI'S REQUIEM ROTTENBURG.
  *   A FEW THINGS TO KNOW: ONE.... THIS IS INTENDED TO BE USED WITH UBERUPGRADES.
  *   TWO..... SERVER OPERATORS MAY UPLOAD MUSIC TO BE USED WITH THIS PLUGIN. WE ARE NOT RESPONSIBLE FOR WHAT USERS UPLOAD TO THEIR SERVERS.
  *   THREE..... THIS MOD IS INTENDED FOR USE ON THE HYDROGENHOSTING SERVERS ONLY.
@@ -6,7 +6,8 @@
  *   FIVE..... TIPS AND TRICKS MAY BE ADDED TO THE TIMER, SEE PerformAdverts(Handle timer);
  *        IF IT'S WAR THAT YOU WANT, THEN I'M READY TO PLAY. GLHF!
  */
-public char PLUGIN_VERSION[8] = "9.5.3";
+// Weather manager's sky height needs to be a zone (float 3 start end)...
+public char PLUGIN_VERSION[8] = "10.0.0";
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
@@ -14,28 +15,28 @@ public char PLUGIN_VERSION[8] = "9.5.3";
 #include <fartsy/tf2_damagebits>
 #include <fartsy/newcolors>
 #include <fartsy/fastfire2>
-#include <fartsy/ass_discord>
-#include <fartsy/ass_database>
-#include <fartsy/ass_serverutils>
-#include <fartsy/ass_triggers>
-#include <fartsy/ass_enhancer>
-#include <fartsy/ass_asshop>
-#include <fartsy/ass_bombstate>
-#include <fartsy/ass_bosshandler>
-#include <fartsy/ass_emergency>
-#include <fartsy/ass_configsystem>
-#include <fartsy/ass_helper>
-#include <fartsy/ass_commands>
-#include <fartsy/ass_events>
-#include <fartsy/ass_sudo>
-#include <fartsy/ass_wavesystem>
+#include <fartsy/hr_discord>
+#include <fartsy/hr_database>
+#include <fartsy/hr_serverutils>
+#include <fartsy/hr_triggers>
+#include <fartsy/hr_enhancer>
+#include <fartsy/hr_asshop>
+#include <fartsy/hr_bombstate>
+#include <fartsy/hr_bosshandler>
+#include <fartsy/hr_emergency>
+#include <fartsy/hr_configsystem>
+#include <fartsy/hr_helper>
+#include <fartsy/hr_commands>
+#include <fartsy/hr_events>
+#include <fartsy/hr_sudo>
+#include <fartsy/hr_wavesystem>
 #include <tf2attributes>
 #pragma newdecls required
 #pragma semicolon 1
 public Plugin myinfo = {
-  name = "Fartsy's Ass - Framework",
+  name = "Hikari's MvM Framework",
   author = "Fartsy",
-  description = "Framework for Fartsy's Ass (MvM Mods)",
+  description = "Framework for Hikari's Requiem (MvM Mods)",
   version = PLUGIN_VERSION,
   url = "https://wiki.hydrogenhosting.org"
 };

@@ -104,7 +104,7 @@ enum struct COREDATA {
   int waveFlags;
   void init_pre() {
     char basePath[PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, basePath, sizeof(basePath), "configs/FartsysAss");
+    BuildPath(Path_SM, basePath, sizeof(basePath), "configs/HikarisRequiem");
     CreateDirectory(basePath);
     char subFolder[PLATFORM_MAX_PATH];
     Format(subFolder, sizeof(subFolder), "%s/Files", basePath);
@@ -115,14 +115,14 @@ enum struct COREDATA {
     CreateDirectory(subFolder);
     Format(subFolder, sizeof(subFolder), "%s/Core", basePath);
     CreateDirectory(subFolder);
-    AssLogger(LOGLVL_DEBUG, "FartsysAss folder structure created!");
+    AssLogger(LOGLVL_DEBUG, "HikarisRequiem folder structure created!");
   }
   void init_post() {
     CPrintToChatAll("{gray}[Server]: Reloading!");
     AssLogger(LOGLVL_INFO, "[Server]: Reloading!");
-    strcopy(this.configDefault, sizeof(this.configDefault), "addons/sourcemod/configs/FartsysAss/Core/WaveDefaults.ini");
-    strcopy(this.configTacoBell, sizeof(this.configTacoBell), "addons/sourcemod/configs/FartsysAss/Core/WaveDefaults_TacoBell.ini");
-    strcopy(this.configWaveNull, sizeof(this.configWaveNull), "addons/sourcemod/configs/FartsysAss/Core/WaveDefaults_WaveNull.ini");
+    strcopy(this.configDefault, sizeof(this.configDefault), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults.ini");
+    strcopy(this.configTacoBell, sizeof(this.configTacoBell), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults_TacoBell.ini");
+    strcopy(this.configWaveNull, sizeof(this.configWaveNull), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults_WaveNull.ini");
     WaveSystem().SetActive(false);
     WaveSystem().SetWave(0);
     AudioManager.init();
@@ -140,7 +140,7 @@ enum struct COREDATA {
     for (int i = 0; i < sizeof(ass); i++) ass[i].price = 10 + (10 * i);
     for (int i = 0; i < sizeof(ass); i++) ass[i].purchase = 30 + i;
     AssLogger(1, "[BULKFIRE] Setting up Crusader...");
-    Handle confCoreData = OpenFile("addons/sourcemod/configs/FartsysAss/BulkFire/crusader.ini", "rt", false);
+    Handle confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/crusader.ini", "rt", false);
     char bufCoreData[256];
     int crusaderIndex = -1;
     if (confCoreData == INVALID_HANDLE) return;
@@ -153,7 +153,7 @@ enum struct COREDATA {
       if (IsEndOfFile(confCoreData))break;
     }
     AssLogger(1, "[BULKFIRE] Setting up Lightning Flashes...");
-    confCoreData = OpenFile("addons/sourcemod/configs/FartsysAss/BulkFire/lightning_flash.ini", "rt", false);
+    confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/lightning_flash.ini", "rt", false);
     int lightningFlashIndex = -1;
     if (confCoreData == INVALID_HANDLE) return;
     while (ReadFileLine(confCoreData, bufCoreData, sizeof(bufCoreData))) {
@@ -165,7 +165,7 @@ enum struct COREDATA {
       if (IsEndOfFile(confCoreData)) break;
     }
     AssLogger(1, "[BULKFIRE] Setting up Lightning Strikes...");
-    confCoreData = OpenFile("addons/sourcemod/configs/FartsysAss/BulkFire/lightning_strike.ini", "rt", false);
+    confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/lightning_strike.ini", "rt", false);
     int lightningStrikeIndex = -1;
     if (confCoreData == INVALID_HANDLE) return;
     while (ReadFileLine(confCoreData, bufCoreData, sizeof(bufCoreData))) {
@@ -342,7 +342,7 @@ char SpecEnt[][24] = {
 //Register our commands.
 void RegisterAllCommands() {
   AssLogger(1, "Registering commands...");
-  RegServerCmd("fb_operator", Command_Operator, "Serverside only. Does nothing when executed as client.");
+  RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client.");
   RegAdminCmd("sm_music", Command_Music, ADMFLAG_RESERVATION, "Set music to be played for the next wave");
   RegConsoleCmd("sm_bombstatus", Command_FBBombStatus, "Check bomb status");
   RegConsoleCmd("sm_song", Command_GetCurrentSong, "Get current song name");
@@ -357,9 +357,9 @@ void RegisterAllCommands() {
   RegConsoleCmd("sm_volume", Command_SetVolume, "Set the music SNDLVL to whatever you want (up to 130)");
   RegConsoleCmd("sm_volume_sfx", Command_SetVolumeSFX, "Set the sfx SNDLVL to whatever you want (up to 130)");
   RegConsoleCmd("sm_setvolumereal", Command_SetVolumeReal, "Set the real volume for sfx/music. Ex: sm_setvolumereal sfx 100, sm_setvolumereal music 100");
-  cvarSNDDefault = CreateConVar("sm_fartsysass_sound", "3", "Default sound for new users, 3 = Everything, 2 = Sounds Only, 1 = Music Only, 0 = Nothing");
-  cvarSirenEnabledDefault = CreateConVar("sm_fartsysass_sirenenabled", "1", "Enables the tornado siren for clients to hear it by default (they can still opt in/out of it via !sounds). 1/0");
-  cvarSirenMutesMusicDefault = CreateConVar("sm_fartsysass_sirenmutemusic", "1", "Allows the tornado siren to mute music for clients by default (they can still opt in/out of it via !sounds). 1/0");
+  cvarSNDDefault = CreateConVar("hr_sound", "3", "Default sound for new users, 3 = Everything, 2 = Sounds Only, 1 = Music Only, 0 = Nothing");
+  cvarSirenEnabledDefault = CreateConVar("hr_sirenenabled", "1", "Enables the tornado siren for clients to hear it by default (they can still opt in/out of it via !sounds). 1/0");
+  cvarSirenMutesMusicDefault = CreateConVar("hr_sirenmutemusic", "1", "Allows the tornado siren to mute music for clients by default (they can still opt in/out of it via !sounds). 1/0");
 }
 
 void RegisterAndPrecacheAllFiles() {
@@ -369,9 +369,9 @@ void RegisterAndPrecacheAllFiles() {
   char _path_BGM[PLATFORM_MAX_PATH];
   char _path_SFX[PLATFORM_MAX_PATH];
   char _path_WM[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, _path_BGM, sizeof(_path_BGM), "configs/FartsysAss/Files/Music.json");
-  BuildPath(Path_SM, _path_SFX, sizeof(_path_SFX), "configs/FartsysAss/Files/SFX.json");
-  BuildPath(Path_SM, _path_WM, sizeof(_path_WM), "configs/FartsysAss/Weather/WeatherManager.json");
+  BuildPath(Path_SM, _path_BGM, sizeof(_path_BGM), "configs/HikarisRequiem/Files/Music.json");
+  BuildPath(Path_SM, _path_SFX, sizeof(_path_SFX), "configs/HikarisRequiem/Files/SFX.json");
+  BuildPath(Path_SM, _path_WM, sizeof(_path_WM), "configs/HikarisRequiem/Weather/WeatherManager.json");
   if (!FileExists(_path_BGM)) { GenerateDefaultConfig(0, _path_BGM); }
   if (!FileExists(_path_SFX)) { GenerateDefaultConfig(1, _path_SFX); }
   if (!FileExists(_path_WM)) { GenerateDefaultConfig(2, _path_WM); }
@@ -683,7 +683,7 @@ void LoadConfig(int type)
 {
   // Attempt to load json config file
   char path[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, path, sizeof(path), type == 0 ? "configs/FartsysAss/Files/Music.json" : type == 1 ? "configs/FartsysAss/Files/SFX.json" : type == 2 ? "configs/FartsysAss/Weather/WeatherManager.json" : "configs/FartsysAss/Lasers/WB.json");
+  BuildPath(Path_SM, path, sizeof(path), type == 0 ? "configs/HikarisRequiem/Files/Music.json" : type == 1 ? "configs/HikarisRequiem/Files/SFX.json" : type == 2 ? "configs/HikarisRequiem/Weather/WeatherManager.json" : "configs/HikarisRequiem/Lasers/WB.json");
   Handle jsHandle = json_load_file(path);
   if (jsHandle == INVALID_HANDLE) SetFailState("Failed to load json %s", path);
 
