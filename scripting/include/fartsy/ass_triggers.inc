@@ -3,6 +3,7 @@ enum struct Zone {
     float end[3];
 }
 Zone g_IndoorZones[4];
+Zone g_WeatherZone[1];
 
 public void InitAllZones() {
   g_IndoorZones[0].start = {-4440.0, -200.0, -850.0};
@@ -11,6 +12,8 @@ public void InitAllZones() {
   g_IndoorZones[1].end = {-320.0, 3350.0, -170.0};
   g_IndoorZones[2].start = {400.0, 1190.0, -425.0};
   g_IndoorZones[2].end = {790.0, 1410.0, -230.0};
+  g_WeatherZone[0].start = {-3200.0, -4600.0, 1200.0}
+  g_WeatherZone[0].end = {4000.0, 6000.0, 4000.0}
 }
 
 // Check if client is indoors

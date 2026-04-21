@@ -11,6 +11,124 @@ void sudo(int task) {
     case 1: {
       WaveSystem().init();
     }
+    case 2 : { WeatherManager.canTornado = true; WaveSystem().SetActive(true); WeatherManager.IssueTornadoWarning(); }
+    case 2100 : { WeatherManager.Dissipate(); }
+    case 2200: {
+      int target = CreateCustomEntity("info_target", "ImADumbass");
+      SetVariantString("OnUser2 weather.LightningLaser:TurnOn::0.0:1");
+      AcceptEntityInput(target, "AddOutput");
+      SetVariantString("OnUser2 weather.LightningLaser:TurnOff::0.1:1");
+      AcceptEntityInput(target, "AddOutput");
+    }
+    case 2201: { FastFire2("ImADumbass", "FireUser2"); }
+    case 2300: { FastFire2("ImADumbass", "Kill"); }
+    case 2500: {
+      int l1 = CreateCustomEntity("env_laser", "SpLaser00");
+      int l2 = CreateCustomEntity("info_target", "SpLaser00TGT");
+      TeleportEntity(l1, {-1503.445923, 1369.923584, -45.968681});
+      TeleportEntity(l2, {-1503.445923, 1369.923584, 50.000000});
+      SetKv(l1, "LaserTarget", "SpLaser00TGT");
+      SetKv(l1, "rendercolor", "255 255 0");
+      SetKv(l1, "width", "20");
+      SetKv(l1, "texture", "sprites/laserbeam.spr");
+      SetKv(l1, "NoiseAmplitude", "1");
+    }
+    case 2501: {
+      float fStart[3] = {-1500.0, 1375.0, -50.0}; float fEnd[3] = {-1500.0, 1375.0, 75.0};
+      int ent = CreateEntityByName("env_beam");
+      if (ent != -1) {
+          TeleportEntity(ent, fStart, NULL_VECTOR, NULL_VECTOR);
+          SetEntityModel(ent, "sprites/laserbeam.spr"); // This is where you would put the texture, ie "sprites/laser.vmt" or whatever.
+          SetEntPropVector(ent, Prop_Data, "m_vecEndPos", fEnd);
+          DispatchKeyValue(ent, "targetname", "beam2");
+          DispatchKeyValue(ent, "rendercolor", "255 255 255");
+          DispatchKeyValue(ent, "renderamt", "100");
+          DispatchSpawn(ent);
+          SetEntPropFloat(ent, Prop_Data, "m_fWidth", 4.0); // how big the beam will be, i.e "4.0"
+          SetEntPropFloat(ent, Prop_Data, "m_fEndWidth", 4.0); // same as above
+          ActivateEntity(ent);
+          AcceptEntityInput(ent, "TurnOn");
+      }
+    }
+    case 2550: { FastFire2("SpLaser00", "TurnOn"); }
+    case 3000: {
+    float flStart[3] = {-1500.0, 1375.0, -50.0};
+    int ent = FindEntityByTargetname("phys_model", "generic_actor") == -1 ? CreateEntityByName("generic_actor") : -1;
+    if (ent != -1) {
+      DispatchKeyValue(ent, "targetname", "phys_model");
+      DispatchKeyValue(ent, "model", "models/player/heavy.mdl");
+      DispatchKeyValue(ent, "rendermode", "10");
+      DispatchKeyValue(ent, "movetype", "4");
+      DispatchSpawn(ent);
+      ActivateEntity(ent);
+      TeleportEntity(ent, flStart, NULL_VECTOR, NULL_VECTOR);
+      int ent2 = FindEntityByTargetname("Spec.Burrito", "prop_dynamic");
+      TeleportEntity(ent2, flStart, NULL_VECTOR, NULL_VECTOR);
+      FastFire2("Spec.Burrito", "SetParent", "phys_model");
+    }
+ }
+ case 3001: {
+  int ent = FindEntityByTargetname("phys_model", "generic_actor");
+  if (ent == -1) { ThrowError("Entity not found!!!"); return; }
+  SetEntityMoveType(ent, MOVETYPE_FLY);
+  SetEntPropFloat(ent, Prop_Data, "m_flGravity", 0.0);
+  SetEntPropVector(ent, Prop_Data, "m_vecVelocity", {0.0,0.0,-15.0});
+  TeleportEntity(ent, NULL_VECTOR, NULL_VECTOR, {0.0,0.0,-15.0});
+ }
+ case 3002:{
+  for (int i = 0; i <= sizeof(WBLasers[0]); i++) {
+    int ent = CreateEntityByName("env_beam");
+    if (ent != -1) {
+      TeleportEntity(ent, WBLasers[0][i].sPos, NULL_VECTOR, NULL_VECTOR);
+      SetEntityModel(ent, "sprites/laserbeam.spr"); // This is where you would put the texture, ie "sprites/laser.vmt" or whatever.
+      SetEntPropVector(ent, Prop_Data, "m_vecEndPos", WBLasers[0][i].ePos);
+      DispatchKeyValue(ent, "targetname", WBLasers[0][i].tName);
+      DispatchKeyValue(ent, "rendercolor", WBLaserColors[0].cRGB);
+      DispatchKeyValue(ent, "renderamt", "100");
+      DispatchSpawn(ent);
+      SetEntPropFloat(ent, Prop_Data, "m_fWidth", 7.0); // how big the beam will be, i.e "4.0"
+      SetEntPropFloat(ent, Prop_Data, "m_fEndWidth", 7.0); // same as above
+      ActivateEntity(ent);
+      AcceptEntityInput(ent, "TurnOn");
+    }
+  }
+ }
+ case 3003:{
+  for (int i = 0; i <= sizeof(WBLasers[1]); i++) {
+    int ent = CreateEntityByName("env_beam");
+    if (ent != -1) {
+      TeleportEntity(ent, WBLasers[1][i].sPos, NULL_VECTOR, NULL_VECTOR);
+      SetEntityModel(ent, "sprites/laserbeam.spr"); // This is where you would put the texture, ie "sprites/laser.vmt" or whatever.
+      SetEntPropVector(ent, Prop_Data, "m_vecEndPos", WBLasers[1][i].ePos);
+      DispatchKeyValue(ent, "targetname", WBLasers[1][i].tName);
+      DispatchKeyValue(ent, "rendercolor", WBLaserColors[1].cRGB);
+      DispatchKeyValue(ent, "renderamt", "100");
+      DispatchSpawn(ent);
+      SetEntPropFloat(ent, Prop_Data, "m_fWidth", 7.0); // how big the beam will be, i.e "4.0"
+      SetEntPropFloat(ent, Prop_Data, "m_fEndWidth", 7.0); // same as above
+      ActivateEntity(ent);
+      AcceptEntityInput(ent, "TurnOn");
+    }
+  }
+ }
+ case 3004:{
+  for (int i = 0; i <= sizeof(WBLasers[2]); i++) {
+    int ent = CreateEntityByName("env_beam");
+    if (ent != -1) {
+      TeleportEntity(ent, WBLasers[2][i].sPos, NULL_VECTOR, NULL_VECTOR);
+      SetEntityModel(ent, "sprites/laserbeam.spr"); // This is where you would put the texture, ie "sprites/laser.vmt" or whatever.
+      SetEntPropVector(ent, Prop_Data, "m_vecEndPos", WBLasers[2][i].ePos);
+      DispatchKeyValue(ent, "targetname", WBLasers[2][i].tName);
+      DispatchKeyValue(ent, "rendercolor", WBLaserColors[2].cRGB);
+      DispatchKeyValue(ent, "renderamt", "100");
+      DispatchSpawn(ent);
+      SetEntPropFloat(ent, Prop_Data, "m_fWidth", 7.0); // how big the beam will be, i.e "4.0"
+      SetEntPropFloat(ent, Prop_Data, "m_fEndWidth", 7.0); // same as above
+      ActivateEntity(ent);
+      AcceptEntityInput(ent, "TurnOn");
+    }
+  }
+ }
   //Force Tornado
     case 3: {
       if (WeatherManager.CanFormTornado()) {

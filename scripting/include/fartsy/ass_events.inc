@@ -307,3 +307,14 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
     Ass_Database.Query(Database_FastQuery, query);
   }
 }
+
+// Damages all entities for <damage> with <type>
+void AttackAllEnts(float damage, int type, Zone z) {
+  for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
+    float pos[3];
+    GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
+    if (ZoneCheck(pos, z)) AttackEntity(i, damage, type);
+  }
+}
+// Damages <ent> for <damage> with <type>
+void AttackEntity(int ent, float damage, int type) { SDKHooks_TakeDamage(ent, 0, 0, damage, type); }

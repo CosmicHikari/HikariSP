@@ -876,7 +876,7 @@ enum struct WEATHERMANAGER {
       this.reset = false;
     }
     for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
-    if (this.hasTornado) {for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) { float pos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos); if (pos[2] > this.skyHeight) SDKHooks_TakeDamage(i, 0, 0, 9000000.0, DMG_FALL); }}
+    if (this.hasTornado) { AttackAllEnts(9000000.0, DMG_FALL, g_WeatherZone[0]); this.TickTornado(); }
   }
   void TickSiren() {
     if (this.TornadoWarning) {
@@ -913,6 +913,20 @@ enum struct WEATHERMANAGER {
           CSEClientEx(i, SFXArray[120].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(this.sirenPitch), this.sirenPos);
         }
       }
+    }
+  }
+  void TickTornado() {
+    float tornadoPos[3];
+    bool found = false;
+    int tornado = -1;
+    while ((tornado = FindEntityByTargetname("tornado", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
+    if (!found) { PrintToServer("No tornado found."); return; }
+    for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
+      float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
+      float dx = tornadoPos[0] - entPos[0];
+      float dy = tornadoPos[1] - entPos[1];
+      float distance2D = SquareRoot(dx*dx + dy*dy);
+      if (distance2D <= 200.0) { PrintToServer("<Enhancer:929> Found entity that matches search pattern <= 200.0D"); }
     }
   }
   void TryFormTornado() {
