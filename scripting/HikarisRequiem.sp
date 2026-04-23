@@ -12,30 +12,30 @@ public char PLUGIN_VERSION[8] = "10.0.0";
 #include <sdktools>
 #include <sdkhooks>
 #include <tf2_stocks>
-#include <fartsy/tf2_damagebits>
-#include <fartsy/newcolors>
-#include <fartsy/fastfire2>
-#include <fartsy/hr_discord>
-#include <fartsy/hr_database>
-#include <fartsy/hr_serverutils>
-#include <fartsy/hr_triggers>
-#include <fartsy/hr_enhancer>
-#include <fartsy/hr_asshop>
-#include <fartsy/hr_bombstate>
-#include <fartsy/hr_bosshandler>
-#include <fartsy/hr_emergency>
-#include <fartsy/hr_configsystem>
-#include <fartsy/hr_helper>
-#include <fartsy/hr_commands>
-#include <fartsy/hr_events>
-#include <fartsy/hr_sudo>
-#include <fartsy/hr_wavesystem>
+#include <hikari/tf2_damagebits>
+#include <hikari/newcolors>
+#include <hikari/fastfire2>
+#include <hikari/hr_discord>
+#include <hikari/hr_database>
+#include <hikari/hr_serverutils>
+#include <hikari/hr_triggers>
+#include <hikari/hr_enhancer>
+#include <hikari/hr_asshop>
+#include <hikari/hr_bombstate>
+#include <hikari/hr_bosshandler>
+#include <hikari/hr_emergency>
+#include <hikari/hr_configsystem>
+#include <hikari/hr_helper>
+#include <hikari/hr_commands>
+#include <hikari/hr_events>
+#include <hikari/hr_sudo>
+#include <hikari/hr_wavesystem>
 #include <tf2attributes>
 #pragma newdecls required
 #pragma semicolon 1
 public Plugin myinfo = {
   name = "Hikari's MvM Framework",
-  author = "Fartsy",
+  author = "Hikari",
   description = "Framework for Hikari's Requiem (MvM Mods)",
   version = PLUGIN_VERSION,
   url = "https://wiki.hydrogenhosting.org"
@@ -43,7 +43,7 @@ public Plugin myinfo = {
 //Check if extensions are loaded, send startup log
 public void OnPluginStart() {
   if (GetExtensionFileStatus("smjansson.ext") != 1) { SetFailState("Required extension (smjansson) is not loaded!"); }
-  AssLogger(LOGLVL_INFO, "Starting up Fartsy's Framework! Waiting for Map Start...");
+  AssLogger(LOGLVL_INFO, "Starting up Hikari's Framework! Waiting for Map Start...");
 }
 //Begin executing IO when ready
 public void OnFastFire2Ready() {
@@ -54,7 +54,7 @@ public void OnFastFire2Ready() {
   HookAllEvents();
   WaveSystem().update();
   if (WaveSystem().IsDefault()) core.init_post();
-  CPrintToChatAll("{fartsyred}Plugin Reloaded. If you do not hear music, please do !sounds and configure your preferences.");
+  CPrintToChatAll("{hikarired}Plugin Reloaded. If you do not hear music, please do !sounds and configure your preferences.");
   AudioManager.Reset(true);
   WeatherManager.Reset();
   AssLogger(LOGLVL_INFO, "####### STARTUP COMPLETE (v%s) #######", PLUGIN_VERSION);
