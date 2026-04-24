@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.1.1";
+char FSE_VER[8] = "2.2.0";
 
 // All background music
 enum struct BGM {
@@ -978,12 +978,24 @@ WEATHERMANAGER GetWeatherManager() { return WeatherManager; }
 //Ghosties
 methodmap GHOSTHANDLER {
   public void SpawnRandom() {
+    FastFire2.Execute("GhostTemplate", "ForceSpawn");
     switch (GetRandomInt(0, 3)) {
       case 0: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath00_0"); }
       case 1: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath01_0"); }
       case 2: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath02_0"); }
       case 3: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath03_0"); }
     }
+  }
+  public void Kill() {
+    FastFire2.Execute("gTelefect", "Start", "", 3.0);
+    FastFire2.Execute("gTelefect", "Stop", "", 6.0);
+    FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPathHome", 3.0);
+    FastFire2.SetEntityLife("gTrain", 7.0);
+    FastFire2.SetEntityLife("gTrainTriggerStun", 7.0);
+    FastFire2.SetEntityLife("gGhost", 7.0);
+    FastFire2.SetEntityLife("gTelefect", 7.0);
+    FastFire2.SetEntityLife("gTrainSnd*", 7.0);
+    FastFire2.SetEntityLife("gPath0*", 7.0);
   }
 }
 GHOSTHANDLER GhostHandler;

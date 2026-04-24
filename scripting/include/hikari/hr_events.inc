@@ -216,9 +216,12 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
       int i = GetRandomInt(1, 16);
       switch (i) {
         case 1, 3, 10: {
-          FastFire2.Execute("BG.Meteorites1", "ForceSpawn");
+          FastFire2.Execute("MeteoriteTemplate", "ForceSpawn");
+          SetEntityLife("FB.Meteorite00", 10.0);
+          SetEntityLife("FB.MeteoriteTrain", 10.0);
+          SetEntityLife("MeteoritePath0*", 10.0);
           CPrintToChatAll("{darkviolet}[{red}WARN{darkviolet}] {white}Uh oh, a {red}METEOR{white}has been spotted coming towards Dovah's Ass!!!");
-          FastFire2.Execute("bg.meteorite1", "StartForward", "", 0.1);
+          FastFire2.Execute("FB.MeteoriteTrain", "StartForward", "", 0.1);
         }
         case 2, 5, 16: {
           CreateTimer(0.5, TimedOperator, 71);
@@ -226,15 +229,6 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
           FastFire2.Execute("FB.TankTrain", "StartForward", "", 0.25);
           FastFire2.Execute("FB.TankTrain", "SetSpeed", "1", 0.35);
           FastFire2.Execute("FB.Tank", "Enable", "", 1.0);
-        }
-        case 4, 8, 14: {
-          CustomSoundEmitter("ambient/alarms/train_horn_distant1.wav", 65, false, 0, 1.0, 100);
-          FastFire2.Execute("TrainSND", "PlaySound");
-          FastFire2.Execute("TrainDamage", "Enable");
-          FastFire2.Execute("Train01", "Enable");
-          CPrintToChatAll("{darkviolet}[{red}WARN{darkviolet}] {orange}KISSONE'S TRAIN{white}is {red}INCOMING{white}. Look out!");
-          FastFire2.Execute("TrainTrain", "TeleportToPathTrack", "TrainTrack01");
-          FastFire2.Execute("TrainTrain", "StartForward", "", 0.1);
         }
         case 6, 9: {
           WeatherManager.canTornado = true;
