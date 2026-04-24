@@ -1,4 +1,4 @@
-// Hikari's Boss Handler v1.0.0
+// Hikari's Boss Handler
 char HRBOSS_VER[8] = "1.1.1";
 
 bool canCrusaderNuke = false;
