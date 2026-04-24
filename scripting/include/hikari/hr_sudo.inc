@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.0.0";
+char SUDO_VER[8] = "1.1.0";
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
   AssLogger(LOGLVL_DEBUG, "Calling sudo with %i", task);
@@ -584,11 +584,7 @@ void sudo(int task) {
       FastFire2.Execute("gTrainSndHaunt", "PlaySound", "", GetRandomFloat(3.0, 7.0));
     }
   //Despawn ghosty boi in like 3 seconds
-    case 131: {
-      FastFire2.Execute("gTelefect", "Start", "", 3.0);
-      FastFire2.Execute("gTelefect", "Stop", "", 6.0);
-      FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPathHome", 3.0);
-    }
+    case 131: { GhostHandler.Kill(); }
   //Determine what boss just deployed.
     case 132: {
     //if(MetalFaceDidIt){

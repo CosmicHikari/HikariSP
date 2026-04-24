@@ -1,5 +1,5 @@
 // Hikari's Boss Handler v1.0.0
-char HRBOSS_VER[8] = "1.0.0";
+char HRBOSS_VER[8] = "1.1.0";
 
 bool canCrusaderNuke = false;
 bool crusader = false;
@@ -167,15 +167,47 @@ enum struct BOSSHANDLER {
         FastFire2.Execute("FB.BruteJusticeTrain", "TeleportToPathTrack", "tank_path_a_10", 0.5);
         FastFire2.Execute("TankRelayDMG", "Enable", "", 1.0);
         FastFire2.Execute("TankRelayDMG", "Disable", "", 10.0);
+        FastFire2.SetEntityLife("FB.BruteJusticeTrain", 10.1);
+        FastFire2.SetEntityLife("FB.BruteJustice", 10.1);
+        FastFire2.SetEntityLife("BruteJusticeLaser*", 10.1);
+        FastFire2.SetEntityLife("BruteJusticeFlamethrowerHurtAOE", 10.1);
+        FastFire2.SetEntityLife("BruteJarateSpawnSND", 10.1);
+        FastFire2.SetEntityLife("BruteJusticeRocketSpammer", 10.1);
+        FastFire2.SetEntityLife("BruteJusticeFlameParticle", 10.1);
+        FastFire2.SetEntityLife("BruteJusticeGrenadeSpammer", 10.1);
+        FastFire2.SetEntityLife("FB.OnslaughterBase", 10.1);
+        FastFire2.SetEntityLife("BruteJusticeJarateSpawner00", 10.1);
+        FastFire2.SetEntityLife("BruteJusticeLaserTarget*", 10.1);
+        FastFire2.SetEntityLife("OnslaughterLife0*", 10.1);
+        FastFire2.SetEntityLife("FB.OnslaughterMain", 10.1);
+        FastFire2.SetEntityLife("FB.BruteJusticeParticles", 10.1);
+        FastFire2.SetEntityLife("BruteJusticeDefaultATK", 10.1);
         ass_sacPoints += 25;
       }
       //Sephiroth lost
       case 1: {
-        
+        FastFire2.SetEntityLife("Seph0*", 0.0);
+        FastFire2.SetEntityLife("SephTrain", 0.0);
+        FastFire2.SetEntityLife("FB.Sephiroth", 0.0);
+        FastFire2.SetEntityLife("FB.SephirothDMGRelay", 0.0);
+        FastFire2.SetEntityLife("SephArrows", 0.0);
+        FastFire2.SetEntityLife("SephMeteor", 0.0);
+        FastFire2.SetEntityLife("SephNuke", 0.0);
+        FastFire2.SetEntityLife("SephRocketSpammer", 0.0);
+        FastFire2.SetEntityLife("FB.SephParticles", 0.0);
       }
       //Metal Face lost
       case 2: {
         FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "MFTHOME");
+        FastFire2.SetEntityLife("FB.MetalBase", 0.0);
+        FastFire2.SetEntityLife("FB.MetalFace", 0.0);
+        FastFire2.SetEntityLife("FB.MetalFace.GigaBusterTemplate", 0.0);
+        FastFire2.SetEntityLife("FB.MetalFace.Invuln", 0.0);
+        FastFire2.SetEntityLife("FB.MetalFace.Return*", 0.0);
+        FastFire2.SetEntityLife("FB.MetalFace.Spawn*", 0.0);
+        FastFire2.SetEntityLife("FB.MetalFace.Train", 0.0);
+        FastFire2.SetEntityLife("mfT0x*", 0.0);
+        FastFire2.SetEntityLife("mfTelefect", 0.0);
       }
     }
     this.isAlive = false;
@@ -497,6 +529,7 @@ enum struct BOSSHANDLER {
     CreateTimer(3.0, OnBossSpawn_Post, baseHP);
     switch (this.bossID) {
       case 0: {
+        FastFire2.Execute("OnslaughterTemplate", "ForceSpawn");
         FastFire2.Execute("FB.OnslaughterBase", "SetHealth", bossHP, 0.5);
         FastFire2.Execute("FB.OnslaughterBase", "SetHealth", bossHP, 1.5);
         FastFire2.Execute("FB.OnslaughterBase", "SetModelScale", "0.19", 0.0);
@@ -510,15 +543,16 @@ enum struct BOSSHANDLER {
         CreateTimer(10.0, BossHPTimer);
       }
       case 1: {
-        FastFire2.Execute("FB.Sephiroth", "Enable", "", 0.0);
-        FastFire2.Execute("SephMeteor", "SetParent", "FB.Sephiroth", 0.0);
-        FastFire2.Execute("SephTrain", "SetSpeedReal", "12", 0.0);
-        FastFire2.Execute("SephTrain", "TeleportToPathTrack", "Seph01", 0.0);
-        FastFire2.Execute("SephTrain", "StartForward", "", 0.1);
-        FastFire2.Execute("SephTrain", "SetSpeedReal", "12", 20.5);
-        FastFire2.Execute("FB.SephParticles", "Start", "", 3.0);
-        FastFire2.Execute("tank_boss", "AddOutput", "rendermode 10", 3.0);
-        FastFire2.Execute("tank_boss", "AddOutput", "rendermode 10", 7.0);
+        FastFire2.Execute("Sephiroth", "ForceSpawn");
+        FastFire2.Execute("FB.Sephiroth", "Enable", "", 0.10);
+        FastFire2.Execute("SephMeteor", "SetParent", "FB.Sephiroth", 0.10);
+        FastFire2.Execute("SephTrain", "SetSpeedReal", "12", 0.10);
+        FastFire2.Execute("SephTrain", "TeleportToPathTrack", "Seph01", 0.10);
+        FastFire2.Execute("SephTrain", "StartForward", "", 0.2);
+        FastFire2.Execute("SephTrain", "SetSpeedReal", "12", 20.7);
+        FastFire2.Execute("FB.SephParticles", "Start", "", 3.1);
+        FastFire2.Execute("tank_boss", "AddOutput", "rendermode 10", 3.1);
+        FastFire2.Execute("tank_boss", "AddOutput", "rendermode 10", 7.1);
         FastFire2.Execute("FB.BruteJusticeDMGRelay", "Kill", "", 0.0);
         switch (GetClientCount(true)) {
           case 1: {
@@ -551,6 +585,7 @@ enum struct BOSSHANDLER {
       }
       case 2: {
         this.EmitSpawnSound(2);
+        FastFire2.Execute("MetalFace", "ForceSpawn");
         FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "MFT0x0", 1.0);
         FastFire2.Execute("FB.MetalFace.SpawnParticle", "Start", "", 1.0);
         FastFire2.Execute("FB.MetalFace.Train", "SetSpeedReal", "1024", 1.0);
