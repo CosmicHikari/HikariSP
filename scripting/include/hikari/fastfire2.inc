@@ -1,42 +1,41 @@
 //Hikari's FastFire2
-char FF2_VER[7] = "1.2.0";
+char FF2_VER[7] = "1.2.1";
 int ff2Ref;
 
-/* Create Entities with optional data
-* @param classname - The entity class name to be created
-* @param targetname - The name of the created entity
-*/
+// Create Entities with optional data
+// @param classname - The entity class name to be created
+// @param targetname - The name of the created entity
 int CreateCustomEntity(char[] classname, char[] targetname) {
-  int cne = FindEntityByTargetname(targetname, classname);
-  if (!IsValidEntity(cne)) {
-    cne = CreateEntityByName(classname);
-    if (!IsValidEdict(cne)) { AssLogger(LOGLVL_ERROR, "Could not create %s, aborting!", classname); return -2; }
-    DispatchSpawn(cne);
-    DispatchKeyValue(cne, "targetname", targetname);
-    ActivateEntity(cne);
+  int cce = FindEntityByTargetname(targetname, classname);
+  if (!IsValidEntity(cce)) {
+    cce = CreateEntityByName(classname);
+    if (!IsValidEdict(cce)) { AssLogger(LOGLVL_ERROR, "Could not create %s, aborting!", classname); return -2; }
+    DispatchSpawn(cce);
+    DispatchKeyValue(cce, "targetname", targetname);
+    ActivateEntity(cce);
   }
-  return cne;
+  return cce;
 }
 
-void SetKv(int kvEnt, char[] kv, char[] val) {
-  if (IsValidEntity(kvEnt)) { DispatchKeyValue(kvEnt, kv, val); }
-}
+// Sets keyvalues on entities, experimentally. Requires the EntIndex, not EntRef.
+void SetKv(int kvEnt, char[] kv, char[] val) { if (IsValidEntity(kvEnt)) { DispatchKeyValue(kvEnt, kv, val); } }
 
-//Inject entity IO logic
+// Inject entity IO logic
 public void OnMapStart() {
-  AssLogger(LOGLVL_INFO, "OnMapStart Received: Injecting FastFire2! (v%s)", FF2_VER);
-  int ff2 = CreateCustomEntity("info_target", "FastFire2")
-  if (!IsValidEntity(ff2)) { SetFailState("Could not inject FastFire2, aborting!!!"); }
-  ff2Ref = EntIndexToEntRef(ff2);
-  OnFastFire2Ready();
+  if (!IsValidEntity(EntRefToEntIndex(ff2Ref))) {
+    AssLogger(LOGLVL_INFO, "OnMapStart Received: Injecting FastFire2! (v%s)", FF2_VER);
+    int ff2 = CreateCustomEntity("info_target", "FastFire2")
+    if (!IsValidEntity(ff2)) { SetFailState("Could not inject FastFire2, aborting!!!"); }
+    ff2Ref = EntIndexToEntRef(ff2);
+    OnFastFire2Ready();
+  }
 }
 
-/* Hikari's ent_fire interface
-* @param target The target entity - if it contains OnUser1, this will become the entire io string. Add `,1` for refire count. Example: `FastFire2("OnUser1 Operator,Command,sm_example,0.69,1");`
-* @param input The input to execute
-* @param param Parameters if applicable
-* @param delay The delay before executing
-*/
+// Hikari's ent_fire interface
+// @param target The target entity - if it contains OnUser1, this will become the entire io string. Add `,1` for refire count. Example: `FastFire2("OnUser1 Operator,Command,sm_example,0.69,1");`
+// @param input The input to execute
+// @param param Parameters if applicable
+// @param delay The delay before executing
 void FastFire2(const char[] target, const char[] input = "", const char[] param = "", float delay = 0.0) {
   int ff2 = EntRefToEntIndex(ff2Ref);
   char FireStr[128];
@@ -47,6 +46,9 @@ void FastFire2(const char[] target, const char[] input = "", const char[] param 
 }
 
 //Used for any time we need to fo a LOT of things in quick succession... Or when we want to do something at random.
-enum struct BULKFIRE {
-  char fireStr[256];
-}
+enum struct BULKFIRE { char fireStr[256]; }
+
+// Kills an entity or group of entities using wildcards (*)
+// @param target The target to kill
+// @param time The time to kill in seconds
+void SetEntityLife(const char[] target, float time) { FastFire2(target, "Kill", "", time); }

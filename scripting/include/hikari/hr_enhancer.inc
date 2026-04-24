@@ -1,7 +1,7 @@
-//Fartsy's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.1.0";
+// Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
+char FSE_VER[8] = "2.1.1";
 
-//All background music
+// All background music
 enum struct BGM {
   char realPath[64];
   char songName[64];
@@ -11,14 +11,14 @@ enum struct BGM {
 }
 BGM BGMArray[48];
 
-//All sound effects
+// All sound effects
 enum struct SFXARRAY {
   char realPath[64];
   int SNDLVL;
 }
 SFXARRAY SFXArray[128];
 
-//Sound preference menu
+// Sound preference menu
 char sndPrefs[][128] = {
   "Sounds are currently DISABLED",
   "Sounds are currently MUSIC ONLY",
@@ -40,8 +40,8 @@ public void SQL_SNDPrefs(Database db, DBResultSet results, const char[] error, i
   if (results.FetchRow()) { soundPreference[client] = results.FetchInt(0); g_SirenEnabled[client] = results.FetchInt(1) == 1 ? true : false; g_SirenMutesMusic[client] = results.FetchInt(2) == 1 ? true : false; }
 }
 
-//Music system rewrite for the 9th time.
-/**I have rewritten this stupid thing 9 times now. It now exists in its final form. Aka, perfect alexander.
+// Music system rewrite for the 9th time.
+/* I have rewritten this stupid thing 9 times now. It now exists in its final form. Aka, perfect alexander.
  * This is the audio manager. It plays music. It plays music PER CLIENT. It is good at playing MUSIC.
  * It syncs music. It tracks the EXACT MILLISECOND POSITION of the currently playing song.
  * It is... PERFECT.
@@ -301,7 +301,7 @@ methodmap AUDIOMANAGER {
   public void OnTornadoWarning(bool issued) {
     for (int i = 0; i < MaxClients; i++) if (IsValidClient(i) && g_SirenEnabled[i] && g_SirenMutesMusic[i]) issued ? this.Stop(i) : this.setBGM(i, g_indexBGM, true);
   }
-
+  
   /* When a client sets the volume */
   public void SetVolume(int client, int vol) { AudioState[client].volume = vol; PrintToChat(client, "Set your volume to %i", AudioState[client].volume); }
 
@@ -313,6 +313,12 @@ methodmap AUDIOMANAGER {
 
   /* This should be obvious by now */
   public void SetVolumeRealSFX(int client, float vol) { AudioState[client].volume_real_sfx = vol; PrintToChat(client, "Set your volume to %f%%", AudioState[client].volume_real_sfx * 100); }
+
+  public void OnStartup(int event, const char[] path = "") {
+    char finalPath[PLATFORM_MAX_PATH];
+    Format(finalPath, sizeof(finalPath), "%s/Files", path);
+    CreateDirectory(finalPath);
+  }
 }
 AUDIOMANAGER AudioManager;
 
@@ -321,17 +327,17 @@ public Action EnableAudio(Handle timer) {
   return Plugin_Stop;
 }
 
-//Custom sound emitter, I don't know how many fucking times I've rewritten this! +2! See potato.sp
-//int flags:
-//  SND_NOFLAGS= 0,             /**< Nothing */
-//  SND_CHANGEVOL = 1,          /**< Change sound volume */
-//  SND_CHANGEPITCH = 2,        /**< Change sound pitch */
-//  SND_STOP = 3,               /**< Stop the sound */
-//  SND_SPAWNING = 4,           /**< Used in some cases for ambients */
-//  SND_DELAY = 5,              /**< Sound has an initial delay */
-//  SND_STOPLOOPING = 6,        /**< Stop looping all sounds on the entity */
-//  SND_SPEAKER = 7,            /**< Being played by a mic through a speaker */
-//  SND_SHOULDPAUSE = 8         /**< Pause if game is paused */
+// Custom sound emitter, I don't know how many f-ing times I've rewritten this! +2! See potato.sp
+// @param flags
+//  `SND_NOFLAGS (0)` Nothing,
+//  `SND_CHANGEVOL (1)` Changes volume,
+//  `SND_CHANGEPITCH (2)` Changes pitch,
+//  `SND_STOP (3)` Stops the sound,
+//  `SND_SPAWNING (4)` Used in some cases for ambients,
+//  `SND_DELAY (5)`, Sound has an initial delay,
+//  `SND_STOPLOOPING (6)` Stop looping all sounds on the entity,
+//  `SND_SPEAKER (7)` Being played by a mic through a speaker,
+//  `SND_SHOULDPAUSE (8)` Pause if game is paused.
 void CustomSoundEmitter(char[] sndName, int TSNDLVL, bool isBGM, int flags, float vol, int pitch) {
   for (int i = 1; i <= MaxClients; i++) {
     if (!IsValidClient(i)) continue;
@@ -339,44 +345,44 @@ void CustomSoundEmitter(char[] sndName, int TSNDLVL, bool isBGM, int flags, floa
   }
 }
 
-//Play sound to client. Ripped straight from potato. Allows us to play sounds directly to people when they join.
+// Play sound to client. Ripped straight from potato. Allows us to play sounds directly to people when they join.
 void CSEClient(int client, char[] sndName, int TSNDLVL, bool isBGM, int flags, float vol, int pitch) {
   if (!IsValidClient(client)) return;
   if (isBGM && (soundPreference[client] == 1 || soundPreference[client] == 3) || !isBGM && soundPreference[client] >= 2) EmitSoundToClient(client, sndName, _, isBGM ? g_chanBGM : 0, GetSNDLVL(client, isBGM, TSNDLVL), flags, GetVolume(client, isBGM, vol), pitch, _, _, _, _, _);
 }
 
-//Play sound to client. Now supports source entities, channels, and positions.
+// Play sound to client. Now supports source entities, channels, and positions.
 void CSEClientEx(int client, char[] sndName, int entity = -2, int channel, int TSNDLVL, bool isBGM, int flags, float vol, int pitch, float pos[3] = NULL_VECTOR) {
   if (!IsValidClient(client)) return;
   if (isBGM && (soundPreference[client] == 1 || soundPreference[client] == 3) || !isBGM && soundPreference[client] >= 2) EmitSoundToClient(client, sndName, entity, channel, GetSNDLVL(client, isBGM, TSNDLVL), flags, GetVolume(client, isBGM, vol), pitch, _, pos, _, _, _);
 }
 
-//Gets the client's preferred sound level - see the Valve Developer Wiki for valid SNDLVL indexes.
+// Gets the client's preferred sound level - see the Valve Developer Wiki for valid SNDLVL indexes.
 public int GetSNDLVL(int client, bool isBGM, int _default) { return isBGM ? (AudioState[client].volume != 0 ? AudioState[client].volume : _default) : !isBGM ? (AudioState[client].volume_sfx != 0 ? AudioState[client].volume_sfx : _default) : _default; }
 
-//Gets the client's preferred REAL sound level - between 0.0 and 1.0;
+// Gets the client's preferred REAL sound level - between 0.0 and 1.0;
 public float GetVolume(int client, bool isBGM, float _default) { return isBGM ? (AudioState[client].volume_real != 0.0 ? AudioState[client].volume_real : _default) : !isBGM ? (AudioState[client].volume_real_sfx != 0.0 ? AudioState[client].volume_real_sfx : _default) : _default; }
 
-//VIP Music Menu
+// VIP Music Menu
 public Action Command_Music(int client, int args) {
   int steamID = GetSteamAccountID(client);
   if (!steamID || steamID <= 10000) return Plugin_Handled;
-  else ShowFartsyMusicMenu(client);
+  else ShowHikariMusicMenu(client);
   return Plugin_Handled;
 }
 
-//VIP Music Menu
-public void ShowFartsyMusicMenu(int client) {
-  Menu menu = new Menu(MenuHandlerFartsyMusic, MENU_ACTIONS_DEFAULT);
+// VIP Music Menu
+public void ShowHikariMusicMenu(int client) {
+  Menu menu = new Menu(MenuHandlerHikariMusic, MENU_ACTIONS_DEFAULT);
   char buffer[100];
-  menu.SetTitle("Fartsy's Music Menu");
+  menu.SetTitle("Hikari's Music Menu");
   for (int i = 0; i < sizeof(BGMArray); i++) menu.AddItem(buffer, BGMArray[i].songName);
   menu.Display(client, MENU_TIME_FOREVER);
   menu.ExitButton = true;
 }
 
 // VIP Music Menu Handler
-public int MenuHandlerFartsyMusic(Menu menu, MenuAction action, int client, int bgm) {
+public int MenuHandlerHikariMusic(Menu menu, MenuAction action, int client, int bgm) {
   if (action == MenuAction_Select) {
     AssLogger(LOGLVL_WARN, "WE SHOULDNT BE USING TACO BELL BGM INDEX ANYMORE DUE TO NEW CONFIGS!!!");
     CPrintToChat(client, (bgm == 0 ? "{darkgreen}[CORE] Confirmed. Next song set to {aqua}Default{darkgreen}." : "{limegreen}[CORE] Confirmed. Next song set to {aqua}%s{limegreen}."), BGMArray[bgm].songName);
@@ -386,9 +392,9 @@ public int MenuHandlerFartsyMusic(Menu menu, MenuAction action, int client, int 
   return 0;
 }
 
-//Set Fartsy Sound menu
-public void FartsysSNDSelected(int client, MenuAction action, any info, char[] buffer, int maxlen) {
-  if (action == MenuAction_Select) ShowFartsyMenu(client);
+//Set Hikari Sound menu
+public void HikarisSNDSelected(int client, MenuAction action, any info, char[] buffer, int maxlen) {
+  if (action == MenuAction_Select) ShowHikariMenu(client);
 }
 
 // Get clients sound preferences then send them the menu
@@ -399,17 +405,17 @@ public Action Command_Sounds(int client, int args) {
     char queryID[256];
     Format(queryID, sizeof(queryID), "SELECT soundprefs, sirenenabled, sirenmutesmusic FROM ass_activity WHERE steamid = '%d';", steamID);
     Ass_Database.Query(SQL_SNDPrefs, queryID, client);
-    ShowFartsyMenu(client);
+    ShowHikariMenu(client);
     PrintToChat(client, "%s | Tornado Siren Enabled: %s | Tornado Siren Mutes Music: %s.", sndPrefs[soundPreference[client]], g_SirenEnabled[client] ? "True" : "False", g_SirenMutesMusic[client] ? "True" : "False");
     return Plugin_Handled;
   }
 }
 
 //Send client sound menu
-public void ShowFartsyMenu(int client) {
-  Menu menu = new Menu(MenuHandlerFartsy, MENU_ACTIONS_DEFAULT);
+public void ShowHikariMenu(int client) {
+  Menu menu = new Menu(MenuHandlerHikari, MENU_ACTIONS_DEFAULT);
   char buffer[100];
-  menu.SetTitle("Fartsy's Sound Menu");
+  menu.SetTitle("Hikari's Sound Menu");
   menu.AddItem(buffer, "Disable ALL");
   menu.AddItem(buffer, "Music Only");
   menu.AddItem(buffer, "Sound Effects Only");
@@ -421,7 +427,7 @@ public void ShowFartsyMenu(int client) {
 }
 
 // Handle client choices for sound preference
-public int MenuHandlerFartsy(Menu menu, MenuAction action, int param1, int param2) {
+public int MenuHandlerHikari(Menu menu, MenuAction action, int param1, int param2) {
   if (action == MenuAction_Select) {
     char query[256];
     int steamID = GetSteamAccountID(param1);
@@ -536,14 +542,14 @@ enum struct WEATHERMANAGER {
   void Activate() {
     this.Reset();
     this.tickWeather = true;
-    if (!WaveSystem().IsWaveNull())this.PerformRandomWeather(); //Start weather system ONLY IF NOT IN GAMEMODE 2.
+    if (!WaveSystem().IsWaveNull()) this.PerformRandomWeather(); // Start weather system ONLY IF NOT IN GAMEMODE 2.
   }
   void doLightning() {
     sudo(1003);
     FastFire2(lightningStrike[GetRandomInt(0, sizeof(lightningStrike) - 1)].fireStr);
     FastFire2("Weather.LightningHurt*", "Disable", "", 0.07);
     CustomSoundEmitter(SFXArray[GetRandomInt(27, 34)].realPath, 65, false, 0, 1.0, 100);
-    //Affect lights
+    // Affect lights
     int i = GetRandomInt(this.intensity, 15);
     AssLogger(LOGLVL_DEBUG, "Doing light interactions with %i", i);
     switch (i) {
@@ -617,7 +623,7 @@ enum struct WEATHERMANAGER {
   }
   void PerformRandomWeather() {
     if (!this.tickWeather) return;
-    AssLogger(LOGLVL_DEBUG, "[Fartsy's Enhancer] Storm Intensity @ %f% (%i)", (this.intensity / 15.0), this.intensity);
+    AssLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (this.intensity / 15.0), this.intensity);
     this.doLightning();
     float flStormMin;
     float flStormMax;
@@ -813,7 +819,7 @@ enum struct WEATHERMANAGER {
     CreateTimer(GetRandomFloat(flStormMin, flStormMax), GetRandomWeather);
   }
   void Reset() {
-    AssLogger(LOGLVL_DEBUG, "[Fartsy's Enhancer] WeatherManager has been reset!");
+    AssLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] WeatherManager has been reset!");
     this.fogDensity = 0.50;
     this.fogColorRTarget = 35.0;
     this.fogColorGTarget = 55.0;
@@ -930,7 +936,7 @@ enum struct WEATHERMANAGER {
     }
   }
   void TryFormTornado() {
-    if (this.CanFormTornado()) {
+    if (this.CanFormTornado() && ICanSummon(7)) {
       this.hasTornado = true;
       this.mIntensity = 15;
       this.intensity = 15;
@@ -943,7 +949,23 @@ enum struct WEATHERMANAGER {
       FastFire2("tornadof1wind", "Enable", "", 21.50);
       float f = GetRandomFloat(60.0, 120.0);
       CreateTimer(f, TimedOperator, 42);
+      SetEntityLife("tornado", f);
+      SetEntityLife("TorTrack*", f);
+      SetEntityLife("tornadotrain", f);
+      SetEntityLife("tornadof1", f);
+      SetEntityLife("tornadoshake_f1", f);
+      SetEntityLife("tornadowindf1", f);  
     }
+  }
+  void OnStartup(int event, const char[] path) {
+    switch (event){
+      case 0:{
+        char finalPath[PLATFORM_MAX_PATH];
+        Format(finalPath, sizeof(finalPath), "%s/Weather", path);
+        CreateDirectory(finalPath);
+      }
+    }
+
   }
 }
 WEATHERMANAGER WeatherManager;

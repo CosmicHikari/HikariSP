@@ -1,3 +1,4 @@
+char SUDO_VER = "1.0.0";
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
   AssLogger(LOGLVL_DEBUG, "Calling sudo with %i", task);
@@ -782,19 +783,36 @@ void sudo(int task) {
     }
   //Crusader
     case 1006: {
-      AudioManager.SetEnabled(false);
-      sudo(1001);
-      crusader = true;
-      if (ICanSummon(84)) FastFire2("TheCrusaderTemplate", "ForceSpawn");
-      CreateTimer(1.75, CRUSADERINCOMING);
-      CreateTimer(25.20, TimedOperator, 9);
-      CreateTimer(25.20, TimedOperator, 78);
-      CreateTimer(42.60, TimedOperator, 10);
-      CreateTimer(63.20, TimedOperator, 80);
-      PrintToServer("Starting Crusader via plugin!");
-      EmitSoundToAll("fartsy/misc/fartsyscrusader_bgm_locus.mp3");
-      CreateTimer(80.0, TimedOperator, 79);
-      for (int i = 0; i < sizeof(crusaderAtk); i++) FastFire2(crusaderAtk[i].fireStr);
+      if (ICanSummon(84)) {
+        AudioManager.SetEnabled(false);
+        sudo(1001);
+        crusader = true;
+        AssLogger(LOGLVL_INFO, "Starting Crusader!");
+        FastFire2("TheCrusaderTemplate", "ForceSpawn");
+        SetEntityLife("CrusaderTrack*", 80.0);
+        SetEntityLife("CrusaderTrain", 80.0);
+        SetEntityLife("FB.CrusaderNuke", 80.0);
+        SetEntityLife("FB.CRUSADER", 80.0);
+        SetEntityLife("Target.FBLaserCore", 80.0);
+        SetEntityLife("Target.FBLaserInner*", 80.0);
+        SetEntityLife("Target.FBLaserOuterMost*", 80.0);
+        SetEntityLife("CrusaderLaserBase", 80.0);
+        SetEntityLife("CrusaderLaserBaseAlt", 80.0);
+        SetEntityLife("CrusaderLaserBaseAlt1", 80.0);
+        SetEntityLife("CrusaderLaserBaseAlt2", 80.0);
+        SetEntityLife("CrusaderLaserBaseAlt3", 80.0);
+        SetEntityLife("FB.LaserInnerMost", 80.0);
+        SetEntityLife("FB.LaserOuterMost", 80.0);
+        SetEntityLife("FB.LaserCore", 80.0);
+        CreateTimer(1.75, CRUSADERINCOMING);
+        CreateTimer(25.20, TimedOperator, 9);
+        CreateTimer(25.20, TimedOperator, 78);
+        CreateTimer(42.60, TimedOperator, 10);
+        CreateTimer(63.20, TimedOperator, 80);
+        EmitSoundToAll("fartsy/misc/fartsyscrusader_bgm_locus.mp3");
+        CreateTimer(80.0, TimedOperator, 79);
+        for (int i = 0; i < sizeof(crusaderAtk); i++) FastFire2(crusaderAtk[i].fireStr);
+      }
     }
   //Choose bomb path
     case 1007: {
@@ -1118,9 +1136,7 @@ public Action TimedOperator(Handle timer, int job) {
     }
     case 79: {
       crusader = false;
-      if (WaveSystem().IsActive() && (WaveSystem().GetWave() == 3 || WaveSystem().GetWave() == 5)) {
-        sudo(99);
-      }
+      if (WaveSystem().IsActive() && (WaveSystem().GetWave() == 3 || WaveSystem().GetWave() == 5)) { sudo(99); }
       return Plugin_Stop;
     }
     case 80: {
