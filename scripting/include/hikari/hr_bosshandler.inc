@@ -1,4 +1,6 @@
- // Fartsy's Boss Handler v1.0.0
+// Hikari's Boss Handler v1.0.0
+char HRBOSS_VER[8] = "1.0.0";
+
 bool canCrusaderNuke = false;
 bool crusader = false;
 int INCOMINGDISPLAYED = 0;
@@ -20,7 +22,7 @@ char ClassDefinitions[][32] = {
 public Action CRUSADERINCOMING(Handle timer) {
   if (crusader && INCOMINGDISPLAYED < 17) {
     INCOMINGDISPLAYED++;
-    FastFire2("FB.INCOMING", "Display");
+    FastFire2.Execute("FB.INCOMING", "Display");
     CreateTimer(1.75, CRUSADERINCOMING);
   }
   if (INCOMINGDISPLAYED == 17) INCOMINGDISPLAYED = 0;
@@ -93,9 +95,7 @@ enum struct EMNITYMANAGER {
 }
 EMNITYMANAGER EmnityManager[MAXPLAYERS+1];
 
-void AddHealerEmnity(int healer, int i) {
-  if (IsValidClient(healer)) EmnityManager[healer].Add(healer, 2, i);
-}
+void AddHealerEmnity(int healer, int i) { if (IsValidClient(healer)) EmnityManager[healer].Add(healer, 2, i); }
 
 public int GetEmnityMax() {
   int result = 0;
@@ -159,14 +159,14 @@ enum struct BOSSHANDLER {
     if (this.isAlive) SCR_SendEvent("Boss Slain", this.bossID == 0 ? "Onslaughter has been killed!" : this.bossID == 1 ? "Sephiroth has been killed!" : "Metal Face has been killed!");
     switch (this.bossID) {
       case 0: {
-        FastFire2("OnslaughterTank", "SetHealth", "1");
-        FastFire2("FB.BruteJustice", "Disable");
-        FastFire2("FB.BruteJusticeTrain", "Stop");
-        FastFire2("FB.BruteJusticeParticles", "Stop");
-        FastFire2("FB.BruteJusticeDMGRelay", "Break");
-        FastFire2("FB.BruteJusticeTrain", "TeleportToPathTrack", "tank_path_a_10", 0.5);
-        FastFire2("TankRelayDMG", "Enable", "", 1.0);
-        FastFire2("TankRelayDMG", "Disable", "", 10.0);
+        FastFire2.Execute("OnslaughterTank", "SetHealth", "1");
+        FastFire2.Execute("FB.BruteJustice", "Disable");
+        FastFire2.Execute("FB.BruteJusticeTrain", "Stop");
+        FastFire2.Execute("FB.BruteJusticeParticles", "Stop");
+        FastFire2.Execute("FB.BruteJusticeDMGRelay", "Break");
+        FastFire2.Execute("FB.BruteJusticeTrain", "TeleportToPathTrack", "tank_path_a_10", 0.5);
+        FastFire2.Execute("TankRelayDMG", "Enable", "", 1.0);
+        FastFire2.Execute("TankRelayDMG", "Disable", "", 10.0);
         ass_sacPoints += 25;
       }
       //Sephiroth lost
@@ -175,7 +175,7 @@ enum struct BOSSHANDLER {
       }
       //Metal Face lost
       case 2: {
-        FastFire2("FB.MetalFace.Train", "TeleportToPathTrack", "MFTHOME");
+        FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "MFTHOME");
       }
     }
     this.isAlive = false;
@@ -246,10 +246,10 @@ enum struct BOSSHANDLER {
           PrintToChatAll("PHASE CHANGED, %i to %i", this.iBossPhaseTmp, this.iBossPhase);
           this.iBossPhaseTmp = this.iBossPhase;
           if (this.iBossPhase > 1) {
-            FastFire2("mfTelefect", "Start");
-            FastFire2("FB.MetalFace.ReturnSND", "PlaySound");
-            FastFire2("FB.MetalFace.Train", "TeleportToPathTrack", "MFTHOME", 0.25);
-            FastFire2("FB.MetalFace.Invuln", "Enable", "", 3.0);
+            FastFire2.Execute("mfTelefect", "Start");
+            FastFire2.Execute("FB.MetalFace.ReturnSND", "PlaySound");
+            FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "MFTHOME", 0.25);
+            FastFire2.Execute("FB.MetalFace.Invuln", "Enable", "", 3.0);
           }
           //Phase changing, these only ever happen once per phase.
           switch (this.iBossPhase) {
@@ -258,42 +258,42 @@ enum struct BOSSHANDLER {
             }
             case 1: {
               //PrintToChatAll("Recognized 0 -> 1, the boss must have just spawned!");
-              FastFire2("FB.MetalBase", "SetHealth", "320000");
-              FastFire2("FB.MetalBase", "SetMaxHealth", "320000");
-              FastFire2("FB.MetalBase", "AddOutput", "health 320000");
-              FastFire2("FB.MetalFace", "Enable");
+              FastFire2.Execute("FB.MetalBase", "SetHealth", "320000");
+              FastFire2.Execute("FB.MetalBase", "SetMaxHealth", "320000");
+              FastFire2.Execute("FB.MetalBase", "AddOutput", "health 320000");
+              FastFire2.Execute("FB.MetalFace", "Enable");
             }
             case 2: {
               //PrintToChatAll("Recognized 1 -> 2, things are heating up!");
               AudioManager.setBGM_Global(22, false);
-              FastFire2("FB.MetalFace.Train", "TeleportToPathTrack", "MFT1x0", 3.0);
-              FastFire2("FB.MetalFace.SkeleSpawner", "Enable");
-              FastFire2("FB.MetalFace.SkeleSpawner", "Disable", "", 120.0);
-              FastFire2("mfTelefect", "Start", "", 120.0);
-              FastFire2("FB.MetalFace.ReturnSND", "PlaySound", "", 120.0);
-              FastFire2("FB.MetalFace.Train", "TeleportToPathTrack", "MFTHOME", 120.25);
-              FastFire2("FB.MetalFace.Invuln", "Disable", "", 123.0);
-              FastFire2("FB.MetalFace.Train", "TeleportToPathTrack", "tank_path_a_100", 126.85);
-              FastFire2("mfTelefect", "Start", "", 127.0);
-              FastFire2("FB.MetalFace.ReturnSND", "PlaySound", "", 127.0);
+              FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "MFT1x0", 3.0);
+              FastFire2.Execute("FB.MetalFace.SkeleSpawner", "Enable");
+              FastFire2.Execute("FB.MetalFace.SkeleSpawner", "Disable", "", 120.0);
+              FastFire2.Execute("mfTelefect", "Start", "", 120.0);
+              FastFire2.Execute("FB.MetalFace.ReturnSND", "PlaySound", "", 120.0);
+              FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "MFTHOME", 120.25);
+              FastFire2.Execute("FB.MetalFace.Invuln", "Disable", "", 123.0);
+              FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "tank_path_a_100", 126.85);
+              FastFire2.Execute("mfTelefect", "Start", "", 127.0);
+              FastFire2.Execute("FB.MetalFace.ReturnSND", "PlaySound", "", 127.0);
             }
             case 3: {
               //PrintToChatAll("Recognized 2 -> 3, oh boi");
               AudioManager.setBGM_Global(24, false);
-              FastFire2("FB.MetalFace.Train", "TeleportToPathTrack", "MFT2x0", 3.00);
-              FastFire2("FB.MetalFace.MerasmusSpawner", "ForceSpawn", "", 5.0); //Spawn halloween bosses at MetalFace's location
-              FastFire2("FB.MetalFace.MonoculusSpawner", "ForceSpawn", "", 7.0); //Spawn halloween bosses at MetalFace's location
-              FastFire2("FB.MetalFace.HHHSpawner", "ForceSpawn", "", 9.0); //Spawn halloween bosses at MetalFace's location
-              FastFire2("FB.MetalFace.Invuln", "Disable", "", 123.0);
-              FastFire2("FB.MetalFace.Train", "TeleportToPathTrack", "tank_path_a_250", 126.85);
-              FastFire2("mfTelefect", "Start", "", 127.0);
-              FastFire2("FB.MetalFace.ReturnSND", "PlaySound", "", 127.0);
+              FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "MFT2x0", 3.00);
+              FastFire2.Execute("FB.MetalFace.MerasmusSpawner", "ForceSpawn", "", 5.0); //Spawn halloween bosses at MetalFace's location
+              FastFire2.Execute("FB.MetalFace.MonoculusSpawner", "ForceSpawn", "", 7.0); //Spawn halloween bosses at MetalFace's location
+              FastFire2.Execute("FB.MetalFace.HHHSpawner", "ForceSpawn", "", 9.0); //Spawn halloween bosses at MetalFace's location
+              FastFire2.Execute("FB.MetalFace.Invuln", "Disable", "", 123.0);
+              FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "tank_path_a_250", 126.85);
+              FastFire2.Execute("mfTelefect", "Start", "", 127.0);
+              FastFire2.Execute("FB.MetalFace.ReturnSND", "PlaySound", "", 127.0);
             }
             case 4: {
               //PrintToChatAll("Recognized 3 -> 4, OHSHITOHFUCKOHNO");
               AudioManager.setBGM_Global(26, true);
-              FastFire2("FB.MetalFace.Train", "TeleportToPathTrack", "MFT3x0", 3.0);
-              FastFire2("FB.MetalFace.GigaBuster", "ForceSpawn", "", 10.0);
+              FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "MFT3x0", 3.0);
+              FastFire2.Execute("FB.MetalFace.GigaBuster", "ForceSpawn", "", 10.0);
             }
           }
         }
@@ -403,14 +403,14 @@ enum struct BOSSHANDLER {
       this.bDoTankBuster = false;
       int iHealth = GetClientHealth(this.bustTarget);
       Format(sDamage, sizeof(sDamage), "damage %i", RoundToFloor(iHealth * 0.65));
-      FastFire2("FB.TankBuster", "AddOutput", sDamage, 0.0);
-      FastFire2("FB.TankBusterSND", "PlaySound", "", 1.25);
-      FastFire2("FB.TankBuster.GroundParticle", "Start");
-      FastFire2("FB.TankBuster.ExplodeSND", "PlaySound", "", 5.50);
-      FastFire2("FB.TankBuster.ExplodeParticle", "Start", "", 5.75);
-      FastFire2("FB.TankBuster.ExplodeParticle", "Stop", "", 9.0);
-      FastFire2("FB.TankBuster", "Enable", "", 5.75);
-      FastFire2("FB.TankBuster", "Disable", "", 6.0);
+      FastFire2.Execute("FB.TankBuster", "AddOutput", sDamage, 0.0);
+      FastFire2.Execute("FB.TankBusterSND", "PlaySound", "", 1.25);
+      FastFire2.Execute("FB.TankBuster.GroundParticle", "Start");
+      FastFire2.Execute("FB.TankBuster.ExplodeSND", "PlaySound", "", 5.50);
+      FastFire2.Execute("FB.TankBuster.ExplodeParticle", "Start", "", 5.75);
+      FastFire2.Execute("FB.TankBuster.ExplodeParticle", "Stop", "", 9.0);
+      FastFire2.Execute("FB.TankBuster", "Enable", "", 5.75);
+      FastFire2.Execute("FB.TankBuster", "Disable", "", 6.0);
       CreateTimer(1.0, StartTickBuster);
       PrintToServer("Dropping a tank buster on %N, they have %i HP, the tank buster will do %s.", this.bustTarget, iHealth, sDamage);
       CreateTimer(7.0, ResetTickBuster);
@@ -497,73 +497,71 @@ enum struct BOSSHANDLER {
     CreateTimer(3.0, OnBossSpawn_Post, baseHP);
     switch (this.bossID) {
       case 0: {
-        FastFire2("FB.OnslaughterBase", "SetHealth", bossHP, 0.5);
-        FastFire2("FB.OnslaughterBase", "SetHealth", bossHP, 1.5);
-        FastFire2("FB.OnslaughterBase", "SetModelScale", "0.19", 0.0);
-        FastFire2("FB.BruteJusticeTrain", "TeleportToPathTrack", "tank_path_a_10", 0.0);
-        FastFire2("FB.BruteJustice", "Enable", "", 3.0);
-        FastFire2("FB.BruteJusticeTrain", "StartForward", "", 3.0);
-        FastFire2("FB.BruteJusticeParticles", "Start", "", 3.0);
+        FastFire2.Execute("FB.OnslaughterBase", "SetHealth", bossHP, 0.5);
+        FastFire2.Execute("FB.OnslaughterBase", "SetHealth", bossHP, 1.5);
+        FastFire2.Execute("FB.OnslaughterBase", "SetModelScale", "0.19", 0.0);
+        FastFire2.Execute("FB.BruteJusticeTrain", "TeleportToPathTrack", "tank_path_a_10", 0.0);
+        FastFire2.Execute("FB.BruteJustice", "Enable", "", 3.0);
+        FastFire2.Execute("FB.BruteJusticeTrain", "StartForward", "", 3.0);
+        FastFire2.Execute("FB.BruteJusticeParticles", "Start", "", 3.0);
         CreateTimer(5.0, OnslaughterATK);
-        FastFire2("tank_boss", "AddOutput", "rendermode 10", 3.0);
-        FastFire2("tank_boss", "AddOutput", "rendermode 10", 7.0);
+        FastFire2.Execute("tank_boss", "AddOutput", "rendermode 10", 3.0);
+        FastFire2.Execute("tank_boss", "AddOutput", "rendermode 10", 7.0);
         CreateTimer(10.0, BossHPTimer);
       }
       case 1: {
-        FastFire2("FB.Sephiroth", "Enable", "", 0.0);
-        FastFire2("SephMeteor", "SetParent", "FB.Sephiroth", 0.0);
-        FastFire2("SephTrain", "SetSpeedReal", "12", 0.0);
-        FastFire2("SephTrain", "TeleportToPathTrack", "Seph01", 0.0);
-        FastFire2("SephTrain", "StartForward", "", 0.1);
-        FastFire2("SephTrain", "SetSpeedReal", "12", 20.5);
-        FastFire2("FB.SephParticles", "Start", "", 3.0);
-        FastFire2("tank_boss", "AddOutput", "rendermode 10", 3.0);
-        FastFire2("tank_boss", "AddOutput", "rendermode 10", 7.0);
-        FastFire2("FB.BruteJusticeDMGRelay", "Kill", "", 0.0);
+        FastFire2.Execute("FB.Sephiroth", "Enable", "", 0.0);
+        FastFire2.Execute("SephMeteor", "SetParent", "FB.Sephiroth", 0.0);
+        FastFire2.Execute("SephTrain", "SetSpeedReal", "12", 0.0);
+        FastFire2.Execute("SephTrain", "TeleportToPathTrack", "Seph01", 0.0);
+        FastFire2.Execute("SephTrain", "StartForward", "", 0.1);
+        FastFire2.Execute("SephTrain", "SetSpeedReal", "12", 20.5);
+        FastFire2.Execute("FB.SephParticles", "Start", "", 3.0);
+        FastFire2.Execute("tank_boss", "AddOutput", "rendermode 10", 3.0);
+        FastFire2.Execute("tank_boss", "AddOutput", "rendermode 10", 7.0);
+        FastFire2.Execute("FB.BruteJusticeDMGRelay", "Kill", "", 0.0);
         switch (GetClientCount(true)) {
           case 1: {
-            FastFire2("SephTrain", "SetSpeedReal", "40", 23.0);
-            FastFire2("tank_boss", "SetHealth", "409600", 1.0);
-            FastFire2("FB.SephDMGRelay", "SetHealth", "32768000", 1.0);
+            FastFire2.Execute("SephTrain", "SetSpeedReal", "40", 23.0);
+            FastFire2.Execute("tank_boss", "SetHealth", "409600", 1.0);
+            FastFire2.Execute("FB.SephDMGRelay", "SetHealth", "32768000", 1.0);
           }
           case 2: {
-            FastFire2("SephTrain", "SetSpeedReal", "35", 23.0);
-            FastFire2("tank_boss", "SetHealth", "614400", 1.0);
-            FastFire2("FB.SephDMGRelay", "SetHealth", "32768000", 1.0);
+            FastFire2.Execute("SephTrain", "SetSpeedReal", "35", 23.0);
+            FastFire2.Execute("tank_boss", "SetHealth", "614400", 1.0);
+            FastFire2.Execute("FB.SephDMGRelay", "SetHealth", "32768000", 1.0);
           }
           case 3: {
-            FastFire2("SephTrain", "SetSpeedReal", "35", 23.0);
-            FastFire2("tank_boss", "SetHealth", "614400", 1.0);
-            FastFire2("FB.SephDMGRelay", "SetHealth", "131072000", 1.0);
+            FastFire2.Execute("SephTrain", "SetSpeedReal", "35", 23.0);
+            FastFire2.Execute("tank_boss", "SetHealth", "614400", 1.0);
+            FastFire2.Execute("FB.SephDMGRelay", "SetHealth", "131072000", 1.0);
           }
           case 4: {
-            FastFire2("SephTrain", "SetSpeedReal", "30", 23.0);
-            FastFire2("tank_boss", "SetHealth", "819200", 1.0);
-            FastFire2("FB.SephDMGRelay", "SetHealth", "262144000", 1.0);
+            FastFire2.Execute("SephTrain", "SetSpeedReal", "30", 23.0);
+            FastFire2.Execute("tank_boss", "SetHealth", "819200", 1.0);
+            FastFire2.Execute("FB.SephDMGRelay", "SetHealth", "262144000", 1.0);
           }
           case 5, 6, 7, 8, 9, 10: {
-            FastFire2("SephTrain", "SetSpeedReal", "25", 23.0);
-            FastFire2("tank_boss", "SetHealth", "819200", 1.0);
-            FastFire2("FB.SephDMGRelay", "SetHealth", "655360000", 1.0);
+            FastFire2.Execute("SephTrain", "SetSpeedReal", "25", 23.0);
+            FastFire2.Execute("tank_boss", "SetHealth", "819200", 1.0);
+            FastFire2.Execute("FB.SephDMGRelay", "SetHealth", "655360000", 1.0);
           }
         }
         CreateTimer(30.0, BossHPTimer);
       }
       case 2: {
         this.EmitSpawnSound(2);
-        FastFire2("FB.MetalFace.Train", "TeleportToPathTrack", "MFT0x0", 1.0);
-        FastFire2("FB.MetalFace.SpawnParticle", "Start", "", 1.0);
-        FastFire2("FB.MetalFace.Train", "SetSpeedReal", "1024", 1.0);
+        FastFire2.Execute("FB.MetalFace.Train", "TeleportToPathTrack", "MFT0x0", 1.0);
+        FastFire2.Execute("FB.MetalFace.SpawnParticle", "Start", "", 1.0);
+        FastFire2.Execute("FB.MetalFace.Train", "SetSpeedReal", "1024", 1.0);
         //switch(GetClientCount(true))
-        FastFire2("FB.MetalBase", "AddOutput", "health 320000");
+        FastFire2.Execute("FB.MetalBase", "AddOutput", "health 320000");
       }
     }
   }
 }
 BOSSHANDLER BossHandler;
-BOSSHANDLER Get_Boss_Handler() {
-  return BossHandler;
-}
+BOSSHANDLER Get_Boss_Handler() { return BossHandler; }
 
 //Custom Bosses - For Sephiroth, index may vary because we don't want to be able to execute code that shouldn't be executed. Example SephBoss[5].attack would run code that's part of SephBoss[4].attack. Also, this.fireCount is how many times FastFire should run, as well being added to this.index to determine what it does.
 enum struct CUSTOMBOSS {
@@ -579,7 +577,7 @@ enum struct CUSTOMBOSS {
       CreateTimer(7.0, TimedOperator, 11);
     }
     if (!StrEqual(this.ChatMessage, ""))CPrintToChatAll(this.ChatMessage);
-    for (int i = 0; i < this.fireCount; i++)FastFire2(this.fireString[this.index + i]);
+    for (int i = 0; i < this.fireCount; i++) FastFire2.Execute(this.fireString[this.index + i]);
   }
   void Reset() {
     this.shouldNuke = false;
@@ -594,7 +592,7 @@ CUSTOMBOSS HWBoss[12];
 public Action NukeTimer(Handle timer, int type) {
   if (canCrusaderNuke || SephBoss[0].shouldNuke) {
     CustomSoundEmitter(SFXArray[8].realPath, 65, false, 0, 1.0, 100);
-    FastFire2(type == 1 ? "FB.CrusaderNuke" : "SephNuke", "ForceSpawn");
+    FastFire2.Execute(type == 1 ? "FB.CrusaderNuke" : "SephNuke", "ForceSpawn");
     CreateTimer(GetRandomFloat(1.5, 3.0), NukeTimer, type);
   }
   return Plugin_Stop;

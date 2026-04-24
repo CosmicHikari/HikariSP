@@ -22,9 +22,9 @@ public Action StatsTracker(Handle timer) {
   Format(hour, sizeof(hour), "%i", time[0]);
   Format(minute, sizeof(minute), "%i", time[1]);
   Format(ampm, sizeof(ampm), "%i", time[2]);
-  FastFire2("FBMetric.TimeHH", "SetTextureIndex", hour);
-  FastFire2("FBMetric.TimeMM", "SetTextureIndex", minute);
-  FastFire2("FBMetric.TimeAMPM", "SetTextureIndex", ampm);
+  FastFire2.Execute("FBMetric.TimeHH", "SetTextureIndex", hour);
+  FastFire2.Execute("FBMetric.TimeMM", "SetTextureIndex", minute);
+  FastFire2.Execute("FBMetric.TimeAMPM", "SetTextureIndex", ampm);
   CreateTimer(15.0, StatsTracker);
   if (!Ass_Database) return Plugin_Stop;
   char query[512];
@@ -55,20 +55,20 @@ public void OnMetricsFetch(Database db, DBResultSet results, const char[] error,
     char val[32];
     if (StrEqual(name, "memory_used_gib")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2("FBMetric.RAMUtil", "SetTextureIndex", val);
+      FastFire2.Execute("FBMetric.RAMUtil", "SetTextureIndex", val);
     } else if (StrEqual(name, "memory_total_gib")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2("FBMetric.RAMTotal", "SetTextureIndex", val);
+      FastFire2.Execute("FBMetric.RAMTotal", "SetTextureIndex", val);
     } else if (StrEqual(name, "cpu_usage_percent")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2("FBMetric.CPUUtil", "SetTextureIndex", val);
+      FastFire2.Execute("FBMetric.CPUUtil", "SetTextureIndex", val);
     } else if (StrEqual(name, "cpu_frequency_x10")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2("FBMetric.CPUFreq", "SetTextureIndex", val);
+      FastFire2.Execute("FBMetric.CPUFreq", "SetTextureIndex", val);
     } else if (StrEqual(name, "cpu_temperature_c")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2("FBMetric.CPUTemp", "SetTextureIndex", val);
+      FastFire2.Execute("FBMetric.CPUTemp", "SetTextureIndex", val);
     }
   }
-  FastFire2("FBMetrics.*", "Enable", "");
+  FastFire2.Execute("FBMetrics.*", "Enable", "");
 }

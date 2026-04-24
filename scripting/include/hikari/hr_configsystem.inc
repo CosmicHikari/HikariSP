@@ -1,5 +1,6 @@
  //ASS_CONFIGSYSTEM - Contains the config loaders and all the plugin core data entries.
 #include <smjansson> // Needed for JSON parsing
+char HRCFG_VERSION[8] = "1.0.0";
 
 //Default values per wave
 enum struct DEFAULTS {
@@ -103,16 +104,12 @@ enum struct COREDATA {
   int VIPIndex;
   int waveFlags;
   void init_pre() {
-    char basePath[PLATFORM_MAX_PATH];
+    char basePath[PLATFORM_MAX_PATH]; char subFolder [PLATFORM_MAX_PATH];
     BuildPath(Path_SM, basePath, sizeof(basePath), "configs/HikarisRequiem");
     CreateDirectory(basePath);
-    char subFolder[PLATFORM_MAX_PATH];
-    Format(subFolder, sizeof(subFolder), "%s/Files", basePath);
-    CreateDirectory(subFolder);
-    Format(subFolder, sizeof(subFolder), "%s/Weather", basePath);
-    CreateDirectory(subFolder);
-    Format(subFolder, sizeof(subFolder), "%s/BulkFire", basePath);
-    CreateDirectory(subFolder);
+    WeatherManager.OnStartup(0, basePath);
+    AudioManager.OnStartup(0, basePath);
+    OnBulkfireStartup(basePath);
     Format(subFolder, sizeof(subFolder), "%s/Core", basePath);
     CreateDirectory(subFolder);
     AssLogger(LOGLVL_DEBUG, "HikarisRequiem folder structure created!");
@@ -125,7 +122,7 @@ enum struct COREDATA {
     strcopy(this.configWaveNull, sizeof(this.configWaveNull), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults_WaveNull.ini");
     WaveSystem().SetActive(false);
     WaveSystem().SetWave(0);
-    AudioManager.init();
+    AudioManager.OnStartup(1);
     AssLogger(1, "Setting up bosses...");
     ass[0].name = "[10] Bath Salts";
     ass[1].name = "[20] Summon Goobbue or Kirby";

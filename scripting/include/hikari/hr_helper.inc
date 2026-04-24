@@ -179,7 +179,7 @@ public Action DispatchCircleAOE(float pos[3]) {
     float v[3];
     float rot[3];
     TeleportEntity(ent, pos, rot, v);
-    FastFire2("CircleTemplate", "ForceSpawn");
+    FastFire2.Execute("CircleTemplate", "ForceSpawn");
   }
   return Plugin_Stop;
 }
@@ -187,8 +187,8 @@ public Action DispatchCircleAOE(float pos[3]) {
 //RobotLaunchTimer (Randomly fling robots)
 public Action RobotLaunchTimer(Handle timer) {
   if (!WaveSystem().IsActive()) return Plugin_Stop;
-  FastFire2("FB.RobotLauncher", "Enable", "", 0.0);
-  FastFire2("FB.RobotLauncher", "Disable", "", 7.5);
+  FastFire2.Execute("FB.RobotLauncher", "Enable", "", 0.0);
+  FastFire2.Execute("FB.RobotLauncher", "Disable", "", 7.5);
   CreateTimer(GetRandomFloat(5.0, 30.0), RobotLaunchTimer);
   return Plugin_Stop;
 }
@@ -233,58 +233,58 @@ public Action OnslaughterATK(Handle timer) {
   if (BossHandler.isAlive) {
     if (core.waveFlags == 1) {
       CreateTimer(GetRandomFloat(5.0, 7.0), OnslaughterATK);
-      FastFire2("BruteJusticeDefaultATK", "FireMultiple", "3", 5.0);
+      FastFire2.Execute("BruteJusticeDefaultATK", "FireMultiple", "3", 5.0);
       switch (GetRandomInt(1, 10)) {
         case 1, 6: {
-          FastFire2("BruteJusticeLaserParticle", "Start");
+          FastFire2.Execute("BruteJusticeLaserParticle", "Start");
           CustomSoundEmitter(SFXArray[38].realPath, 65, false, 0, 1.0, 100);
-          FastFire2("BruteJusticeLaser", "TurnOn", "", 1.40);
-          FastFire2("BruteJusticeLaserHurtAOE", "Enable", "", 1.40);
-          FastFire2("BruteJusticeLaserParticle", "Stop", "", 3.00);
-          FastFire2("BruteJusticeLaser", "TurnOff", "", 3.25);
-          FastFire2("BruteJusticeLaserHurtAOE", "Disable", "", 3.25);
+          FastFire2.Execute("BruteJusticeLaser", "TurnOn", "", 1.40);
+          FastFire2.Execute("BruteJusticeLaserHurtAOE", "Enable", "", 1.40);
+          FastFire2.Execute("BruteJusticeLaserParticle", "Stop", "", 3.00);
+          FastFire2.Execute("BruteJusticeLaser", "TurnOff", "", 3.25);
+          FastFire2.Execute("BruteJusticeLaserHurtAOE", "Disable", "", 3.25);
         }
         case 2, 8: {
-          FastFire2("BruteJusticeJarateSpawner00", "ForceSpawn", "", 0.0);
-          FastFire2("BruteJusticeJarateSpawner01", "ForceSpawn", "", 2.5);
-          FastFire2("BruteJusticeJarateSpawner02", "ForceSpawn", "", 5.0);
-          FastFire2("BruteJusticeJarateSpawner00", "ForceSpawn", "", 9.0);
-          FastFire2("BruteJusticeJarateSpawner01", "ForceSpawn", "", 12.0);
-          FastFire2("BruteJusticeJarateSpawner02", "ForceSpawn", "", 15.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner00", "ForceSpawn", "", 0.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner01", "ForceSpawn", "", 2.5);
+          FastFire2.Execute("BruteJusticeJarateSpawner02", "ForceSpawn", "", 5.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner00", "ForceSpawn", "", 9.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner01", "ForceSpawn", "", 12.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner02", "ForceSpawn", "", 15.0);
         }
         case 3, 7: {
-          FastFire2("BruteJusticeFlameParticle", "Start");
-          FastFire2("BruteJusticeFlamethrowerHurtAOE", "Enable");
+          FastFire2.Execute("BruteJusticeFlameParticle", "Start");
+          FastFire2.Execute("BruteJusticeFlamethrowerHurtAOE", "Enable");
           CustomSoundEmitter(SFXArray[39].realPath, 65, false, 0, 1.0, 100);
-          FastFire2("SND.BruteJusticeFlameATK", "PlaySound", "", 1.25);
-          FastFire2("BruteJusticeFlamethrowerHurtAOE", "Disable", "", 5.0);
-          FastFire2("BruteJusticeFlameParticle", "Stop", "", 5.0);
-          FastFire2("SND.BruteJusticeFlameATK", "FadeOut", ".25", 5.0);
+          FastFire2.Execute("SND.BruteJusticeFlameATK", "PlaySound", "", 1.25);
+          FastFire2.Execute("BruteJusticeFlamethrowerHurtAOE", "Disable", "", 5.0);
+          FastFire2.Execute("BruteJusticeFlameParticle", "Stop", "", 5.0);
+          FastFire2.Execute("SND.BruteJusticeFlameATK", "FadeOut", ".25", 5.0);
           CreateTimer(5.0, TimedOperator, 60);
-          FastFire2("SND.BruteJusticeFlameATK", "StopSound", "", 5.1);
+          FastFire2.Execute("SND.BruteJusticeFlameATK", "StopSound", "", 5.1);
         }
         case 4: {
-          FastFire2("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 0.0);
-          FastFire2("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 3.0);
-          FastFire2("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 5.0);
+          FastFire2.Execute("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 0.0);
+          FastFire2.Execute("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 3.0);
+          FastFire2.Execute("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 5.0);
         }
         case 5: {
-          FastFire2("BruteJusticeGrenadeSpammer", "FireMultiple", "50", 0.0);
-          FastFire2("BruteJusticeJarateSpawner00", "ForceSpawn", "", 0.0);
-          FastFire2("BruteJusticeJarateSpawner01", "ForceSpawn", "", 2.5);
-          FastFire2("BruteJusticeJarateSpawner02", "ForceSpawn", "", 5.0);
-          FastFire2("BruteJusticeJarateSpawner00", "ForceSpawn", "", 9.0);
-          FastFire2("BruteJusticeJarateSpawner01", "ForceSpawn", "", 12.0);
-          FastFire2("BruteJusticeJarateSpawner02", "ForceSpawn", "", 15.0);
+          FastFire2.Execute("BruteJusticeGrenadeSpammer", "FireMultiple", "50", 0.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner00", "ForceSpawn", "", 0.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner01", "ForceSpawn", "", 2.5);
+          FastFire2.Execute("BruteJusticeJarateSpawner02", "ForceSpawn", "", 5.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner00", "ForceSpawn", "", 9.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner01", "ForceSpawn", "", 12.0);
+          FastFire2.Execute("BruteJusticeJarateSpawner02", "ForceSpawn", "", 15.0);
         }
         case 9: {
-          FastFire2("BruteJusticeRocketSpammer", "FireOnce", "", 0.0);
-          FastFire2("BruteJusticeRocketSpammer", "FireOnce", "", 5.0);
+          FastFire2.Execute("BruteJusticeRocketSpammer", "FireOnce", "", 0.0);
+          FastFire2.Execute("BruteJusticeRocketSpammer", "FireOnce", "", 5.0);
         }
         case 10: {
-          FastFire2("BruteJusticeRocketSpammer", "FireMultiple", "10", 0.0);
-          FastFire2("BruteJusticeRocketSpammer", "FireMultiple", "10", 3.0);
-          FastFire2("BruteJusticeRocketSpammer", "FireMultiple", "10", 5.0);
+          FastFire2.Execute("BruteJusticeRocketSpammer", "FireMultiple", "10", 0.0);
+          FastFire2.Execute("BruteJusticeRocketSpammer", "FireMultiple", "10", 3.0);
+          FastFire2.Execute("BruteJusticeRocketSpammer", "FireMultiple", "10", 5.0);
         }
       }
     }
@@ -297,7 +297,7 @@ public Action SephATK(Handle timer) {
   if (core.waveFlags == 2) {
     float f = GetRandomFloat(5.0, 10.0);
     CreateTimer(f, SephATK);
-    FastFire2("SephArrows", "FireMultiple", "3", 5.0);
+    FastFire2.Execute("SephArrows", "FireMultiple", "3", 5.0);
     SephBoss[GetRandomInt(0, 11)].attack();
   }
   return Plugin_Stop;
@@ -319,7 +319,7 @@ public Action BossHPTimer(Handle timer) {
 public Action SharkTimer(Handle timer) {
   if (Bombs.getCurBomb().canSENTShark) {
     PrintToChatAll("TODO: DISABLE SHARK BOMB WHEN IT DEPLOYS. ENABLE IT WHEN BOMB IS READY.");
-    FastFire2("SentSharkTorpedo", "ForceSpawn");
+    FastFire2.Execute("SentSharkTorpedo", "ForceSpawn");
     CreateTimer(GetRandomFloat(2.0, 5.0), SharkTimer);
     CustomSoundEmitter(SFXArray[GetRandomInt(43, 50)].realPath, 65, false, 0, 1.0, 100);
   }
@@ -329,8 +329,8 @@ public Action SharkTimer(Handle timer) {
 //SpecTimer
 public Action SpecTimer(Handle timer) {
   if (WaveSystem().IsActive()) {
-    FastFire2("Spec*","Disable");
-    FastFire2(SpecEnt[GetRandomInt(0, 5)], "Enable", "", 0.1);
+    FastFire2.Execute("Spec*","Disable");
+    FastFire2.Execute(SpecEnt[GetRandomInt(0, 5)], "Enable", "", 0.1);
     CreateTimer(GetRandomFloat(10.0, 30.0), SpecTimer);
   }
   return Plugin_Stop;
@@ -340,7 +340,7 @@ public Action SpecTimer(Handle timer) {
 public Action SENTMeteorTimer(Handle timer) {
   if (core.canSENTMeteors) {
     CreateTimer(5.0, SENTMeteorTimer);
-    FastFire2(FB_SENT[GetRandomInt(0, 4)], "ForceSpawn"); // replace me with teleportEntity eventually then forcespawn...
+    FastFire2.Execute(FB_SENT[GetRandomInt(0, 4)], "ForceSpawn"); // replace me with teleportEntity eventually then forcespawn...
   }
   return Plugin_Stop;
 }
@@ -349,7 +349,7 @@ public Action SENTMeteorTimer(Handle timer) {
 public Action SENTStarTimer(Handle timer) {
   PrintToChatAll("Core can sent starts: %i", core.canSENTStars == true ? 1 : 0);
   if (core.canSENTStars) {
-    FastFire2(FB_SENT[10], "ForceSpawn"); // replace me with teleportEntity eventually then forcespawn...
+    FastFire2.Execute(FB_SENT[10], "ForceSpawn"); // replace me with teleportEntity eventually then forcespawn...
     CreateTimer(GetRandomFloat(0.75, 1.5), SENTStarTimer);
   }
   return Plugin_Stop;

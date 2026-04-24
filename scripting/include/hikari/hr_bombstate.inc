@@ -52,32 +52,32 @@ methodmap BOMBCONTROLLER {
     }
     //Holy jesus, it's a nuke!
     if (bomb.isNuclear) {
-      FastFire2("LargeExplosionSND", "PlaySound", "", bomb.NukeStart);
-      FastFire2("NukeAll", "Enable", "", bomb.NukeStart);
-      FastFire2("HurtAll", "AddOutput", "damagetype 262144", bomb.NukeStart);
-      FastFire2("HurtAll", "AddOutput", "damage 2000000", bomb.NukeStart);
-      FastFire2("HurtAll", "Enable", "", bomb.NukeStart + 0.1);
-      FastFire2("FB.Fade", "Fade", "", bomb.FadeDly);
-      FastFire2("NukeAll", "Disable", "", 3.0);
-      FastFire2("HurtAll", "Disable", "", 3.0);
+      FastFire2.Execute("LargeExplosionSND", "PlaySound", "", bomb.NukeStart);
+      FastFire2.Execute("NukeAll", "Enable", "", bomb.NukeStart);
+      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 262144", bomb.NukeStart);
+      FastFire2.Execute("HurtAll", "AddOutput", "damage 2000000", bomb.NukeStart);
+      FastFire2.Execute("HurtAll", "Enable", "", bomb.NukeStart + 0.1);
+      FastFire2.Execute("FB.Fade", "Fade", "", bomb.FadeDly);
+      FastFire2.Execute("NukeAll", "Disable", "", 3.0);
+      FastFire2.Execute("HurtAll", "Disable", "", 3.0);
       if (g_BombIndex == 64) {
         CreateTimer(15.0, SpecTimer);
         this.Reset();
       }
       if (bomb.canHindenburg) {
-        FastFire2("DeliveryBurg", "Unlock");
+        FastFire2.Execute("DeliveryBurg", "Unlock");
         CPrintToChatAll("The {red}HINDENBURG {forestgreen}is now ready for flight!");
       }
     }
-    FastFire2(bomb.explEnt, "Explode", "", bomb.explDly);
+    FastFire2.Execute(bomb.explEnt, "Explode", "", bomb.explDly);
     CustomSoundEmitter(bomb.explSnd, 65, false, 0, 1.0, 100);
-    FastFire2(bomb.explShake, "StartShake", "", bomb.explShakeDly);
+    FastFire2.Execute(bomb.explShake, "StartShake", "", bomb.explShakeDly);
     if (realExplosion) {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] %s {forestgreen}successfully deployed! {white}({limegreen}+%i pts{white})", bomb.name, bomb.sacVal);
       ass_sacPoints += bomb.sacVal;
       CreateTimer(3.0, BombStatusAddTimer);
       CustomSoundEmitter(SFXArray[6].realPath, 65, false, 0, 1.0, 100);
-      FastFire2("RareSpells", "Enable");
+      FastFire2.Execute("RareSpells", "Enable");
     }
   }
   public void Reset() {
@@ -87,7 +87,7 @@ methodmap BOMBCONTROLLER {
   public void StartPush() {
     BombRegistry[0].isMoving = true;
     CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Your team is pushing a %s.", this.getCurBomb().name);
-    FastFire2("FB.PayloadWarning", "Enable", "", 0.0);
+    FastFire2.Execute("FB.PayloadWarning", "Enable", "", 0.0);
     if (g_BombIndex == 48) CreateTimer(3.0, SharkTimer);
     if (SCR_IsAvailable()) SCR_SendEvent("[Bomb State]", "The team is currently pushing a %s.", this.getCurBomb().name);
   }
@@ -104,9 +104,9 @@ public Action BombStatusUpdater(Handle timer) {
           int curBomb = Bombs.getCurBombID();
           BombRegistry[0].stateMax = g_BombIndex;
           BombRegistry[0].isReady = true;
-          FastFire2("Bombs*", "Disable");
-          FastFire2("Delivery", "Unlock");
-          FastFire2(BombRegistry[curBomb].identifier, "Enable");
+          FastFire2.Execute("Bombs*", "Disable");
+          FastFire2.Execute("Delivery", "Unlock");
+          FastFire2.Execute(BombRegistry[curBomb].identifier, "Enable");
           CustomSoundEmitter(SFXArray[56].realPath, 65, false, 0, 1.0, 100);
           CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Your team's %s {forestgreen}is now available for deployment!", BombRegistry[curBomb].name);
           if (SCR_IsAvailable()) SCR_SendEvent("[Bomb State]", "The team's %s is now available for deployment!", Bombs.getCurBomb().name);
