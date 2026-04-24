@@ -40,12 +40,12 @@ public Plugin myinfo = {
   version = PLUGIN_VERSION,
   url = "https://wiki.hydrogenhosting.org"
 };
-//Check if extensions are loaded, send startup log
+// Check if extensions are loaded, send startup log
 public void OnPluginStart() {
   if (GetExtensionFileStatus("smjansson.ext") != 1) { SetFailState("Required extension (smjansson) is not loaded!"); }
   AssLogger(LOGLVL_INFO, "Starting up Hikari's Framework! Waiting for Map Start...");
 }
-//Begin executing IO when ready
+// Begin executing IO when ready
 public void OnFastFire2Ready() {
   AssLogger(LOGLVL_INFO, "####### FASTFIRE2 IS READY! INITIATE STARTUP SEQUENCE... PREPARE FOR THE END TIMES #######");
   core.init_pre();
@@ -59,7 +59,7 @@ public void OnFastFire2Ready() {
   WeatherManager.Reset();
   AssLogger(LOGLVL_INFO, "####### STARTUP COMPLETE (v%s) #######", PLUGIN_VERSION);
 }
-//Process ticks and requests in real time
+// Process ticks and requests in real time
 public void OnGameFrame() {
   if (WeatherManager.TornadoWarning) WeatherManager.TickSiren();
   AudioManager.TickGlobal();

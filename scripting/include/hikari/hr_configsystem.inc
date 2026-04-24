@@ -109,8 +109,7 @@ enum struct COREDATA {
     CreateDirectory(basePath);
     WeatherManager.OnStartup(0, basePath);
     AudioManager.OnStartup(0, basePath);
-    Format(subFolder, sizeof(subFolder), "%s/BulkFire", basePath);
-    CreateDirectory(subFolder);
+    OnBulkfireStartup(basePath);
     Format(subFolder, sizeof(subFolder), "%s/Core", basePath);
     CreateDirectory(subFolder);
     AssLogger(LOGLVL_DEBUG, "HikarisRequiem folder structure created!");

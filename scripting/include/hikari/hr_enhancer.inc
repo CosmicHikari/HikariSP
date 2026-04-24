@@ -315,9 +315,13 @@ methodmap AUDIOMANAGER {
   public void SetVolumeRealSFX(int client, float vol) { AudioState[client].volume_real_sfx = vol; PrintToChat(client, "Set your volume to %f%%", AudioState[client].volume_real_sfx * 100); }
 
   public void OnStartup(int event, const char[] path = "") {
-    char finalPath[PLATFORM_MAX_PATH];
-    Format(finalPath, sizeof(finalPath), "%s/Files", path);
-    CreateDirectory(finalPath);
+    switch (event) {
+      case 0: {
+        char finalPath[PLATFORM_MAX_PATH];
+        Format(finalPath, sizeof(finalPath), "%s/Files", path);
+        CreateDirectory(finalPath);
+      }
+    }
   }
 }
 AUDIOMANAGER AudioManager;
@@ -461,39 +465,39 @@ enum struct MAPLIGHTING {
   void Explode() {
     if (this.isBroken) return;
     this.isBroken = true;
-    FastFire2(this.arcs, "StartSpark", "", 0.0);
-    FastFire2(this.arcs, "StartSpark", "", 0.1);
-    FastFire2(this.beam, "LightOff", "", 0.0);
-    FastFire2(this.buzz, "PlaySound", "", 0.0);
-    FastFire2(this.explosion, "Explode", "", 0.0);
-    FastFire2(this.light, "TurnOff", "", 0.0);
-    FastFire2(this.status, "Color", "255 0 0", 0.0);
-    FastFire2(this.stun, "Enable", "", 0.0);
-    FastFire2(this.zap, "Enable", "", 0.0);
+    FastFire2.Execute(this.arcs, "StartSpark", "", 0.0);
+    FastFire2.Execute(this.arcs, "StartSpark", "", 0.1);
+    FastFire2.Execute(this.beam, "LightOff", "", 0.0);
+    FastFire2.Execute(this.buzz, "PlaySound", "", 0.0);
+    FastFire2.Execute(this.explosion, "Explode", "", 0.0);
+    FastFire2.Execute(this.light, "TurnOff", "", 0.0);
+    FastFire2.Execute(this.status, "Color", "255 0 0", 0.0);
+    FastFire2.Execute(this.stun, "Enable", "", 0.0);
+    FastFire2.Execute(this.zap, "Enable", "", 0.0);
   }
   void Repair() {
     this.isBroken = false;
-    FastFire2(this.arcs, "StopSpark", "", 0.0);
-    FastFire2(this.buzz, "StopSound", "", 0.25);
-    FastFire2(this.status, "Color", "0 255 0", 0.0);
-    FastFire2(this.stun, "Disable", "", 0.0);
-    FastFire2(this.zap, "Disable", "", 0.0);
+    FastFire2.Execute(this.arcs, "StopSpark", "", 0.0);
+    FastFire2.Execute(this.buzz, "StopSound", "", 0.25);
+    FastFire2.Execute(this.status, "Color", "0 255 0", 0.0);
+    FastFire2.Execute(this.stun, "Disable", "", 0.0);
+    FastFire2.Execute(this.zap, "Disable", "", 0.0);
     if (!g_PowerOutage) {
-      FastFire2(this.light, "SetPattern", "", 0.0);
-      FastFire2(this.light, "TurnOff", "", 0.0);
-      FastFire2(this.light, "TurnOn", "", 0.1);
-      FastFire2(this.light, "SetPattern", "", 0.1);
-      FastFire2(this.beam, "LightOff", "", 0.1);
-      FastFire2(this.beam, "LightOn", "", 0.2);
+      FastFire2.Execute(this.light, "SetPattern", "", 0.0);
+      FastFire2.Execute(this.light, "TurnOff", "", 0.0);
+      FastFire2.Execute(this.light, "TurnOn", "", 0.1);
+      FastFire2.Execute(this.light, "SetPattern", "", 0.1);
+      FastFire2.Execute(this.beam, "LightOff", "", 0.1);
+      FastFire2.Execute(this.beam, "LightOn", "", 0.2);
     }
   }
   void RestorePower() {
     if (!this.isBroken || strcmp(this.light, "MapLighting.StreetLamp0C.light") == 0) {
-      FastFire2(this.light, "TurnOn", "", 0.0);
-      FastFire2(this.beam, "LightOn", "", 0.0);
-      FastFire2(this.beam, "LightOn", "", 1.0);
-      FastFire2(this.beam, "LightOn", "", 3.0);
-      FastFire2(this.light, "SetPattern", "", 0.0);
+      FastFire2.Execute(this.light, "TurnOn", "", 0.0);
+      FastFire2.Execute(this.beam, "LightOn", "", 0.0);
+      FastFire2.Execute(this.beam, "LightOn", "", 1.0);
+      FastFire2.Execute(this.beam, "LightOn", "", 3.0);
+      FastFire2.Execute(this.light, "SetPattern", "", 0.0);
       this.hasCustomPattern = false;
     }
   }
@@ -546,8 +550,8 @@ enum struct WEATHERMANAGER {
   }
   void doLightning() {
     sudo(1003);
-    FastFire2(lightningStrike[GetRandomInt(0, sizeof(lightningStrike) - 1)].fireStr);
-    FastFire2("Weather.LightningHurt*", "Disable", "", 0.07);
+    FastFire2.Execute(lightningStrike[GetRandomInt(0, sizeof(lightningStrike) - 1)].fireStr);
+    FastFire2.Execute("Weather.LightningHurt*", "Disable", "", 0.07);
     CustomSoundEmitter(SFXArray[GetRandomInt(27, 34)].realPath, 65, false, 0, 1.0, 100);
     // Affect lights
     int i = GetRandomInt(this.intensity, 15);
@@ -556,21 +560,21 @@ enum struct WEATHERMANAGER {
       case 2, 3, 5: {
         int index = GetRandomInt(0, 12);
         float f = GetRandomFloat(0.5, 3.0);
-        FastFire2(MapLighting[index].light, "TurnOff");
-        FastFire2(MapLighting[index].beam, "LightOff");
-        FastFire2(MapLighting[index].light, "TurnOn", "", f);
-        FastFire2(MapLighting[index].beam, "LightOn", "", f);
+        FastFire2.Execute(MapLighting[index].light, "TurnOff");
+        FastFire2.Execute(MapLighting[index].beam, "LightOff");
+        FastFire2.Execute(MapLighting[index].light, "TurnOn", "", f);
+        FastFire2.Execute(MapLighting[index].beam, "LightOn", "", f);
       }
       case 11, 15: {
         g_PowerOutage = true;
         if (!this.hasTornado)CreateTimer(GetRandomFloat(5.0, 30.0), RestorePower, GetRandomInt(0, 3));
-        FastFire2("MapLighting.*", "LightOff");
-        FastFire2("MapLighting.*", "TurnOff");
-        FastFire2("MapLighting.*", "LightOff", "", 1.0);
-        FastFire2("MapLighting.*", "LightOff", "", 2.0);
-        FastFire2("MapLighting.*", "LightOff", "", 3.0);
-        FastFire2("MapLighting.*", "LightOff", "", 4.0);
-        FastFire2("MapLighting.*", "LightOff", "", 5.0);
+        FastFire2.Execute("MapLighting.*", "LightOff");
+        FastFire2.Execute("MapLighting.*", "TurnOff");
+        FastFire2.Execute("MapLighting.*", "LightOff", "", 1.0);
+        FastFire2.Execute("MapLighting.*", "LightOff", "", 2.0);
+        FastFire2.Execute("MapLighting.*", "LightOff", "", 3.0);
+        FastFire2.Execute("MapLighting.*", "LightOff", "", 4.0);
+        FastFire2.Execute("MapLighting.*", "LightOff", "", 5.0);
       }
     }
   }
@@ -593,21 +597,21 @@ enum struct WEATHERMANAGER {
     }
     this.TornadoWarning = false;
     CreateTimer(GetRandomFloat(45.0, 135.0), ResetTornado);
-    for (int i = 0; i < sizeof(MapLighting); i++)if (!MapLighting[i].isBroken)FastFire2(MapLighting[i].light, "TurnOn");
-    FastFire2("Weather.FogOutdoor", "SetStartDistLerp", this.defFogStartDist);
-    FastFire2("Weather.FogOutdoor", "SetEndDistLerp", this.defFogEndDist);
-    FastFire2("Weather.FogOutdoor", "StartFogTransition");
-    FastFire2("tornadof1", "Stop");
-    FastFire2("TornadoKill", "Disable");
-    FastFire2("tornadof1wind", "Disable");
-    FastFire2("tornadowindf1", "StopSound");
-    FastFire2("shaketriggerf1", "Disable");
-    FastFire2("tornadobutton", "Unlock", "", 30.0);
-    FastFire2("FB.FakeTankTank01", "Kill");
-    FastFire2("FB.FakeTankPhys01", "Kill");
-    FastFire2("Weather.EASScreen", "Disable");
-    FastFire2("Weather.Siren.ExplodeParticle", "Stop");
-    FastFire2("Weather.Siren", "StopSound", "", 5.0);
+    for (int i = 0; i < sizeof(MapLighting); i++)if (!MapLighting[i].isBroken)FastFire2.Execute(MapLighting[i].light, "TurnOn");
+    FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerp", this.defFogStartDist);
+    FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerp", this.defFogEndDist);
+    FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition");
+    FastFire2.Execute("tornadof1", "Stop");
+    FastFire2.Execute("TornadoKill", "Disable");
+    FastFire2.Execute("tornadof1wind", "Disable");
+    FastFire2.Execute("tornadowindf1", "StopSound");
+    FastFire2.Execute("shaketriggerf1", "Disable");
+    FastFire2.Execute("tornadobutton", "Unlock", "", 30.0);
+    FastFire2.Execute("FB.FakeTankTank01", "Kill");
+    FastFire2.Execute("FB.FakeTankPhys01", "Kill");
+    FastFire2.Execute("Weather.EASScreen", "Disable");
+    FastFire2.Execute("Weather.Siren.ExplodeParticle", "Stop");
+    FastFire2.Execute("Weather.Siren", "StopSound", "", 5.0);
     AudioManager.OnTornadoWarning(false);
   }
   void IssueTornadoWarning() {
@@ -615,8 +619,8 @@ enum struct WEATHERMANAGER {
       this.TornadoWarning = true;
       this.sirenPitchTarget = 100.0;
       this.sirenPitchRate = 0.1;
-      FastFire2("Weather.EASScreen", "Enable");
-      FastFire2("Weather.EAS", "PlaySound");
+      FastFire2.Execute("Weather.EASScreen", "Enable");
+      FastFire2.Execute("Weather.EAS", "PlaySound");
       CreateTimer(GetRandomFloat(1.0, 3.0), ModulateSiren);
       AudioManager.OnTornadoWarning(true);
     }
@@ -635,7 +639,7 @@ enum struct WEATHERMANAGER {
         flStormMin = 15.0;
         flStormMax = 35.0;
         this.fogTarget = 0.55;
-        FastFire2("rain", "Alpha", "15");
+        FastFire2.Execute("rain", "Alpha", "15");
         CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
       }
       case 1: {
@@ -645,7 +649,7 @@ enum struct WEATHERMANAGER {
         flStormMin = 12.0;
         flStormMax = 32.0;
         this.fogTarget = 0.60;
-        FastFire2("rain", "Alpha", "30");
+        FastFire2.Execute("rain", "Alpha", "30");
         CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
       }
       case 2: {
@@ -655,7 +659,7 @@ enum struct WEATHERMANAGER {
         this.mIntensity = 1;
         flStormMin = 12.0;
         flStormMax = 30.0;
-        FastFire2("rain", "Alpha", "50");
+        FastFire2.Execute("rain", "Alpha", "50");
         CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
       }
       case 3: {
@@ -665,13 +669,13 @@ enum struct WEATHERMANAGER {
         flStormMin = 10.0;
         flStormMax = 28.5;
         this.fogTarget = 0.70;
-        FastFire2("rain", "Alpha", "65");
+        FastFire2.Execute("rain", "Alpha", "65");
         CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
       }
       case 4: {
         flStormMin = 9.0;
         flStormMax = 26.5;
-        FastFire2("rain", "Alpha", "75");
+        FastFire2.Execute("rain", "Alpha", "75");
         CustomSoundEmitter(SFXArray[108].realPath, 45, false, 1, 1.0, 100); //Rain, no wind, increased volume
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.1, 100); //Rain, wind, decreased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.01, 100); //Extra wind
@@ -684,7 +688,7 @@ enum struct WEATHERMANAGER {
         flStormMin = 7.0;
         flStormMax = 25.0;
         this.fogTarget = 0.75;
-        FastFire2("rain", "Alpha", "95");
+        FastFire2.Execute("rain", "Alpha", "95");
         CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, decreased volume
         CustomSoundEmitter(SFXArray[107].realPath, 45, false, 1, 0.15, 100); //Rain, wind
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.05, 100); //Extra wind
@@ -693,7 +697,7 @@ enum struct WEATHERMANAGER {
         this.mIntensity = 4;
         flStormMin = 7.0;
         flStormMax = 23.5;
-        FastFire2("rain", "Alpha", "125");
+        FastFire2.Execute("rain", "Alpha", "125");
         CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.21, 100); //Rain, wind, increased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.125, 100); //Extra wind
@@ -705,7 +709,7 @@ enum struct WEATHERMANAGER {
         flStormMin = 6.0;
         flStormMax = 21.0;
         this.fogTarget = 0.80;
-        FastFire2("rain", "Alpha", "155");
+        FastFire2.Execute("rain", "Alpha", "155");
         CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 0);
         CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.26, 100); //Rain, wind, increased volume
@@ -719,7 +723,7 @@ enum struct WEATHERMANAGER {
         flStormMin = 5.0;
         flStormMax = 20.0;
         this.fogTarget = 0.875;
-        FastFire2("rain", "Alpha", "175");
+        FastFire2.Execute("rain", "Alpha", "175");
         CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 1);
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.37, 100); //Rain, wind, increased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.35, 100); //Extra wind
@@ -731,7 +735,7 @@ enum struct WEATHERMANAGER {
         this.mIntensity = 7;
         flStormMin = 5.0;
         flStormMax = 19.0;
-        FastFire2("rain", "Alpha", "200");
+        FastFire2.Execute("rain", "Alpha", "200");
         CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 2);
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.41, 100); //Rain, wind, increased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.42, 100); //Extra wind
@@ -743,7 +747,7 @@ enum struct WEATHERMANAGER {
         flStormMin = 5.0;
         flStormMax = 18.0;
         this.fogTarget = 0.925;
-        FastFire2("rain", "Alpha", "215", 0.0);
+        FastFire2.Execute("rain", "Alpha", "215", 0.0);
         CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 3);
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.45, 100); //Rain, wind, increased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.56, 100); //Extra wind
@@ -752,7 +756,7 @@ enum struct WEATHERMANAGER {
         this.mIntensity = 9;
         flStormMin = 5.0;
         flStormMax = 17.0;
-        FastFire2("rain", "Alpha", "235");
+        FastFire2.Execute("rain", "Alpha", "235");
         CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 4);
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.63, 100); //Rain, wind, increased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.69, 100); //Extra wind
@@ -765,7 +769,7 @@ enum struct WEATHERMANAGER {
         this.SetFogStartQueued("225");
         this.SetFogEndQueued("700");
         this.StartFogTransition();
-        FastFire2("rain", "Alpha", "255");
+        FastFire2.Execute("rain", "Alpha", "255");
         CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 5);
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.72, 100); //Rain, wind, increased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.76, 100); //Extra wind
@@ -779,7 +783,7 @@ enum struct WEATHERMANAGER {
         flStormMin = 5.0;
         flStormMax = 14.0;
         this.fogTarget = 1.0;
-        FastFire2("rain", "Alpha", "255");
+        FastFire2.Execute("rain", "Alpha", "255");
         CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 6);
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.85, 100); //Rain, wind, increased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.83, 100); //Extra wind
@@ -793,7 +797,7 @@ enum struct WEATHERMANAGER {
         flStormMin = 5.0;
         flStormMax = 13.0;
         this.fogTarget = 1.0;
-        FastFire2("rain", "Alpha", "255");
+        FastFire2.Execute("rain", "Alpha", "255");
         CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.9, 100); //Rain, wind, increased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.92, 100); //Extra wind
@@ -807,7 +811,7 @@ enum struct WEATHERMANAGER {
         flStormMin = 5.0;
         flStormMax = 12.0;
         this.fogTarget = 1.0;
-        FastFire2("rain", "Alpha", "255");
+        FastFire2.Execute("rain", "Alpha", "255");
         CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
         CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 1.0, 100); //Rain, wind, increased volume
         //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 1.0, 100); //Extra wind
@@ -827,10 +831,10 @@ enum struct WEATHERMANAGER {
     this.Dissipate();
     this.reset = true;
     this.tickWeather = false;
-    FastFire2("rain", "Alpha", "0");
-    FastFire2("Weather.Sky", "Enable");
-    FastFire2("Weather.Sky", "Skin", "0");
-    FastFire2("Weather.FogSky", "Enable", "", 2.0);
+    FastFire2.Execute("rain", "Alpha", "0");
+    FastFire2.Execute("Weather.Sky", "Enable");
+    FastFire2.Execute("Weather.Sky", "Skin", "0");
+    FastFire2.Execute("Weather.FogSky", "Enable", "", 2.0);
     for (int i = 0; i < sizeof(MapLighting); i++)MapLighting[i].Repair();
     this.sirenPos = {-2305.0, 2095.0, 1102.0};
     int siren = FindEntityByTargetname("WeatherSiren", "info_target");
@@ -846,13 +850,13 @@ enum struct WEATHERMANAGER {
     sirenRef = EntIndexToEntRef(siren);
   }
   void SetFogStartQueued(const char[] fsq) {
-    FastFire2("Weather.FogOutdoor", "SetStartDistLerpTo", fsq);
+    FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerpTo", fsq);
   }
   void SetFogEndQueued(const char[] feq) {
-    FastFire2("Weather.FogOutdoor", "SetEndDistLerpTo", feq);
+    FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerpTo", feq);
   }
   void StartFogTransition() {
-    FastFire2("Weather.FogOutdoor", "StartFogTransition");
+    FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition");
   }
   void StartTornadoTimer(float t) {
     CreateTimer(t - 20.0, TimedOperator, 40);
@@ -865,8 +869,8 @@ enum struct WEATHERMANAGER {
       this.fogDensity = (this.fogDensity < this.fogTarget) ? FloatMin(Maths().Adjust(this.fogDensity, this.fogChangeRate), this.fogTarget) : FloatMax(Maths().Adjust(this.fogDensity, -this.fogChangeRate), this.fogTarget);
       IntToString(RoundFloat(FloatMin(255.0 * (this.fogDensity * 1.20), 255.0)), targetAlpha, sizeof(targetAlpha));
       FloatToString(this.fogDensity, targetDensity, sizeof(targetDensity));
-      FastFire2("Weather.FogOutdoor", "SetMaxDensity", targetDensity);
-      FastFire2("Weather.FogSky", "Alpha", targetAlpha);
+      FastFire2.Execute("Weather.FogOutdoor", "SetMaxDensity", targetDensity);
+      FastFire2.Execute("Weather.FogSky", "Alpha", targetAlpha);
     }
     if (this.fogColorR != this.fogColorRTarget || this.fogColorG != this.fogColorGTarget || this.fogColorB != this.fogColorBTarget || this.reset) {
       char target[24];
@@ -874,11 +878,11 @@ enum struct WEATHERMANAGER {
       this.fogColorG = (this.fogColorG < this.fogColorGTarget) ? FloatMin(this.fogColorG += this.fogChangeRateRGB, this.fogColorGTarget) : FloatMax(this.fogColorG -= this.fogChangeRateRGB, this.fogColorGTarget);
       this.fogColorB = (this.fogColorB < this.fogColorBTarget) ? FloatMin(this.fogColorB += this.fogChangeRateRGB, this.fogColorBTarget) : FloatMax(this.fogColorB -= this.fogChangeRateRGB, this.fogColorBTarget);
       Format(target, sizeof(target), "%i %i %i", RoundFloat(this.fogColorR), RoundFloat(this.fogColorG), RoundFloat(this.fogColorB));
-      FastFire2("Weather.FogIndoor", "SetColor", target);
-      FastFire2("Weather.FogIndoor", "SetColorSecondary", target);
-      FastFire2("Weather.FogOutdoor", "SetColor", target);
-      FastFire2("Weather.FogOutdoor", "SetColorSecondary", target);
-      FastFire2("Weather.FogSky", "Color", target);
+      FastFire2.Execute("Weather.FogIndoor", "SetColor", target);
+      FastFire2.Execute("Weather.FogIndoor", "SetColorSecondary", target);
+      FastFire2.Execute("Weather.FogOutdoor", "SetColor", target);
+      FastFire2.Execute("Weather.FogOutdoor", "SetColorSecondary", target);
+      FastFire2.Execute("Weather.FogSky", "Color", target);
       this.reset = false;
     }
     for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
@@ -887,7 +891,7 @@ enum struct WEATHERMANAGER {
   void TickSiren() {
     if (this.TornadoWarning) {
       if (!this.sirenExploded && (this.sirenPitch > 165.0)) {
-        FastFire2("Weather.Siren.ExplodeParticle", "Start");
+        FastFire2.Execute("Weather.Siren.ExplodeParticle", "Start");
         CustomSoundEmitter(SFXArray[121].realPath, SFXArray[121].SNDLVL, false, 0, 1.0, 100);
         for (int i = 0; i < MaxClients; i++) if (IsValidClient(i) && g_SirenEnabled[i]) {
           StopSound(i, 10, SFXArray[119].realPath);
@@ -899,8 +903,8 @@ enum struct WEATHERMANAGER {
           StopSound(i, 6, SFXArray[119].realPath);
           StopSound(i, 6, SFXArray[120].realPath);
         }
-        FastFire2("Weather.Siren.ExplodeParticle", "Stop", "", 5.0);
-        FastFire2("Weather.Siren.ExplodeParticle", "Start", "", 5.1);
+        FastFire2.Execute("Weather.Siren.ExplodeParticle", "Stop", "", 5.0);
+        FastFire2.Execute("Weather.Siren.ExplodeParticle", "Start", "", 5.1);
         this.sirenExploded = true;
       }
       if (this.sirenPitch != this.sirenPitchTarget && !this.sirenExploded) {
@@ -941,20 +945,20 @@ enum struct WEATHERMANAGER {
       this.mIntensity = 15;
       this.intensity = 15;
       CreateTimer(1.5, TornadoShaker);
-      FastFire2("TornadoKill", "Enable");
-      FastFire2("tornadobutton", "Lock");
-      FastFire2("tornadof1", "Start", "", 20.0);
-      FastFire2("shaketriggerf1", "Enable", "", 20.0);
-      FastFire2("tornadowindf1", "PlaySound", "", 20.0);
-      FastFire2("tornadof1wind", "Enable", "", 21.50);
+      FastFire2.Execute("TornadoKill", "Enable");
+      FastFire2.Execute("tornadobutton", "Lock");
+      FastFire2.Execute("tornadof1", "Start", "", 20.0);
+      FastFire2.Execute("shaketriggerf1", "Enable", "", 20.0);
+      FastFire2.Execute("tornadowindf1", "PlaySound", "", 20.0);
+      FastFire2.Execute("tornadof1wind", "Enable", "", 21.50);
       float f = GetRandomFloat(60.0, 120.0);
       CreateTimer(f, TimedOperator, 42);
-      SetEntityLife("tornado", f);
-      SetEntityLife("TorTrack*", f);
-      SetEntityLife("tornadotrain", f);
-      SetEntityLife("tornadof1", f);
-      SetEntityLife("tornadoshake_f1", f);
-      SetEntityLife("tornadowindf1", f);  
+      FastFire2.SetEntityLife("tornado", f);
+      FastFire2.SetEntityLife("TorTrack*", f);
+      FastFire2.SetEntityLife("tornadotrain", f);
+      FastFire2.SetEntityLife("tornadof1", f);
+      FastFire2.SetEntityLife("tornadoshake_f1", f);
+      FastFire2.SetEntityLife("tornadowindf1", f);  
     }
   }
   void OnStartup(int event, const char[] path) {
@@ -975,10 +979,10 @@ WEATHERMANAGER GetWeatherManager() { return WeatherManager; }
 methodmap GHOSTHANDLER {
   public void SpawnRandom() {
     switch (GetRandomInt(0, 3)) {
-      case 0: { FastFire2("gTrain", "TeleportToPathTrack", "gPath00_0"); }
-      case 1: { FastFire2("gTrain", "TeleportToPathTrack", "gPath01_0"); }
-      case 2: { FastFire2("gTrain", "TeleportToPathTrack", "gPath02_0"); }
-      case 3: { FastFire2("gTrain", "TeleportToPathTrack", "gPath03_0"); }
+      case 0: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath00_0"); }
+      case 1: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath01_0"); }
+      case 2: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath02_0"); }
+      case 3: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath03_0"); }
     }
   }
 }
@@ -1052,8 +1056,8 @@ public Action RestorePower(Handle timer, int surge) {
     CreateTimer(1.0, SurgePower);
   }
   for (int i = 0; i < sizeof(MapLighting); i++) MapLighting[i].RestorePower();
-  FastFire2("MapLighting.Indoor*", "TurnOn");
-  FastFire2("MapLighting.Indoor*", "LightOn");
+  FastFire2.Execute("MapLighting.Indoor*", "TurnOn");
+  FastFire2.Execute("MapLighting.Indoor*", "LightOn");
   return Plugin_Stop;
 }
 
@@ -1088,9 +1092,9 @@ public Action SurgePower(Handle timer) {
     if (MapLighting[target].isBroken)target = GetRandomInt(0, 12);
     if (!MapLighting[target].isBroken) {
       if (GetRandomInt(0, 7) == 5)MapLighting[target].Explode();
-      FastFire2(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
-      FastFire2(MapLighting[target].light, "TurnOn");
-      FastFire2(MapLighting[target].beam, "LightOn");
+      FastFire2.Execute(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
+      FastFire2.Execute(MapLighting[target].light, "TurnOn");
+      FastFire2.Execute(MapLighting[target].beam, "LightOn");
       CreateTimer(GetRandomFloat(7.5, 15.0), RestorePower, 0);
       CreateTimer(GetRandomFloat(0.1, 3.0), SurgePower);
       CreateTimer(GetRandomFloat(1.5, 2.0), SurgePowerFX);
@@ -1102,18 +1106,18 @@ public Action SurgePower(Handle timer) {
 public Action SurgePowerFX(Handle timer) {
   for (int i = 0; i < sizeof(MapLighting); i++) {
     if (WeatherManager.powerSurging && !MapLighting[i].isBroken) {
-      FastFire2(MapLighting[i].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
-      FastFire2(MapLighting[i].beam, "LightOff");
-      FastFire2(MapLighting[i].beam, "LightOn", "", GetRandomFloat(0.1, 0.35));
-      FastFire2(MapLighting[i].beam, "LightOff", "", GetRandomFloat(0.4, 0.75));
-      FastFire2(MapLighting[i].beam, "LightOn", "", GetRandomFloat(1.0, 1.35));
+      FastFire2.Execute(MapLighting[i].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
+      FastFire2.Execute(MapLighting[i].beam, "LightOff");
+      FastFire2.Execute(MapLighting[i].beam, "LightOn", "", GetRandomFloat(0.1, 0.35));
+      FastFire2.Execute(MapLighting[i].beam, "LightOff", "", GetRandomFloat(0.4, 0.75));
+      FastFire2.Execute(MapLighting[i].beam, "LightOn", "", GetRandomFloat(1.0, 1.35));
     }
   }
   return Plugin_Stop;
 }
 public Action TornadoShaker(Handle timer) {
   if (WeatherManager.hasTornado) {
-    FastFire2("tornadoshake_f1", "StartShake");
+    FastFire2.Execute("tornadoshake_f1", "StartShake");
     CreateTimer(1.5, TornadoShaker);
   }
   return Plugin_Stop;

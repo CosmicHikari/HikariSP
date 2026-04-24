@@ -1,4 +1,4 @@
-char SUDO_VER = "1.0.0";
+char SUDO_VER[8] = "1.0.0";
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
   AssLogger(LOGLVL_DEBUG, "Calling sudo with %i", task);
@@ -15,24 +15,24 @@ void sudo(int task) {
     case 2 : { WeatherManager.canTornado = true; WaveSystem().SetActive(true); WeatherManager.IssueTornadoWarning(); }
     case 2100 : { WeatherManager.Dissipate(); }
     case 2200: {
-      int target = CreateCustomEntity("info_target", "ImADumbass");
+      int target = FastFire2.CreateCustomEntity("info_target", "ImADumbass");
       SetVariantString("OnUser2 weather.LightningLaser:TurnOn::0.0:1");
       AcceptEntityInput(target, "AddOutput");
       SetVariantString("OnUser2 weather.LightningLaser:TurnOff::0.1:1");
       AcceptEntityInput(target, "AddOutput");
     }
-    case 2201: { FastFire2("ImADumbass", "FireUser2"); }
-    case 2300: { FastFire2("ImADumbass", "Kill"); }
+    case 2201: { FastFire2.Execute("ImADumbass", "FireUser2"); }
+    case 2300: { FastFire2.Execute("ImADumbass", "Kill"); }
     case 2500: {
-      int l1 = CreateCustomEntity("env_laser", "SpLaser00");
-      int l2 = CreateCustomEntity("info_target", "SpLaser00TGT");
+      int l1 = FastFire2.CreateCustomEntity("env_laser", "SpLaser00");
+      int l2 = FastFire2.CreateCustomEntity("info_target", "SpLaser00TGT");
       TeleportEntity(l1, {-1503.445923, 1369.923584, -45.968681});
       TeleportEntity(l2, {-1503.445923, 1369.923584, 50.000000});
-      SetKv(l1, "LaserTarget", "SpLaser00TGT");
-      SetKv(l1, "rendercolor", "255 255 0");
-      SetKv(l1, "width", "20");
-      SetKv(l1, "texture", "sprites/laserbeam.spr");
-      SetKv(l1, "NoiseAmplitude", "1");
+      FastFire2.SetKv(l1, "LaserTarget", "SpLaser00TGT");
+      FastFire2.SetKv(l1, "rendercolor", "255 255 0");
+      FastFire2.SetKv(l1, "width", "20");
+      FastFire2.SetKv(l1, "texture", "sprites/laserbeam.spr");
+      FastFire2.SetKv(l1, "NoiseAmplitude", "1");
     }
     case 2501: {
       float fStart[3] = {-1500.0, 1375.0, -50.0}; float fEnd[3] = {-1500.0, 1375.0, 75.0};
@@ -51,7 +51,7 @@ void sudo(int task) {
           AcceptEntityInput(ent, "TurnOn");
       }
     }
-    case 2550: { FastFire2("SpLaser00", "TurnOn"); }
+    case 2550: { FastFire2.Execute("SpLaser00", "TurnOn"); }
     case 3000: {
     float flStart[3] = {-1500.0, 1375.0, -50.0};
     int ent = FindEntityByTargetname("phys_model", "generic_actor") == -1 ? CreateEntityByName("generic_actor") : -1;
@@ -65,7 +65,7 @@ void sudo(int task) {
       TeleportEntity(ent, flStart, NULL_VECTOR, NULL_VECTOR);
       int ent2 = FindEntityByTargetname("Spec.Burrito", "prop_dynamic");
       TeleportEntity(ent2, flStart, NULL_VECTOR, NULL_VECTOR);
-      FastFire2("Spec.Burrito", "SetParent", "phys_model");
+      FastFire2.Execute("Spec.Burrito", "SetParent", "phys_model");
     }
  }
  case 3001: {
@@ -172,7 +172,7 @@ void sudo(int task) {
     }
   //When a tornado intersects a tank.
     case 8: {
-      FastFire2("FB.FakeTankSpawner", "ForceSpawn", "", 0.1);
+      FastFire2.Execute("FB.FakeTankSpawner", "ForceSpawn", "", 0.1);
     }
   //Client was Sacrificed.
     case 10: {
@@ -180,16 +180,16 @@ void sudo(int task) {
     }
   //Damage relay took damage
     case 11: {
-      FastFire2("TankRelayDMG", "Enable", "", 0.0);
-      FastFire2("TankRelayDMG", "Disable", "", 0.5);
+      FastFire2.Execute("TankRelayDMG", "Enable", "", 0.0);
+      FastFire2.Execute("TankRelayDMG", "Disable", "", 0.5);
     }
   //dmg relay was killed
     case 12: {
-      FastFire2("tank_boss", "SetHealth", "1", 0.0);
-      FastFire2("TankRelayDMG", "Enable", "", 0.1);
-      FastFire2("TankRelayDMG", "Enable", "", 0.5);
-      FastFire2("TankRelayDMG", "Enable", "", 1.0);
-      FastFire2("TankRelayDMG", "Disable", "", 60.0);
+      FastFire2.Execute("tank_boss", "SetHealth", "1", 0.0);
+      FastFire2.Execute("TankRelayDMG", "Enable", "", 0.1);
+      FastFire2.Execute("TankRelayDMG", "Enable", "", 0.5);
+      FastFire2.Execute("TankRelayDMG", "Enable", "", 1.0);
+      FastFire2.Execute("TankRelayDMG", "Disable", "", 60.0);
     }
   //Tank Destroyed (+1), includes disabling onslaughter.
     case 13: {
@@ -205,11 +205,11 @@ void sudo(int task) {
         }
         case 2: {
           CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {red}SEPHIROTH {white}has been destroyed. ({limegreen}+100 pts{white})");
-          FastFire2("TankRelayDMG", "Enable", "", 1.0);
-          FastFire2("TankRelayDMG", "Disable", "", 60.0);
-          FastFire2("FB.Sephiroth", "Disable", "", 0.0);
-          FastFire2("SephTrain", "TeleportToPathTrack", "Seph01", 0.0);
-          FastFire2("SephTrain", "Stop", "", 0.0);
+          FastFire2.Execute("TankRelayDMG", "Enable", "", 1.0);
+          FastFire2.Execute("TankRelayDMG", "Disable", "", 60.0);
+          FastFire2.Execute("FB.Sephiroth", "Disable", "", 0.0);
+          FastFire2.Execute("SephTrain", "TeleportToPathTrack", "Seph01", 0.0);
+          FastFire2.Execute("SephTrain", "Stop", "", 0.0);
           SephBoss[0].shouldNuke = false;
           ass_sacPoints += 100;
           core.waveFlags = 0;
@@ -226,7 +226,7 @@ void sudo(int task) {
     }
   //Bomb Deployed
     case 15: {
-      FastFire2("FB.PayloadWarning", "Disable", "", 0.0);
+      FastFire2.Execute("FB.PayloadWarning", "Disable", "", 0.0);
       if (WaveSystem().IsActive()) {
         if (g_BombIndex == 69) {
           Bombs.explode(7, false);
@@ -256,20 +256,20 @@ void sudo(int task) {
         CPrintToChatAll("{fartsyred} PLEASE DO NOT ATTEMPT TO USE OPERATOR 18 WITHOUT A WAVE.");
         return;
       }
-      FastFire2("bots_win", "RoundWin", "", 1.0);
-      FastFire2("hatch_magnet_pit", "Enable", "", 1.0);
-      FastFire2("hatch_explo_kill_players", "Enable", "", 1.0);
-      FastFire2("cap_hatch_destroy_animated_prop", "Enable", "", 1.0);
-      FastFire2("cap_hatch_destroy_delete_prop", "Kill", "", 1.0);
-      FastFire2("end_pit_destroy_particle", "Start", "", 1.0);
-      FastFire2("trigger_hurt_hatch_fire", "Enable", "", 1.0);
-      FastFire2("cap_hatch_glasswindow", "Break", "", 1.0);
-      FastFire2("hatch_explo_kill_players", "Disable", "", 1.50);
-      FastFire2("hatch_magnet_pit", "Disable", "", 5.0);
-      FastFire2("cap_hatch_destroy_animated_prop", "SetAnimation", "explode", 1.0);
-      FastFire2("tank_boss", "DestroyIfAtCapturePoint", "1", 1.0);
-      FastFire2("tank_boss", "DestroyIfAtCapturePoint", "2", 1.0);
-      FastFire2("tank_boss", "DestroyIfAtCapturePoint", "3", 1.0);
+      FastFire2.Execute("bots_win", "RoundWin", "", 1.0);
+      FastFire2.Execute("hatch_magnet_pit", "Enable", "", 1.0);
+      FastFire2.Execute("hatch_explo_kill_players", "Enable", "", 1.0);
+      FastFire2.Execute("cap_hatch_destroy_animated_prop", "Enable", "", 1.0);
+      FastFire2.Execute("cap_hatch_destroy_delete_prop", "Kill", "", 1.0);
+      FastFire2.Execute("end_pit_destroy_particle", "Start", "", 1.0);
+      FastFire2.Execute("trigger_hurt_hatch_fire", "Enable", "", 1.0);
+      FastFire2.Execute("cap_hatch_glasswindow", "Break", "", 1.0);
+      FastFire2.Execute("hatch_explo_kill_players", "Disable", "", 1.50);
+      FastFire2.Execute("hatch_magnet_pit", "Disable", "", 5.0);
+      FastFire2.Execute("cap_hatch_destroy_animated_prop", "SetAnimation", "explode", 1.0);
+      FastFire2.Execute("tank_boss", "DestroyIfAtCapturePoint", "1", 1.0);
+      FastFire2.Execute("tank_boss", "DestroyIfAtCapturePoint", "2", 1.0);
+      FastFire2.Execute("tank_boss", "DestroyIfAtCapturePoint", "3", 1.0);
       EmitSoundToAll("MVM.BombExplodes");
       return;
     }
@@ -285,11 +285,11 @@ void sudo(int task) {
   //HINDENBOOM ACTIVATION
     case 28: {
       EmitSoundToAll(SFXArray[5].realPath);
-      FastFire2("HindenTrain", "StartForward");
-      FastFire2("DeliveryBurg", "Lock");
-      FastFire2("Boom", "Enable");
-      FastFire2("Bombs.TheHindenburg", "Enable");
-      FastFire2("Boom", "Disable", "", 1.0);
+      FastFire2.Execute("HindenTrain", "StartForward");
+      FastFire2.Execute("DeliveryBurg", "Lock");
+      FastFire2.Execute("Boom", "Enable");
+      FastFire2.Execute("Bombs.TheHindenburg", "Enable");
+      FastFire2.Execute("Boom", "Disable", "", 1.0);
     }
   //HINDENBOOM!!!
     case 29: {
@@ -297,14 +297,14 @@ void sudo(int task) {
       EmitSoundToAll(SFXArray[36].realPath);
       CreateTimer(4.0, TimedOperator, 21);
       CreateTimer(7.0, TimedOperator, 37);
-      FastFire2("LargeExplosion", "Explode", "", 7.0);
-      FastFire2("LargeExploShake", "StartShake", "", 7.0);
-      FastFire2("NukeAll", "Enable", "", 7.0);
-      FastFire2("FB.Fade", "Fade", "", 7.0);
-      FastFire2("Bombs.TheHindenburg", "Disable", "", 7.0);
-      FastFire2("HindenTrain", "TeleportToPathTrack", "Hinden01", 7.0);
-      FastFire2("HindenTrain", "Stop", "", 7.0);
-      FastFire2("NukeAll", "Disable", "", 9.0);
+      FastFire2.Execute("LargeExplosion", "Explode", "", 7.0);
+      FastFire2.Execute("LargeExploShake", "StartShake", "", 7.0);
+      FastFire2.Execute("NukeAll", "Enable", "", 7.0);
+      FastFire2.Execute("FB.Fade", "Fade", "", 7.0);
+      FastFire2.Execute("Bombs.TheHindenburg", "Disable", "", 7.0);
+      FastFire2.Execute("HindenTrain", "TeleportToPathTrack", "Hinden01", 7.0);
+      FastFire2.Execute("HindenTrain", "Stop", "", 7.0);
+      FastFire2.Execute("NukeAll", "Disable", "", 9.0);
       CreateTimer(8.0, TimedOperator, 99);
       g_BombIndex = 4;
       BombRegistry[0].stateMax = 8;
@@ -320,7 +320,7 @@ void sudo(int task) {
     case 31: {
       int i = GetRandomInt(1, 2);
       if (i == 1) CreateTimer(1.5, TimedOperator, 21);
-      FastFire2(i == 1 ? "FB.GiantGoobTemplate" : "FB.BlueKirbTemplate", "ForceSpawn");
+      FastFire2.Execute(i == 1 ? "FB.GiantGoobTemplate" : "FB.BlueKirbTemplate", "ForceSpawn");
       CPrintToChatAll(i == 1 ? "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}GOOBBUE COMING IN FROM ORBIT! ({red}-20 pts{white})" : "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}BLUE KIRBY FALLING OUT OF THE SKY! ({red}-20 pts{white})");
       CustomSoundEmitter(i == 1 ? SFXArray[51].realPath : SFXArray[21].realPath, 65, false, 0, 1.0, 100);
       ass_sacPoints -= 20;
@@ -336,15 +336,15 @@ void sudo(int task) {
   //Explosive paradise spend
     case 33: {
       CustomSoundEmitter(SFXArray[10].realPath, 65, false, 0, 1.0, 100);
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       ServerCommand("sm_evilrocket @blue");
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {white}We're spending most our lives living in an EXPLOSIVE PARADISE! Robots will be launched into orbit, too! ({red}-40 pts{white})");
     //Add this to explosion array?
-      FastFire2("NukeAll", "Enable", "", 11.50);
-      FastFire2("HUGEExplosion", "Explode", "", 11.50);
-      FastFire2("FB.Fade", "Fade", "", 11.50);
-      FastFire2("FB.ShakeBOOM", "StartShake", "", 11.50);
-      FastFire2("NukeAll", "Disable", "", 12.30);
+      FastFire2.Execute("NukeAll", "Enable", "", 11.50);
+      FastFire2.Execute("HUGEExplosion", "Explode", "", 11.50);
+      FastFire2.Execute("FB.Fade", "Fade", "", 11.50);
+      FastFire2.Execute("FB.ShakeBOOM", "StartShake", "", 11.50);
+      FastFire2.Execute("NukeAll", "Disable", "", 12.30);
       ass_sacPoints -= 40;
     }
   //Banish Tornadoes
@@ -357,12 +357,12 @@ void sudo(int task) {
     case 35: {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {white}ANYTHING BUT THE ASS GAS!!!! ({red}-60 pts{white})");
       ass_sacPoints -= 60;
-      FastFire2("HurtAll", "AddOutput", "damagetype 524288");
-      FastFire2("FB.ShakeBOOM", "StartShake", "", 0.1);
-      FastFire2("HurtAll", "AddOutput", "damage 400");
-      FastFire2("HurtAll", "Enable", "", 0.1);
-      FastFire2("HurtAll", "Disable", "", 4.1); //Add a sound to this in the future. Maybe gas sound from gbombs? Maybe custom fart sounds? hmm....
-      FastFire2("FB.ShakeBOOM", "StopShake", "", 4.1);
+      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 524288");
+      FastFire2.Execute("FB.ShakeBOOM", "StartShake", "", 0.1);
+      FastFire2.Execute("HurtAll", "AddOutput", "damage 400");
+      FastFire2.Execute("HurtAll", "Enable", "", 0.1);
+      FastFire2.Execute("HurtAll", "Disable", "", 4.1); //Add a sound to this in the future. Maybe gas sound from gbombs? Maybe custom fart sounds? hmm....
+      FastFire2.Execute("FB.ShakeBOOM", "StopShake", "", 4.1);
     }
   //Nuclear fallout spend
     case 36: {
@@ -390,26 +390,26 @@ void sudo(int task) {
       ass_sacPoints -= 100;
       BombRegistry[0].stateMax = 69;
       g_BombIndex = 69;
-      FastFire2("Delivery", "Unlock");
-      FastFire2("BombExplo*", "Disable");
-      FastFire2("Bombs*", "Disable");
-      FastFire2("Bombs.Professor", "Enable", "", 3.0);
+      FastFire2.Execute("Delivery", "Unlock");
+      FastFire2.Execute("BombExplo*", "Disable");
+      FastFire2.Execute("Bombs*", "Disable");
+      FastFire2.Execute("Bombs.Professor", "Enable", "", 3.0);
     }
   //Found blue ball
     case 40: {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}What on earth IS that? It appears to be a... \x075050FFBLUE BALL{white}!");
       CustomSoundEmitter(SFXArray[21].realPath, 65, false, 0, 1.0, 100);
-      FastFire2("FB.BlueKirbTemplate", "ForceSpawn", "", 4.0);
+      FastFire2.Execute("FB.BlueKirbTemplate", "ForceSpawn", "", 4.0);
       CreateTimer(4.0, TimedOperator, 21);
     }
   //Found burrito
     case 41: {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Why would you even eat {red}The Forbidden Burrito{white}?");
       CustomSoundEmitter("vo/sandwicheat09.mp3", 65, false, 0, 1.0, 100);
-      FastFire2("HurtAll", "AddOutput", "damagetype 8");
-      FastFire2("HurtAll", "AddOutput", "damage 2000");
-      FastFire2("HurtAll", "Enable", "", 4.0);
-      FastFire2("HurtAll", "Disable", "", 8.0);
+      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 8");
+      FastFire2.Execute("HurtAll", "AddOutput", "damage 2000");
+      FastFire2.Execute("HurtAll", "Enable", "", 4.0);
+      FastFire2.Execute("HurtAll", "Disable", "", 8.0);
     }
   //Found goobbue
     case 42: {
@@ -417,7 +417,7 @@ void sudo(int task) {
       CustomSoundEmitter(SFXArray[51].realPath, 65, false, 0, 1.0, 100);
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}ALL HAIL \x07FF00FFGOOBBUE{forestgreen}!");
       CreateTimer(4.0, TimedOperator, 21);
-      FastFire2("FB.GiantGoobTemplate","ForceSpawn", "", 4.0);
+      FastFire2.Execute("FB.GiantGoobTemplate","ForceSpawn", "", 4.0);
     }
   //Found Mario
     case 43: {
@@ -429,13 +429,13 @@ void sudo(int task) {
       CustomSoundEmitter(SFXArray[53].realPath, 65, false, 0, 1.0, 100);
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Oh no, someone has found and (probably) consumed a {red}WAFFLE OF MASS DESTRUCTION{white}!");
     //Yup, another one for the explosion array
-      FastFire2("HurtAll", "AddOutput", "damage 2000000", 0.0);
-      FastFire2("HurtAll", "AddOutput", "damagetype 262144", 10.0);
-      FastFire2("ShakeBOOM", "StartShake", "", 10.3);
-      FastFire2("HUGEExplosion", "Explode", "", 10.3);
-      FastFire2("FB.Fade", "Fade", "", 10.3);
-      FastFire2("HurtAll", "Enable", "", 10.3);
-      FastFire2("HurtAll", "Disable", "", 12.3);
+      FastFire2.Execute("HurtAll", "AddOutput", "damage 2000000", 0.0);
+      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 262144", 10.0);
+      FastFire2.Execute("ShakeBOOM", "StartShake", "", 10.3);
+      FastFire2.Execute("HUGEExplosion", "Explode", "", 10.3);
+      FastFire2.Execute("FB.Fade", "Fade", "", 10.3);
+      FastFire2.Execute("HurtAll", "Enable", "", 10.3);
+      FastFire2.Execute("HurtAll", "Disable", "", 12.3);
     }
   //Medium Explosion (defined again, but we aren't using a bomb this time)
     case 51: {
@@ -444,26 +444,26 @@ void sudo(int task) {
   //Probably for the hindenburg... EDIT: NOPE. THIS IS FOR KIRB LANDING ON THE GROUND
     case 52: {
       EmitSoundToAll(SFXArray[35].realPath);
-      FastFire2("FB.BOOM", "StartShake");
-      FastFire2("BlueBall*", "Kill");
-      FastFire2("HUGEExplosion", "Explode");
-      FastFire2("BlueKirb", "Kill");
-      FastFire2("HurtAll", "AddOutput", "damagetype 32768");
-      FastFire2("HurtAll", "AddOutput", "damage 777777.777");
-      FastFire2("HurtAll", "Enable", "", 0.1);
-      FastFire2("HurtAll", "Disable", "", 2.1);
+      FastFire2.Execute("FB.BOOM", "StartShake");
+      FastFire2.Execute("BlueBall*", "Kill");
+      FastFire2.Execute("HUGEExplosion", "Explode");
+      FastFire2.Execute("BlueKirb", "Kill");
+      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 32768");
+      FastFire2.Execute("HurtAll", "AddOutput", "damage 777777.777");
+      FastFire2.Execute("HurtAll", "Enable", "", 0.1);
+      FastFire2.Execute("HurtAll", "Disable", "", 2.1);
       isGoobbue = false;
     }
   //Giant Goobbue
     case 53: {
       EmitSoundToAll(SFXArray[35].realPath);
-      FastFire2("FB.BOOM", "StartShake");
-      FastFire2("GiantGoob*", "Kill");
-      FastFire2("HUGEExplosion", "Explode");
-      FastFire2("HurtAll", "AddOutput", "damagetype 1048576");
-      FastFire2("HurtAll", "AddOutput", "damage 777777.777");
-      FastFire2("HurtAll", "Enable", "", 0.1);
-      FastFire2("HurtAll", "Disable", "", 2.1);
+      FastFire2.Execute("FB.BOOM", "StartShake");
+      FastFire2.Execute("GiantGoob*", "Kill");
+      FastFire2.Execute("HUGEExplosion", "Explode");
+      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 1048576");
+      FastFire2.Execute("HurtAll", "AddOutput", "damage 777777.777");
+      FastFire2.Execute("HurtAll", "Enable", "", 0.1);
+      FastFire2.Execute("HurtAll", "Disable", "", 2.1);
     }
     case 75:{
       char onsHP[32];
@@ -500,15 +500,15 @@ void sudo(int task) {
   //Code Entry from FC Keypad
     case 100: {
       if (core.CodeEntry == 17) {
-        FastFire2("FB.BOOM", "StartShake");
+        FastFire2.Execute("FB.BOOM", "StartShake");
         CustomSoundEmitter(SFXArray[3].realPath, 65, false, 0, 1.0, 100);
-        FastFire2("FB.CodeCorrectKill", "Enable");
-        FastFire2("FB.KP*", "Lock");
-        FastFire2("FB.CodeCorrectKill", "Disable", "", 1.0);
+        FastFire2.Execute("FB.CodeCorrectKill", "Enable");
+        FastFire2.Execute("FB.KP*", "Lock");
+        FastFire2.Execute("FB.CodeCorrectKill", "Disable", "", 1.0);
       } else {
         core.CodeEntry = 0;
-        FastFire2("FB.CodeFailedKill", "Enable");
-        FastFire2("FB.CodeFailedKill", "Disable", "", 1.0);
+        FastFire2.Execute("FB.CodeFailedKill", "Enable");
+        FastFire2.Execute("FB.CodeFailedKill", "Disable", "", 1.0);
         CustomSoundEmitter("fartsy/memes/priceisright_fail.wav", 65, false, 0, 1.0, 100);
       }
     }
@@ -578,16 +578,16 @@ void sudo(int task) {
     }
   //Spoopy
     case 130: {
-      FastFire2("gTrain", "StartForward");
-      FastFire2("gTelefect", "Start");
-      FastFire2("gTelefect", "Stop", "", 3.0);
-      FastFire2("gTrainSndHaunt", "PlaySound", "", GetRandomFloat(3.0, 7.0));
+      FastFire2.Execute("gTrain", "StartForward");
+      FastFire2.Execute("gTelefect", "Start");
+      FastFire2.Execute("gTelefect", "Stop", "", 3.0);
+      FastFire2.Execute("gTrainSndHaunt", "PlaySound", "", GetRandomFloat(3.0, 7.0));
     }
   //Despawn ghosty boi in like 3 seconds
     case 131: {
-      FastFire2("gTelefect", "Start", "", 3.0);
-      FastFire2("gTelefect", "Stop", "", 6.0);
-      FastFire2("gTrain", "TeleportToPathTrack", "gPathHome", 3.0);
+      FastFire2.Execute("gTelefect", "Start", "", 3.0);
+      FastFire2.Execute("gTelefect", "Stop", "", 6.0);
+      FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPathHome", 3.0);
     }
   //Determine what boss just deployed.
     case 132: {
@@ -597,22 +597,22 @@ void sudo(int task) {
       switch(BossHandler.bossID) {
       // brute justice
         case 0:{
-          FastFire2("bots_win", "roundwin");
+          FastFire2.Execute("bots_win", "roundwin");
         }
       }
     }
   //Metal Face reached spawn point
     case 133: {
       CustomSoundEmitter(SFXArray[3].realPath, 45, false, 0, 1.0, 100);
-      FastFire2("FB.MetalFace.Train", "Stop");
-      FastFire2("FB.MetalFace.Train", "SetSpeedReal", "50", 3.0);
-      FastFire2("FB.MetalFace.SpawnShake", "StartShake");
-      FastFire2("FB.MetalFace.SpawnParticle", "Stop");
+      FastFire2.Execute("FB.MetalFace.Train", "Stop");
+      FastFire2.Execute("FB.MetalFace.Train", "SetSpeedReal", "50", 3.0);
+      FastFire2.Execute("FB.MetalFace.SpawnShake", "StartShake");
+      FastFire2.Execute("FB.MetalFace.SpawnParticle", "Stop");
     }
   //Tank deployed its bomb
     case 134: {
       BossHandler.TriggerVictory();
-      FastFire2("boss_deploy_relay", "Trigger", "", 5.0);
+      FastFire2.Execute("boss_deploy_relay", "Trigger", "", 5.0);
     }
   //Spawn metal face
     case 135: {
@@ -630,14 +630,14 @@ void sudo(int task) {
   //Wipe mechanic down (MetalFace)
     case 139: {
       BossHandler.shouldTick = false;
-      FastFire2("FB.MetalFace", "Kill");
-      FastFire2("FB.MetalFace.Train", "Kill");
-      FastFire2("FB.MetalFace.SpawnParticle", "Kill");
-      FastFire2("FB.MetalFace.SummonRockets", "Kill");
-      FastFire2("FB.MetalFace.GigaBusterSNDTimer", "Kill");
-      FastFire2("FB.MetalFace.GigaBuster.Explosion", "Kill");
-      FastFire2("FB.MetalFace.GigaBusterMDL", "Kill");
-      FastFire2("FB.MetalFace.GigaBusterSND", "Kill");
+      FastFire2.Execute("FB.MetalFace", "Kill");
+      FastFire2.Execute("FB.MetalFace.Train", "Kill");
+      FastFire2.Execute("FB.MetalFace.SpawnParticle", "Kill");
+      FastFire2.Execute("FB.MetalFace.SummonRockets", "Kill");
+      FastFire2.Execute("FB.MetalFace.GigaBusterSNDTimer", "Kill");
+      FastFire2.Execute("FB.MetalFace.GigaBuster.Explosion", "Kill");
+      FastFire2.Execute("FB.MetalFace.GigaBusterMDL", "Kill");
+      FastFire2.Execute("FB.MetalFace.GigaBusterSND", "Kill");
       BossHandler.OnKilled();
     }
   //Debug, somethingsomething aoe blah blah blah
@@ -674,15 +674,15 @@ void sudo(int task) {
       iDmgHealingTotal = 0;
       CreateTimer(1.0, PerformAdverts);
       CreateTimer(40.0, SelectAdminTimer);
-      FastFire2("Barricade_Rebuild_Relay", "Trigger");
-      FastFire2("FB.KP*", "Lock");
-      FastFire2("OldSpawn", "Disable");
-      FastFire2("NewSpawn", "Enable");
-      FastFire2("CommonSpells", "Disable");
-      FastFire2("RareSpells", "Disable");
-      FastFire2("dovahsassprefer", "Disable");
-      FastFire2("bombpath_left_arrows", "Disable");
-      FastFire2("bombpath_right_arrows", "Disable");
+      FastFire2.Execute("Barricade_Rebuild_Relay", "Trigger");
+      FastFire2.Execute("FB.KP*", "Lock");
+      FastFire2.Execute("OldSpawn", "Disable");
+      FastFire2.Execute("NewSpawn", "Enable");
+      FastFire2.Execute("CommonSpells", "Disable");
+      FastFire2.Execute("RareSpells", "Disable");
+      FastFire2.Execute("dovahsassprefer", "Disable");
+      FastFire2.Execute("bombpath_left_arrows", "Disable");
+      FastFire2.Execute("bombpath_right_arrows", "Disable");
       sudo(1000);
       sudo(1002);
       sudo(1007);
@@ -708,21 +708,21 @@ void sudo(int task) {
       BossHandler.tickBusterNuclear = true;
     }
     case 426: {
-    // FastFire2("NukeTankBusterThing", "ForceSpawn");
-      FastFire2("PL.CannonPitch", "SetPosition", "1.0");
-      FastFire2("PL.SentCart", "ForceSpawn", "", 5.0);
-      FastFire2("PL.SentPhys", "Wake", "", 5.1);
-      FastFire2("PL.CannonFodder", "Enable", "", 5.1);
-      FastFire2("PL.CannonSND", "PlaySound", "", 5.1);
-      FastFire2("PL.CannonFodder", "Disable", "", 5.3);
-      FastFire2("PL.SentCartPhys", "Break", "", 6.0);
+    // FastFire2.Execute("NukeTankBusterThing", "ForceSpawn");
+      FastFire2.Execute("PL.CannonPitch", "SetPosition", "1.0");
+      FastFire2.Execute("PL.SentCart", "ForceSpawn", "", 5.0);
+      FastFire2.Execute("PL.SentPhys", "Wake", "", 5.1);
+      FastFire2.Execute("PL.CannonFodder", "Enable", "", 5.1);
+      FastFire2.Execute("PL.CannonSND", "PlaySound", "", 5.1);
+      FastFire2.Execute("PL.CannonFodder", "Disable", "", 5.3);
+      FastFire2.Execute("PL.SentCartPhys", "Break", "", 6.0);
     }
     case 427: {
-      FastFire2("PL.NukeCart", "ForceSpawn");
-      FastFire2("PL.NukeCartPhys", "Break", "", 1.25);
-      FastFire2("PL.NukeCartParticle", "Start", "", 1.25);
-      FastFire2("PL.NukeCartShake", "StartShake", "", 1.25);
-      FastFire2("PL.NukeCartExplo", "Explode", "", 1.25);
+      FastFire2.Execute("PL.NukeCart", "ForceSpawn");
+      FastFire2.Execute("PL.NukeCartPhys", "Break", "", 1.25);
+      FastFire2.Execute("PL.NukeCartParticle", "Start", "", 1.25);
+      FastFire2.Execute("PL.NukeCartShake", "StartShake", "", 1.25);
+      FastFire2.Execute("PL.NukeCartExplo", "Explode", "", 1.25);
     }
   //LOOP SYSTEM
     case 500: {
@@ -758,13 +758,13 @@ void sudo(int task) {
       int i = GetRandomInt(1, 10);
       if (i == core.lastAdmin) i = GetRandomInt(1, 10);
       IntToString(i, index, sizeof(index));
-      FastFire2("AdminPicker", "SetTextureIndex", index);
+      FastFire2.Execute("AdminPicker", "SetTextureIndex", index);
       core.lastAdmin = i;
       return;
     }
   //Flash Lightning
     case 1003: {
-      for (int i = 0; i < sizeof(lightningFlash); i++) FastFire2(lightningFlash[i].fireStr);
+      for (int i = 0; i < sizeof(lightningFlash); i++) FastFire2.Execute(lightningFlash[i].fireStr);
     }
   //Activate Tornado Timer
     case 1004: {
@@ -788,22 +788,22 @@ void sudo(int task) {
         sudo(1001);
         crusader = true;
         AssLogger(LOGLVL_INFO, "Starting Crusader!");
-        FastFire2("TheCrusaderTemplate", "ForceSpawn");
-        SetEntityLife("CrusaderTrack*", 80.0);
-        SetEntityLife("CrusaderTrain", 80.0);
-        SetEntityLife("FB.CrusaderNuke", 80.0);
-        SetEntityLife("FB.CRUSADER", 80.0);
-        SetEntityLife("Target.FBLaserCore", 80.0);
-        SetEntityLife("Target.FBLaserInner*", 80.0);
-        SetEntityLife("Target.FBLaserOuterMost*", 80.0);
-        SetEntityLife("CrusaderLaserBase", 80.0);
-        SetEntityLife("CrusaderLaserBaseAlt", 80.0);
-        SetEntityLife("CrusaderLaserBaseAlt1", 80.0);
-        SetEntityLife("CrusaderLaserBaseAlt2", 80.0);
-        SetEntityLife("CrusaderLaserBaseAlt3", 80.0);
-        SetEntityLife("FB.LaserInnerMost", 80.0);
-        SetEntityLife("FB.LaserOuterMost", 80.0);
-        SetEntityLife("FB.LaserCore", 80.0);
+        FastFire2.Execute("TheCrusaderTemplate", "ForceSpawn");
+        FastFire2.SetEntityLife("CrusaderTrack*", 80.0);
+        FastFire2.SetEntityLife("CrusaderTrain", 80.0);
+        FastFire2.SetEntityLife("FB.CrusaderNuke", 80.0);
+        FastFire2.SetEntityLife("FB.CRUSADER", 80.0);
+        FastFire2.SetEntityLife("Target.FBLaserCore", 80.0);
+        FastFire2.SetEntityLife("Target.FBLaserInner*", 80.0);
+        FastFire2.SetEntityLife("Target.FBLaserOuterMost*", 80.0);
+        FastFire2.SetEntityLife("CrusaderLaserBase", 80.0);
+        FastFire2.SetEntityLife("CrusaderLaserBaseAlt", 80.0);
+        FastFire2.SetEntityLife("CrusaderLaserBaseAlt1", 80.0);
+        FastFire2.SetEntityLife("CrusaderLaserBaseAlt2", 80.0);
+        FastFire2.SetEntityLife("CrusaderLaserBaseAlt3", 80.0);
+        FastFire2.SetEntityLife("FB.LaserInnerMost", 80.0);
+        FastFire2.SetEntityLife("FB.LaserOuterMost", 80.0);
+        FastFire2.SetEntityLife("FB.LaserCore", 80.0);
         CreateTimer(1.75, CRUSADERINCOMING);
         CreateTimer(25.20, TimedOperator, 9);
         CreateTimer(25.20, TimedOperator, 78);
@@ -811,69 +811,69 @@ void sudo(int task) {
         CreateTimer(63.20, TimedOperator, 80);
         EmitSoundToAll("fartsy/misc/fartsyscrusader_bgm_locus.mp3");
         CreateTimer(80.0, TimedOperator, 79);
-        for (int i = 0; i < sizeof(crusaderAtk); i++) FastFire2(crusaderAtk[i].fireStr);
+        for (int i = 0; i < sizeof(crusaderAtk); i++) FastFire2.Execute(crusaderAtk[i].fireStr);
       }
     }
   //Choose bomb path
     case 1007: {
-      FastFire2("Nest_*", "Disable");
-      FastFire2("bombpath_right_prefer_flankers", "Disable");
-      FastFire2("bombpath_left_prefer_flankers", "Disable");
-      FastFire2("bombpath_left_navavoid", "Disable");
-      FastFire2("bombpath_right_navavoid", "Disable");
-      FastFire2("bombpath_right_arrows", "Disable");
-      FastFire2("bombpath_left_arrows", "Disable");
+      FastFire2.Execute("Nest_*", "Disable");
+      FastFire2.Execute("bombpath_right_prefer_flankers", "Disable");
+      FastFire2.Execute("bombpath_left_prefer_flankers", "Disable");
+      FastFire2.Execute("bombpath_left_navavoid", "Disable");
+      FastFire2.Execute("bombpath_right_navavoid", "Disable");
+      FastFire2.Execute("bombpath_right_arrows", "Disable");
+      FastFire2.Execute("bombpath_left_arrows", "Disable");
       switch (GetRandomInt(1, 3)) {
         case 1: {
-          FastFire2("Nest_R*", "Enable", "", 0.25);
-          FastFire2("bombpath_right_prefer_flankers", "Enable", "", 0.25);
-          FastFire2("bombpath_right_navavoid", "Enable", "", 0.25);
-          FastFire2("bombpath_right_arrows", "Enable", "", 0.25);
+          FastFire2.Execute("Nest_R*", "Enable", "", 0.25);
+          FastFire2.Execute("bombpath_right_prefer_flankers", "Enable", "", 0.25);
+          FastFire2.Execute("bombpath_right_navavoid", "Enable", "", 0.25);
+          FastFire2.Execute("bombpath_right_arrows", "Enable", "", 0.25);
         }
         case 2: {
-          FastFire2("Nest_L*", "Enable", "", 0.25);
-          FastFire2("bombpath_left_prefer_flankers", "Enable", "", 0.25);
-          FastFire2("bombpath_left_navavoid", "Enable", "", 0.25);
-          FastFire2("bombpath_left_arrows", "Enable", "", 0.25);
+          FastFire2.Execute("Nest_L*", "Enable", "", 0.25);
+          FastFire2.Execute("bombpath_left_prefer_flankers", "Enable", "", 0.25);
+          FastFire2.Execute("bombpath_left_navavoid", "Enable", "", 0.25);
+          FastFire2.Execute("bombpath_left_arrows", "Enable", "", 0.25);
         }
         case 3: {
-          FastFire2("dovahsassprefer", "Enable", "",  0.25);
-          FastFire2("Nest_EN*", "Enable","",  0.25);
-          FastFire2("bombpath_right_prefer_flankers", "Enable", "", 0.25);
-          FastFire2("bombpath_right_navavoid", "Enable", "", 0.25);
-          FastFire2("bombpath_right_arrows", "Enable", "", 0.25);
+          FastFire2.Execute("dovahsassprefer", "Enable", "",  0.25);
+          FastFire2.Execute("Nest_EN*", "Enable","",  0.25);
+          FastFire2.Execute("bombpath_right_prefer_flankers", "Enable", "", 0.25);
+          FastFire2.Execute("bombpath_right_navavoid", "Enable", "", 0.25);
+          FastFire2.Execute("bombpath_right_arrows", "Enable", "", 0.25);
         }
       }
     }
   //Monitor power up/down!
     case 1008: {
       core.monitorOn = (!core.monitorOn ? true : false);
-      FastFire2("FB.MonitorSprite", "Color", !core.monitorColor && core.monitorOn ? "0 0 255" : core.monitorOn ? "0 255 0" : "255 0 0", 0.0);
-      FastFire2(!core.monitorColor && core.monitorOn ? "FB.MonitorBW" : core.monitorOn ? "FB.Monitor" : "FB.Monitor*", core.monitorOn ? "Enable" : "Disable");
-      FastFire2(!core.monitorColor && core.monitorOn ? "FB.Monitor" : core.monitorOn ? "FB.MonitorBW" : "FB.MonitorBlank", core.monitorOn ? "Disable" : "Enable");
-      FastFire2("FB.MonitorBlank", core.monitorOn ? "Disable" : "Enable", "", 0.2);
+      FastFire2.Execute("FB.MonitorSprite", "Color", !core.monitorColor && core.monitorOn ? "0 0 255" : core.monitorOn ? "0 255 0" : "255 0 0", 0.0);
+      FastFire2.Execute(!core.monitorColor && core.monitorOn ? "FB.MonitorBW" : core.monitorOn ? "FB.Monitor" : "FB.Monitor*", core.monitorOn ? "Enable" : "Disable");
+      FastFire2.Execute(!core.monitorColor && core.monitorOn ? "FB.Monitor" : core.monitorOn ? "FB.MonitorBW" : "FB.MonitorBlank", core.monitorOn ? "Disable" : "Enable");
+      FastFire2.Execute("FB.MonitorBlank", core.monitorOn ? "Disable" : "Enable", "", 0.2);
     }
   //Cycle monitor forward
     case 1009: {
       core.camSel++;
       if (core.camSel > 5) core.camSel = 0;
-      FastFire2("FB.Monitor", "SetCamera", SelectedCamera[core.camSel]);
-      FastFire2("FB.MonitorBW", "SetCamera", SelectedCamera[core.camSel]);
+      FastFire2.Execute("FB.Monitor", "SetCamera", SelectedCamera[core.camSel]);
+      FastFire2.Execute("FB.MonitorBW", "SetCamera", SelectedCamera[core.camSel]);
     }
   //Cycle monitor back
     case 1010: {
       core.camSel--;
       if (core.camSel < 0) core.camSel = 5;
-      FastFire2("FB.Monitor", "SetCamera", SelectedCamera[core.camSel]);
-      FastFire2("FB.MonitorBW", "SetCamera", SelectedCamera[core.camSel]);
+      FastFire2.Execute("FB.Monitor", "SetCamera", SelectedCamera[core.camSel]);
+      FastFire2.Execute("FB.MonitorBW", "SetCamera", SelectedCamera[core.camSel]);
     }
   //Toggle black and white mode.
     case 1011: {
       if (!core.monitorOn) return;
       core.monitorColor = (!core.monitorColor ? true : false);
-      FastFire2("FB.MonitorSprite", "Color", core.monitorColor ? "0 255 0" : "0 0 255");
-      FastFire2(core.monitorColor ? "FB.MonitorBW" : "FB.Monitor", "Disable");
-      FastFire2(core.monitorColor ? "FB.Monitor" : "FB.MonitorBW", "Enable");
+      FastFire2.Execute("FB.MonitorSprite", "Color", core.monitorColor ? "0 255 0" : "0 0 255");
+      FastFire2.Execute(core.monitorColor ? "FB.MonitorBW" : "FB.Monitor", "Disable");
+      FastFire2.Execute(core.monitorColor ? "FB.Monitor" : "FB.MonitorBW", "Enable");
     }
     case 6942: {
       ass_sacPoints = 2147483647;
@@ -886,7 +886,7 @@ void sudo(int task) {
     }
   //DEBUG
     case 7500:{
-      FastFire2("LargeExplosion", "Explode", "", 0.5);
+      FastFire2.Execute("LargeExplosion", "Explode", "", 0.5);
     }
     case 8000: {
       SephBoss[GetRandomInt(0, 6)].attack();
@@ -1028,11 +1028,11 @@ public Action TimedOperator(Handle timer, int job) {
     //Boss script pt 2
     case 3: {
       AudioManager.setBGM_Global(16, true);
-      FastFire2("FB.FadeTotalBLCK", "Fade");
-      FastFire2("FB.FadeTotalBLCK", "Fade", "", 3.0);
-      FastFire2("FB.FadeTotalBLCK", "Fade", "", 7.0);
-      FastFire2("FB.FadeTotalBLCK", "Fade", "", 12.0);
-      FastFire2("SephMeteor", "ForceSpawn", "", 19.6);
+      FastFire2.Execute("FB.FadeTotalBLCK", "Fade");
+      FastFire2.Execute("FB.FadeTotalBLCK", "Fade", "", 3.0);
+      FastFire2.Execute("FB.FadeTotalBLCK", "Fade", "", 7.0);
+      FastFire2.Execute("FB.FadeTotalBLCK", "Fade", "", 12.0);
+      FastFire2.Execute("SephMeteor", "ForceSpawn", "", 19.6);
       CreateTimer(23.0, TimedOperator, 4);
     }
     //Boss script pt 3
@@ -1043,13 +1043,13 @@ public Action TimedOperator(Handle timer, int job) {
     //Boss script pt 4
     case 5: {
       CustomSoundEmitter(SFXArray[58].realPath, 65, false, 0, 1.0, 100);
-      FastFire2("SephNuke", "ForceSpawn", "", 3.0);
+      FastFire2.Execute("SephNuke", "ForceSpawn", "", 3.0);
       CreateTimer(3.2, TimedOperator, 6);
     }
     //Boss script pt 5
     case 6: {
       CustomSoundEmitter(SFXArray[35].realPath, 65, false, 0, 1.0, 100);
-      FastFire2("FB.Fade", "Fade");
+      FastFire2.Execute("FB.Fade", "Fade");
       CreateTimer(1.0, SephATK);
       CreateTimer(1.7, TimedOperator, 7);
     }
@@ -1063,7 +1063,7 @@ public Action TimedOperator(Handle timer, int job) {
     case 8: {
       CustomSoundEmitter(SFXArray[57].realPath, 65, false, 0, 1.0, 100);
       CPrintToChatAll("{darkgreen}[CORE] You did it!!! {darkred}Or... did you...?");
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       CreateTimer(4.8, TimedOperator, 2);
     }
     //Crusader Nuke activation
@@ -1121,7 +1121,7 @@ public Action TimedOperator(Handle timer, int job) {
     }
     case 70: {
       if (WaveSystem().IsActive()) {
-        FastFire2("FB.KP*", "Unlock");
+        FastFire2.Execute("FB.KP*", "Unlock");
         CustomSoundEmitter(SFXArray[0].realPath, SFXArray[0].SNDLVL, false, 0, 1.0, 100);
       }
       return Plugin_Stop;
@@ -1182,68 +1182,68 @@ public Action TimedOperator(Handle timer, int job) {
       ServerCommand("sv_cheats 1");
       for (int client = 1; client <= MaxClients; client++) if (IsClientInGame(client)) ClientCommand(client, "r_screenoverlay fartsy/fartsy_dll_core");
       ServerCommand("sv_cheats 0");
-      FastFire2("FB.FadeBLCK", "Alpha", "127", 0.0);
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Alpha", "127", 0.0);
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       SendHudTextAll(1, "Did you think this would be easy...?", 0.1, 0.15, 9.0, {0, 160, 0, 255}, {0, 255, 0, 255}, 2, 0.5, 0.05, 0.75);
       EmitSoundToAll("fartsy/misc/brawler/fartsy_dll/terror.mp3");
       CreateTimer(3.0, TimedOperator, 50001);
       return Plugin_Stop;
     }
     case 50001: {
-      FastFire2("FB.FadeBLCK", "Alpha", "127", 0.0);
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Alpha", "127", 0.0);
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       SendHudTextAll(2, "You can't possibly expect the same old tricks to work.... can you?~", 0.2, 0.2, 3.0, {0, 160, 0, 192}, {0, 255, 0, 192}, 2, 0.75, 0.05, 0.75);
       CreateTimer(5.0, TimedOperator, 50002);
       return Plugin_Stop;
     }
     case 50002: {
-      FastFire2("FB.FadeBLCK", "Alpha", "127", 0.0);
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Alpha", "127", 0.0);
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       SendHudTextAll(1, "LAUGH IT UP. You and I both know this is 'just another boss fight'...", 0.15, 0.25, 7.0, {0, 160, 0, 192}, {0, 255, 0, 192}, 2, 0.5, 0.05, 0.75);
       CreateTimer(5.0, TimedOperator, 50003);
       return Plugin_Stop;
     }
     case 50003: {
-      FastFire2("FB.FadeBLCK", "Alpha", "192", 0.0);
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Alpha", "192", 0.0);
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       SendHudTextAll(2, "...or is it?~", 0.2, 0.3, 2.0, {0, 160, 0, 192}, {0, 255, 0, 192}, 2, 0.5, 0.05, 0.75);
       CreateTimer(4.0, TimedOperator, 50004);
       return Plugin_Stop;
     }
     case 50004:{
-      FastFire2("FB.FadeBLCK", "Alpha", "224", 0.0);
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Alpha", "224", 0.0);
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       SendHudTextAll(1, "ARE YOU HAPPY? All of you who knew what was happening...~", 0.25, 0.35, 7.0, {0, 160, 0, 192}, {0, 255, 0, 192}, 2, 0.5, 0.05, 0.75);
       CreateTimer(5.0, TimedOperator, 50005);
       return Plugin_Stop;
     }
     case 50005:{
-      FastFire2("FB.FadeBLCK", "Alpha", "224", 0.0);
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Alpha", "224", 0.0);
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       SendHudTextAll(2, "Every last one of you...", 0.35, 0.4, 5.0, {0, 160, 0, 192}, {0, 255, 0, 192}, 1, 0.5, 0.5, 0.75);
       CreateTimer(5.0, TimedOperator, 50006);
       return Plugin_Stop;
     }
     case 50006:{
-      FastFire2("FB.FadeBLCK", "Alpha", "192", 0.0);
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Alpha", "192", 0.0);
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       SendHudTextAll(1, "I hope you're as happy as I am...~", 0.15, 0.45, 7.0, {0, 160, 0, 192}, {0, 255, 0, 192}, 2, 0.5, 0.05, 0.75);
       CreateTimer(4.0, TimedOperator, 50007);
       return Plugin_Stop;
     }
     case 50007:{
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       SendHudTextAll(2, "...knowing you all just spent all your time here~", 0.25, 0.5, 5.0, {0, 160, 0, 192}, {0, 255, 0, 192}, 2, 0.5, 0.05, 0.75);
       CreateTimer(5.0, TimedOperator, 50008);
       return Plugin_Stop;
     }
     case 50008:{
-      FastFire2("FB.FadeBLCK", "Alpha", "255", 0.0);
-      FastFire2("FB.FadeBLCK", "Fade");
+      FastFire2.Execute("FB.FadeBLCK", "Alpha", "255", 0.0);
+      FastFire2.Execute("FB.FadeBLCK", "Fade");
       ServerCommand("sv_cheats 1");
       for (int client = 1; client <= MaxClients; client++) if (IsClientInGame(client)) ClientCommand(client, "r_screenoverlay fartsy/fartsy_dll_anon");
       ServerCommand("sv_cheats 0");
-      FastFire2("FB.FadeBLCK", "Fade", "", 3.0);
+      FastFire2.Execute("FB.FadeBLCK", "Fade", "", 3.0);
       SendHudTextAll(1, "JUST TO DIE!!!", 0.4, 0.6, 7.0, {255, 0, 0, 255}, {255, 0, 0, 255}, 1, 0.5, 0.05, 0.75);
       CreateTimer(5.75, TimedOperator, 50009);
       return Plugin_Stop;
