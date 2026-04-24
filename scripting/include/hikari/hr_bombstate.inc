@@ -91,6 +91,9 @@ methodmap BOMBCONTROLLER {
     if (g_BombIndex == 48) CreateTimer(3.0, SharkTimer);
     if (SCR_IsAvailable()) SCR_SendEvent("[Bomb State]", "The team is currently pushing a %s.", this.getCurBomb().name);
   }
+  public void OnBombReady() {
+    FastFire2.Execute("BombSpawner", "ForceSpawn");
+  }
 }
 BOMBCONTROLLER Bombs;
 

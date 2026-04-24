@@ -817,7 +817,7 @@ public Action OnBossSpawn_Post(Handle timer, int hp) {
 
 //Teleport all entities to the client every frame
 public Action StartTickBuster(Handle timer) {
-  if (ICanSummon(12) && !IsValidEntity(FindEntityByTargetName("FB.TankBuster", "trigger_hurt"))) FastFire2.Execute("TankBusterTemplate", "ForceSpawn")
+  if (ICanSummon(12) && !IsValidEntity(FindEntityByTargetname("FB.TankBuster", "trigger_hurt"))) FastFire2.Execute("TankBusterTemplate", "ForceSpawn")
   BossHandler.tickBuster = true;
   return Plugin_Stop;
 }
