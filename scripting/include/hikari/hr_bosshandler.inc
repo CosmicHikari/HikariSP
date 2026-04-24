@@ -402,28 +402,31 @@ enum struct BOSSHANDLER {
     float sPos[3]; //Sign/Arrow's Target Position
     float rPos[3];
     float fVelocity[3]; //Velocity for teleporting entities, used for angles as well so we don't need two vectors.
-    int iAirParticle = FindEntityByTargetname("FB.TankBuster.AirParticle", "func_brush");
-    int iBuster = FindEntityByTargetname("FB.TankBuster", "trigger_hurt");
-    int iExploParticle = FindEntityByTargetname("FB.TankBuster.ExplodeParticle", "info_particle_system");
-    int iParticle = FindEntityByTargetname("FB.TankBuster.GroundParticle", "info_particle_system");
-    int iSign = FindEntityByTargetname("FB.TankBuster.Sign", "func_rotating");
-    int iSpin = FindEntityByTargetname("FB.TankBuster.Spinner", "func_rotating");
-    GetClientAbsOrigin(this.bustTarget, cPos);
-    rPos[0] = cPos[0];
-    rPos[1] = cPos[1];
-    rPos[2] = cPos[2] + 50.0;
-    pPos[0] = cPos[0];
-    pPos[1] = cPos[1];
-    pPos[2] = cPos[2] + 25.0;
-    sPos[0] = cPos[0];
-    sPos[1] = cPos[1];
-    sPos[2] = cPos[2] + 150.0;
-    TeleportEntity(iAirParticle, rPos, fVelocity, fVelocity);
-    TeleportEntity(iParticle, pPos, fVelocity, fVelocity);
-    TeleportEntity(iExploParticle, pPos, fVelocity, fVelocity);
-    TeleportEntity(iBuster, cPos, fVelocity, fVelocity);
-    TeleportEntity(iSign, sPos, fVelocity, fVelocity);
-    TeleportEntity(iSpin, pPos, fVelocity, fVelocity);
+    if (!IsValidEntity(FindEntityByTargetname("FB.TankBuster", "trigger_hurt"))) return;
+    else {
+      int iAirParticle = FindEntityByTargetname("FB.TankBuster.AirParticle", "func_brush");
+      int iBuster = FindEntityByTargetname("FB.TankBuster", "trigger_hurt");
+      int iExploParticle = FindEntityByTargetname("FB.TankBuster.ExplodeParticle", "info_particle_system");
+      int iParticle = FindEntityByTargetname("FB.TankBuster.GroundParticle", "info_particle_system");
+      int iSign = FindEntityByTargetname("FB.TankBuster.Sign", "func_rotating");
+      int iSpin = FindEntityByTargetname("FB.TankBuster.Spinner", "func_rotating");
+      GetClientAbsOrigin(this.bustTarget, cPos);
+      rPos[0] = cPos[0];
+      rPos[1] = cPos[1];
+      rPos[2] = cPos[2] + 50.0;
+      pPos[0] = cPos[0];
+      pPos[1] = cPos[1];
+      pPos[2] = cPos[2] + 25.0;
+      sPos[0] = cPos[0];
+      sPos[1] = cPos[1];
+      sPos[2] = cPos[2] + 150.0;
+      TeleportEntity(iAirParticle, rPos, fVelocity, fVelocity);
+      TeleportEntity(iParticle, pPos, fVelocity, fVelocity);
+      TeleportEntity(iExploParticle, pPos, fVelocity, fVelocity);
+      TeleportEntity(iBuster, cPos, fVelocity, fVelocity);
+      TeleportEntity(iSign, sPos, fVelocity, fVelocity);
+      TeleportEntity(iSpin, pPos, fVelocity, fVelocity);
+    }
   }
   //Tick client post
   void TickForClient(int client) {
@@ -814,6 +817,7 @@ public Action OnBossSpawn_Post(Handle timer, int hp) {
 
 //Teleport all entities to the client every frame
 public Action StartTickBuster(Handle timer) {
+  if (ICanSummon(12) && !IsValidEntity(FindEntityByTargetName("FB.TankBuster", "trigger_hurt"))) FastFire2.Execute("TankBusterTemplate", "ForceSpawn")
   BossHandler.tickBuster = true;
   return Plugin_Stop;
 }
@@ -839,6 +843,17 @@ public Action ResetTickBuster(Handle time) {
   TeleportEntity(iBuster, fAirPart, fVelocity, fVelocity);
   TeleportEntity(iSign, fAirPart, fVelocity, fVelocity);
   TeleportEntity(iSpin, fAirPart, fVelocity, fVelocity);
+  FastFire2.SetEntityLife("FB.TankBuster.Sign", 0.1);
+  FastFire2.SetEntityLife("FB.TankBuster", 0.1);
+  FastFire2.SetEntityLife("FB.TankBusterAOE", 0.1);
+  FastFire2.SetEntityLife("FB.TankBuster.AirParticle", 0.1);
+  FastFire2.SetEntityLife("FB.TankBuster.Spinner", 0.1);
+  FastFire2.SetEntityLife("FB.TankBusterSND", 0.1);
+  FastFire2.SetEntityLife("FB.TankBusterSNDNuclear", 0.1);
+  FastFire2.SetEntityLife("TB.TankBuster.ExplodeSND", 0.1);
+  FastFire2.SetEntityLife("FB.TankBuster.ExplodeParticle", 0.1);
+  FastFire2.SetEntityLife("FB.TankBuster.GroundParticle", 0.1);
+  FastFire2.SetEntityLife("FB.NuclearTankBuster.GroundParticle", 0.1);
   return Plugin_Stop;
 }
 
