@@ -45,7 +45,7 @@ methodmap FASTFIRE2 {
 }
 FASTFIRE2 FastFire2;
 
-// Inject entity IO logic
+// Startup event - Inject entity IO logic
 public void OnMapStart() {
   AssLogger(LOGLVL_INFO, "OnMapStart Received: Injecting FastFire2! (v%s)", FF2_VER);
   int ff2 = (!IsValidEntity(EntRefToEntIndex(ff2Ref))) ? FastFire2.CreateCustomEntity("info_target", "FastFire2") : FindEntityByTargetname("FastFire2", "info_target");
