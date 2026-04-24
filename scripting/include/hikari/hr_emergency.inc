@@ -1,5 +1,5 @@
- //Brawler Emergency Mode Rewrite
-char BEM_VER[8] = "1.0.1";
+ // Brawler Emergency Mode Rewrite
+char BEM_VER[8] = "1.1.0";
 int BEM = 0;
 bool brawler_emergency;
 
@@ -26,12 +26,12 @@ void Emerge(int stage) {
       return;
     }
     case 3: {
-      ServerCommand("fb_operator 40;fb_operator 40;fb_operator 40;fb_operator 40;fb_operator 40;fb_operator 40;fb_operator 40;fb_operator 40;fb_operator 40;fb_operator 40");
+      ServerCommand("hr_send 40;hr_send 40;hr_send 40;hr_send 40;hr_send 40;hr_send 40;hr_send 40;hr_send 40;hr_send 40;hr_send 40");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 4: {
-      ServerCommand("fb_operator 42;fb_operator 42;fb_operator 42;fb_operator 42;fb_operator 42;fb_operator 42;fb_operator 42;fb_operator 42;fb_operator 42;fb_operator 42");
+      ServerCommand("hr_send 42;hr_send 42;hr_send 42;hr_send 42;hr_send 42;hr_send 42;hr_send 42;hr_send 42;hr_send 42;hr_send 42");
       sudo(1006);
       CreateTimer(1.0, EmergeTimer);
       return;
@@ -46,67 +46,67 @@ void Emerge(int stage) {
     case 6: {
       g_BombIndex = 16;
       BombRegistry[0].stateMax = 18;
-      ServerCommand("fb_operator 15;fb_operator 15");
+      ServerCommand("hr_send 15;hr_send 15");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 7: {
       g_BombIndex = 24;
       BombRegistry[0].stateMax = 26;
-      ServerCommand("fb_operator 15;fb_operator 15;fb_operator 15");
+      ServerCommand("hr_send 15;hr_send 15;hr_send 15");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 8: {
       g_BombIndex = 32;
       BombRegistry[0].stateMax = 34;
-      ServerCommand("fb_operator 15;fb_operator15;fb_operator 15;fb_operator 15");
+      ServerCommand("hr_send 15;hr_send15;hr_send 15;hr_send 15");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 9: {
       g_BombIndex = 40;
       BombRegistry[0].stateMax = 42;
-      ServerCommand("fb_operator 15;fb_operator 15;fb_operator 15;fb_operator 15;fb_operator 15");
+      ServerCommand("hr_send 15;hr_send 15;hr_send 15;hr_send 15;hr_send 15");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 10: {
       g_BombIndex = 48;
       BombRegistry[0].stateMax = 50;
-      ServerCommand("fb_operator 15;fb_operator 15;fb_operator 15;fb_operator 15;fb_operator 15;fb_operator 15");
-      ServerCommand("fb_operator 30");
+      ServerCommand("hr_send 15;hr_send 15;hr_send 15;hr_send 15;hr_send 15;hr_send 15");
+      ServerCommand("hr_send 30");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 11: {
       g_BombIndex = 5, 
-      ServerCommand("fb_operator 31");
+      ServerCommand("hr_send 31");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 12: {
-      ServerCommand("fb_operator 32");
+      ServerCommand("hr_send 32");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 13: {
-      ServerCommand("fb_operator 33");
+      ServerCommand("hr_send 33");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 14: {
-      ServerCommand("fb_operator 34");
+      ServerCommand("hr_send 34");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 15: {
-      ServerCommand("fb_operator 35");
+      ServerCommand("hr_send 35");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 16: {
-      ServerCommand("fb_operator 36");
+      ServerCommand("hr_send 36");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
@@ -121,14 +121,14 @@ void Emerge(int stage) {
       return;
     }
     case 19: {
-      ServerCommand("fb_operator 40; fb_operator 42; fb_operator 30; fb_operator 32; fb_operator 34; fb_operator 32; fb_operator 31; fb_operator 42;fb_operator 42;fb_operator 42;fb_operator 31;fb_operator 32;fb_operator 32;fb_operator 31;fb_operator 32;fb_operator 32");
+      ServerCommand("hr_send 40; hr_send 42; hr_send 30; hr_send 32; hr_send 34; hr_send 32; hr_send 31; hr_send 42;hr_send 42;hr_send 42;hr_send 31;hr_send 32;hr_send 32;hr_send 31;hr_send 32;hr_send 32");
       CreateTimer(1.0, EmergeTimer);
       return;
     }
     case 20: {
       g_BombIndex = 48;
       BombRegistry[0].stateMax = 50;
-      ServerCommand("fb_operator 15;fb_operator 15;fb_operator 15;fb_operator 15;fb_operator 15;fb_operator 15");
+      ServerCommand("hr_send 15;hr_send 15;hr_send 15;hr_send 15;hr_send 15;hr_send 15");
       for (int i = 0; i < 12; i++) {
         sudo(GetRandomInt(30, 37));
         sudo(GetRandomInt(40, 44));

@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.2.0";
+char FSE_VER[8] = "2.3.0";
 
 // All background music
 enum struct BGM {
@@ -504,6 +504,31 @@ enum struct MAPLIGHTING {
 }
 MAPLIGHTING MapLighting[13];
 
+//Ghosties
+methodmap GHOSTHANDLER {
+  public void SpawnRandom() {
+    FastFire2.Execute("GhostTemplate", "ForceSpawn");
+    switch (GetRandomInt(0, 3)) {
+      case 0: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath00_0"); }
+      case 1: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath01_0"); }
+      case 2: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath02_0"); }
+      case 3: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath03_0"); }
+    }
+  }
+  public void Kill() {
+    FastFire2.Execute("gTelefect", "Start", "", 3.0);
+    FastFire2.Execute("gTelefect", "Stop", "", 6.0);
+    FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPathHome", 3.0);
+    FastFire2.SetEntityLife("gTrain", 7.0);
+    FastFire2.SetEntityLife("gTrainTriggerStun", 7.0);
+    FastFire2.SetEntityLife("gGhost", 7.0);
+    FastFire2.SetEntityLife("gTelefect", 7.0);
+    FastFire2.SetEntityLife("gTrainSnd*", 7.0);
+    FastFire2.SetEntityLife("gPath0*", 7.0);
+  }
+}
+GHOSTHANDLER GhostHandler;
+
 //Weather Manager
 int sirenRef;
 BULKFIRE lightningStrike[16];
@@ -540,13 +565,15 @@ enum struct WEATHERMANAGER {
   float skyHeight;
   int intensity;
   int mIntensity;
+  int iStormMin;
+  int iStormMax;
+  int ticks;
   bool CanFormTornado() {
     return WaveSystem().IsActive() && this.canTornado && !this.hasTornado;
   }
   void Activate() {
     this.Reset();
-    this.tickWeather = true;
-    if (!WaveSystem().IsWaveNull()) this.PerformRandomWeather(); // Start weather system ONLY IF NOT IN GAMEMODE 2.
+    if (!WaveSystem().IsWaveNull()) this.tickWeather = true; // Start weather system ONLY IF NOT IN GAMEMODE 2.
   }
   void doLightning() {
     sudo(1003);
@@ -614,6 +641,8 @@ enum struct WEATHERMANAGER {
     FastFire2.Execute("Weather.Siren", "StopSound", "", 5.0);
     AudioManager.OnTornadoWarning(false);
   }
+  // Gets a safe tick delay to prevent divide by 0 errors / stalls
+  int getTickDelay() { return GetRandomInt(this.iStormMin < 100 ? 100 : this.iStormMin, this.iStormMax < 300 ? 300 : this.iStormMax); }
   void IssueTornadoWarning() {
     if (WaveSystem().IsActive() && this.canTornado && !this.sirenExploded) {
       this.TornadoWarning = true;
@@ -624,203 +653,6 @@ enum struct WEATHERMANAGER {
       CreateTimer(GetRandomFloat(1.0, 3.0), ModulateSiren);
       AudioManager.OnTornadoWarning(true);
     }
-  }
-  void PerformRandomWeather() {
-    if (!this.tickWeather) return;
-    AssLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (this.intensity / 15.0), this.intensity);
-    this.doLightning();
-    float flStormMin;
-    float flStormMax;
-    switch (GetRandomInt(this.mIntensity, this.intensity)) {
-      case 0: {
-        this.SetFogStartQueued("500");
-        this.SetFogEndQueued("3000");
-        this.StartFogTransition();
-        flStormMin = 15.0;
-        flStormMax = 35.0;
-        this.fogTarget = 0.55;
-        FastFire2.Execute("rain", "Alpha", "15");
-        CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
-      }
-      case 1: {
-        this.SetFogStartQueued("500");
-        this.SetFogEndQueued("2700");
-        this.StartFogTransition();
-        flStormMin = 12.0;
-        flStormMax = 32.0;
-        this.fogTarget = 0.60;
-        FastFire2.Execute("rain", "Alpha", "30");
-        CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
-      }
-      case 2: {
-        this.SetFogStartQueued("500");
-        this.SetFogEndQueued("2500");
-        this.StartFogTransition();
-        this.mIntensity = 1;
-        flStormMin = 12.0;
-        flStormMax = 30.0;
-        FastFire2.Execute("rain", "Alpha", "50");
-        CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
-      }
-      case 3: {
-        this.SetFogStartQueued("500");
-        this.SetFogEndQueued("2500");
-        this.StartFogTransition();
-        flStormMin = 10.0;
-        flStormMax = 28.5;
-        this.fogTarget = 0.70;
-        FastFire2.Execute("rain", "Alpha", "65");
-        CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
-      }
-      case 4: {
-        flStormMin = 9.0;
-        flStormMax = 26.5;
-        FastFire2.Execute("rain", "Alpha", "75");
-        CustomSoundEmitter(SFXArray[108].realPath, 45, false, 1, 1.0, 100); //Rain, no wind, increased volume
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.1, 100); //Rain, wind, decreased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.01, 100); //Extra wind
-      }
-      case 5: {
-        this.SetFogStartQueued("500");
-        this.SetFogEndQueued("2100");
-        this.StartFogTransition();
-        this.mIntensity = 3;
-        flStormMin = 7.0;
-        flStormMax = 25.0;
-        this.fogTarget = 0.75;
-        FastFire2.Execute("rain", "Alpha", "95");
-        CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, decreased volume
-        CustomSoundEmitter(SFXArray[107].realPath, 45, false, 1, 0.15, 100); //Rain, wind
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.05, 100); //Extra wind
-      }
-      case 6: {
-        this.mIntensity = 4;
-        flStormMin = 7.0;
-        flStormMax = 23.5;
-        FastFire2.Execute("rain", "Alpha", "125");
-        CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.21, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.125, 100); //Extra wind
-      }
-      case 7: {
-        this.SetFogStartQueued("500");
-        this.SetFogEndQueued("2000");
-        this.StartFogTransition();
-        flStormMin = 6.0;
-        flStormMax = 21.0;
-        this.fogTarget = 0.80;
-        FastFire2.Execute("rain", "Alpha", "155");
-        CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 0);
-        CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.26, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.25, 100); //Extra wind
-      }
-      case 8: {
-        this.mIntensity = 6;
-        this.SetFogStartQueued("470");
-        this.SetFogEndQueued("2000");
-        this.StartFogTransition();
-        flStormMin = 5.0;
-        flStormMax = 20.0;
-        this.fogTarget = 0.875;
-        FastFire2.Execute("rain", "Alpha", "175");
-        CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 1);
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.37, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.35, 100); //Extra wind
-      }
-      case 9: {
-        this.SetFogStartQueued("425");
-        this.SetFogEndQueued("1500");
-        this.StartFogTransition();
-        this.mIntensity = 7;
-        flStormMin = 5.0;
-        flStormMax = 19.0;
-        FastFire2.Execute("rain", "Alpha", "200");
-        CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 2);
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.41, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.42, 100); //Extra wind
-      }
-      case 10: {
-        this.SetFogStartQueued("375");
-        this.SetFogEndQueued("1500");
-        this.StartFogTransition();
-        flStormMin = 5.0;
-        flStormMax = 18.0;
-        this.fogTarget = 0.925;
-        FastFire2.Execute("rain", "Alpha", "215", 0.0);
-        CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 3);
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.45, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.56, 100); //Extra wind
-      }
-      case 11: {
-        this.mIntensity = 9;
-        flStormMin = 5.0;
-        flStormMax = 17.0;
-        FastFire2.Execute("rain", "Alpha", "235");
-        CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 4);
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.63, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.69, 100); //Extra wind
-      }
-      case 12: {
-        this.mIntensity = 10;
-        flStormMin = 5.0;
-        flStormMax = 15.0;
-        this.fogTarget = 1.0;
-        this.SetFogStartQueued("225");
-        this.SetFogEndQueued("700");
-        this.StartFogTransition();
-        FastFire2.Execute("rain", "Alpha", "255");
-        CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 5);
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.72, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.76, 100); //Extra wind
-        if (!this.TornadoTimerActive) sudo(1004);
-      }
-      case 13: {
-        this.SetFogStartQueued("200");
-        this.SetFogEndQueued("700");
-        this.StartFogTransition();
-        this.mIntensity = 12;
-        flStormMin = 5.0;
-        flStormMax = 14.0;
-        this.fogTarget = 1.0;
-        FastFire2.Execute("rain", "Alpha", "255");
-        CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 6);
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.85, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.83, 100); //Extra wind
-        if (!this.TornadoTimerActive) sudo(1004);
-      }
-      case 14: {
-        this.mIntensity = 13;
-        this.SetFogStartQueued("100");
-        this.SetFogEndQueued("700");
-        this.StartFogTransition();
-        flStormMin = 5.0;
-        flStormMax = 13.0;
-        this.fogTarget = 1.0;
-        FastFire2.Execute("rain", "Alpha", "255");
-        CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.9, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.92, 100); //Extra wind
-        if (!this.TornadoTimerActive) sudo(1004);
-      }
-      case 15: {
-        this.mIntensity = 14;
-        this.SetFogStartQueued("50");
-        this.SetFogEndQueued("500");
-        this.StartFogTransition();
-        flStormMin = 5.0;
-        flStormMax = 12.0;
-        this.fogTarget = 1.0;
-        FastFire2.Execute("rain", "Alpha", "255");
-        CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
-        CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 1.0, 100); //Rain, wind, increased volume
-        //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 1.0, 100); //Extra wind
-        if (!this.TornadoTimerActive) sudo(1004);
-      }
-      default: {
-      }
-    }
-    CreateTimer(GetRandomFloat(flStormMin, flStormMax), GetRandomWeather);
   }
   void Reset() {
     AssLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] WeatherManager has been reset!");
@@ -849,20 +681,209 @@ enum struct WEATHERMANAGER {
     }
     sirenRef = EntIndexToEntRef(siren);
   }
-  void SetFogStartQueued(const char[] fsq) {
-    FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerpTo", fsq);
-  }
-  void SetFogEndQueued(const char[] feq) {
-    FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerpTo", feq);
-  }
-  void StartFogTransition() {
-    FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition");
-  }
+  void SetFogStartQueued(const char[] fsq) { FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerpTo", fsq); }
+  void SetFogEndQueued(const char[] feq) { FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerpTo", feq); }
+  void StartFogTransition() { FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition"); }
   void StartTornadoTimer(float t) {
     CreateTimer(t - 20.0, TimedOperator, 40);
     CreateTimer((t + GetRandomFloat(5.0, 25.0)), TimedOperator, 41);
   }
   void Tick() {
+    if (++this.ticks % this.getTickDelay() == 0) {
+      this.ticks = 0;
+      if (!this.tickWeather) return;
+      AssLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (this.intensity / 15.0), this.intensity);
+      this.doLightning();
+      this.updateIntensity();
+      switch (GetRandomInt(this.mIntensity, this.intensity)) {
+        case 0: {
+          this.SetFogStartQueued("500");
+          this.SetFogEndQueued("3000");
+          this.StartFogTransition();
+          this.iStormMin = 1000;
+          this.iStormMax = 3000;
+          this.fogTarget = 0.55;
+          FastFire2.Execute("rain", "Alpha", "15");
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
+        }
+        case 1: {
+          this.SetFogStartQueued("500");
+          this.SetFogEndQueued("2700");
+          this.StartFogTransition();
+          this.iStormMin = 800;
+          this.iStormMax = 2700;
+          this.fogTarget = 0.60;
+          FastFire2.Execute("rain", "Alpha", "30");
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
+        }
+        case 2: {
+          this.SetFogStartQueued("500");
+          this.SetFogEndQueued("2500");
+          this.StartFogTransition();
+          this.mIntensity = 1;
+          this.iStormMin = 700;
+          this.iStormMax = 2500;
+          FastFire2.Execute("rain", "Alpha", "50");
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
+        }
+        case 3: {
+          this.SetFogStartQueued("500");
+          this.SetFogEndQueued("2500");
+          this.StartFogTransition();
+          this.iStormMin = 600;
+          this.iStormMax = 2200;
+          this.fogTarget = 0.70;
+          FastFire2.Execute("rain", "Alpha", "65");
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
+        }
+        case 4: {
+          this.iStormMin = 500;
+          this.iStormMax = 2000;
+          FastFire2.Execute("rain", "Alpha", "75");
+          CustomSoundEmitter(SFXArray[108].realPath, 45, false, 1, 1.0, 100); //Rain, no wind, increased volume
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.1, 100); //Rain, wind, decreased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.01, 100); //Extra wind
+        }
+        case 5: {
+          this.SetFogStartQueued("500");
+          this.SetFogEndQueued("2100");
+          this.StartFogTransition();
+          this.mIntensity = 3;
+          this.iStormMin = 450;
+          this.iStormMax = 1750;
+          this.fogTarget = 0.75;
+          FastFire2.Execute("rain", "Alpha", "95");
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, decreased volume
+          CustomSoundEmitter(SFXArray[107].realPath, 45, false, 1, 0.15, 100); //Rain, wind
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.05, 100); //Extra wind
+        }
+        case 6: {
+          this.mIntensity = 4;
+          this.iStormMin = 400;
+          this.iStormMax = 1650;
+          FastFire2.Execute("rain", "Alpha", "125");
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.21, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.125, 100); //Extra wind
+        }
+        case 7: {
+          this.SetFogStartQueued("500");
+          this.SetFogEndQueued("2000");
+          this.StartFogTransition();
+          this.iStormMin = 375;
+          this.iStormMax = 1550;
+          this.fogTarget = 0.80;
+          FastFire2.Execute("rain", "Alpha", "155");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 0);
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.26, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.25, 100); //Extra wind
+        }
+        case 8: {
+          this.mIntensity = 6;
+          this.SetFogStartQueued("470");
+          this.SetFogEndQueued("2000");
+          this.StartFogTransition();
+          this.iStormMin = 325;
+          this.iStormMax = 1450;
+          this.fogTarget = 0.875;
+          FastFire2.Execute("rain", "Alpha", "175");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 1);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.37, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.35, 100); //Extra wind
+        }
+        case 9: {
+          this.SetFogStartQueued("425");
+          this.SetFogEndQueued("1500");
+          this.StartFogTransition();
+          this.mIntensity = 7;
+          this.iStormMin = 300;
+          this.iStormMax = 1375;
+          FastFire2.Execute("rain", "Alpha", "200");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 2);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.41, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.42, 100); //Extra wind
+        }
+        case 10: {
+          this.SetFogStartQueued("375");
+          this.SetFogEndQueued("1500");
+          this.StartFogTransition();
+          this.iStormMin = 300;
+          this.iStormMax = 1300;
+          this.fogTarget = 0.925;
+          FastFire2.Execute("rain", "Alpha", "215", 0.0);
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 3);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.45, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.56, 100); //Extra wind
+        }
+        case 11: {
+          this.mIntensity = 9;
+          this.iStormMin = 300;
+          this.iStormMax = 1200;
+          FastFire2.Execute("rain", "Alpha", "235");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 4);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.63, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.69, 100); //Extra wind
+        }
+        case 12: {
+          this.mIntensity = 10;
+          this.iStormMin = 300;
+          this.iStormMax = 1150;
+          this.fogTarget = 1.0;
+          this.SetFogStartQueued("225");
+          this.SetFogEndQueued("700");
+          this.StartFogTransition();
+          FastFire2.Execute("rain", "Alpha", "255");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 5);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.72, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.76, 100); //Extra wind
+          if (!this.TornadoTimerActive) sudo(1004);
+        }
+        case 13: {
+          this.SetFogStartQueued("200");
+          this.SetFogEndQueued("700");
+          this.StartFogTransition();
+          this.mIntensity = 12;
+          this.iStormMin = 300;
+          this.iStormMax = 1000;
+          this.fogTarget = 1.0;
+          FastFire2.Execute("rain", "Alpha", "255");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 6);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.85, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.83, 100); //Extra wind
+          if (!this.TornadoTimerActive) sudo(1004);
+        }
+        case 14: {
+          this.mIntensity = 13;
+          this.SetFogStartQueued("100");
+          this.SetFogEndQueued("700");
+          this.StartFogTransition();
+          this.iStormMin = 300;
+          this.iStormMax = 850;
+          this.fogTarget = 1.0;
+          FastFire2.Execute("rain", "Alpha", "255");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.9, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.92, 100); //Extra wind
+          if (!this.TornadoTimerActive) sudo(1004);
+        }
+        case 15: {
+          this.mIntensity = 14;
+          this.SetFogStartQueued("50");
+          this.SetFogEndQueued("500");
+          this.StartFogTransition();
+          this.iStormMin = 300;
+          this.iStormMax = 700;
+          this.fogTarget = 1.0;
+          FastFire2.Execute("rain", "Alpha", "255");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 1.0, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 1.0, 100); //Extra wind
+          if (!this.TornadoTimerActive) sudo(1004);
+        }
+        default: {}
+      }
+    }
     if (this.fogDensity != this.fogTarget || this.reset) {
       char targetAlpha[4];
       char targetDensity[24];
@@ -885,8 +906,9 @@ enum struct WEATHERMANAGER {
       FastFire2.Execute("Weather.FogSky", "Color", target);
       this.reset = false;
     }
-    for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
+    if (this.ticks % 240 == 0) for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
     if (this.hasTornado) { AttackAllEnts(9000000.0, DMG_FALL, g_WeatherZone[0]); this.TickTornado(); }
+    
   }
   void TickSiren() {
     if (this.TornadoWarning) {
@@ -961,6 +983,17 @@ enum struct WEATHERMANAGER {
       FastFire2.SetEntityLife("tornadowindf1", f);  
     }
   }
+  void updateIntensity() {
+    switch (GetRandomInt(0, 10)) {
+      case 0, 4, 8: {
+        if (this.intensity > 9) GhostHandler.SpawnRandom();
+        if (this.intensity > 0 && (this.intensity - 1 > this.mIntensity)) this.intensity--;
+      }
+      case 1, 2, 3, 5, 6, 7, 9, 10: {
+        if (this.intensity < 15) this.intensity++;
+      }
+    }
+  }
   void OnStartup(int event, const char[] path) {
     switch (event){
       case 0:{
@@ -975,48 +1008,7 @@ enum struct WEATHERMANAGER {
 WEATHERMANAGER WeatherManager;
 WEATHERMANAGER GetWeatherManager() { return WeatherManager; }
 
-//Ghosties
-methodmap GHOSTHANDLER {
-  public void SpawnRandom() {
-    FastFire2.Execute("GhostTemplate", "ForceSpawn");
-    switch (GetRandomInt(0, 3)) {
-      case 0: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath00_0"); }
-      case 1: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath01_0"); }
-      case 2: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath02_0"); }
-      case 3: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath03_0"); }
-    }
-  }
-  public void Kill() {
-    FastFire2.Execute("gTelefect", "Start", "", 3.0);
-    FastFire2.Execute("gTelefect", "Stop", "", 6.0);
-    FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPathHome", 3.0);
-    FastFire2.SetEntityLife("gTrain", 7.0);
-    FastFire2.SetEntityLife("gTrainTriggerStun", 7.0);
-    FastFire2.SetEntityLife("gGhost", 7.0);
-    FastFire2.SetEntityLife("gTelefect", 7.0);
-    FastFire2.SetEntityLife("gTrainSnd*", 7.0);
-    FastFire2.SetEntityLife("gPath0*", 7.0);
-  }
-}
-GHOSTHANDLER GhostHandler;
-
 //Timers
-public Action GetRandomWeather(Handle timer) {
-  if (WeatherManager.tickWeather) {
-    switch (GetRandomInt(0, 10)) {
-      case 0, 4, 8: {
-        if (WeatherManager.intensity > 9) GhostHandler.SpawnRandom();
-        if (WeatherManager.intensity > 0 && (WeatherManager.intensity - 1 > WeatherManager.mIntensity)) WeatherManager.intensity--;
-      }
-      case 1, 2, 3, 5, 6, 7, 9, 10: {
-        if (WeatherManager.intensity < 15) WeatherManager.intensity++;
-      }
-    }
-    WeatherManager.PerformRandomWeather();
-  }
-  return Plugin_Stop;
-}
-
 public Action GetRandomWind(Handle timer, int intensity) {
   switch (intensity) {
     case 0: {
