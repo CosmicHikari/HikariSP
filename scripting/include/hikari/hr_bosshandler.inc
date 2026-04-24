@@ -1,5 +1,5 @@
 // Hikari's Boss Handler v1.0.0
-char HRBOSS_VER[8] = "1.1.0";
+char HRBOSS_VER[8] = "1.1.1";
 
 bool canCrusaderNuke = false;
 bool crusader = false;
@@ -217,6 +217,7 @@ enum struct BOSSHANDLER {
   }
   //For tracking model and skipping player ready check if boss is alive
   void Tick() {
+    if (!this.shouldTick) return;
     //PrintToServer("Boss %i, hp %i/%i", this.bossID, this.iBossEntHealth, this.iBossEntMaxHealth);
     if (this.shouldTickBGM) this.TickBGM();
     if (this.isAlive && !WaveSystem().IsActive()) { PrintToChatAll("PLACEHOLDER -- FORCE PLAYERS TO BE READY IF NOT IN WAVE."); }

@@ -61,9 +61,8 @@ public void OnFastFire2Ready() {
 }
 // Process ticks and requests in real time
 public void OnGameFrame() {
-  if (WeatherManager.TornadoWarning) WeatherManager.TickSiren();
   AudioManager.TickGlobal();
-  if (BossHandler.shouldTick) BossHandler.Tick();
+  BossHandler.Tick();
   WaveSystem().Tick();
   WeatherManager.Tick();
   TickAllTriggers();

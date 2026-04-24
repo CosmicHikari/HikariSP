@@ -689,6 +689,7 @@ enum struct WEATHERMANAGER {
     CreateTimer((t + GetRandomFloat(5.0, 25.0)), TimedOperator, 41);
   }
   void Tick() {
+    if (this.TornadoWarning) this.TickSiren();
     if (++this.ticks % this.getTickDelay() == 0) {
       this.ticks = 0;
       if (!this.tickWeather) return;
