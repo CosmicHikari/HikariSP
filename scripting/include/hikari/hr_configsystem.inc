@@ -1,6 +1,6 @@
  //ASS_CONFIGSYSTEM - Contains the config loaders and all the plugin core data entries.
 #include <smjansson> // Needed for JSON parsing
-char HRCFG_VERSION[8] = "1.0.0";
+char HRCFG_VERSION[8] = "1.0.1";
 
 //Default values per wave
 enum struct DEFAULTS {
@@ -147,7 +147,7 @@ enum struct COREDATA {
         crusaderIndex++;
         Format(crusaderAtk[crusaderIndex].fireStr, 256, bufCoreData);
       }
-      if (IsEndOfFile(confCoreData))break;
+      if (IsEndOfFile(confCoreData)) break;
     }
     AssLogger(1, "[BULKFIRE] Setting up Lightning Flashes...");
     confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/lightning_flash.ini", "rt", false);
@@ -323,7 +323,7 @@ char SelectedCamera[][32] = {
   "CAM.MidTwo",
   "Cam.MidThree",
   "CAM.Rear",
-  "CAM.Kissone"
+  "CAM.Spawn"
 };
 
 //Easter eggs

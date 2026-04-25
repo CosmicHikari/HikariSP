@@ -7,7 +7,7 @@
 
 #include <regex>
 
-#define NEWCOLORS_VERSION		"1.0.0"
+#define NEWCOLORS_VERSION		"1.1.0"
 #define MAX_MESSAGE_LENGTH		256
 #define MAX_BUFFER_LENGTH		(MAX_MESSAGE_LENGTH * 4)
 
@@ -668,6 +668,6 @@ stock Handle:InitColorTrie() {
 	SetTrieValue(hTrie, "whitesmoke", 0xF5F5F5);
 	SetTrieValue(hTrie, "yellow", 0xFFFF00);
 	SetTrieValue(hTrie, "yellowgreen", 0x9ACD32);
-    SetTrieValue(hTrie, "fartsyred", 0xE74C3C);
+    SetTrieValue(hTrie, "hikarired", 0xE74C3C);
 	return hTrie;
 }

@@ -217,9 +217,9 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
       switch (i) {
         case 1, 3, 10: {
           FastFire2.Execute("MeteoriteTemplate", "ForceSpawn");
-          SetEntityLife("FB.Meteorite00", 10.0);
-          SetEntityLife("FB.MeteoriteTrain", 10.0);
-          SetEntityLife("MeteoritePath0*", 10.0);
+          FastFire2.SetEntityLife("FB.Meteorite00", 10.0);
+          FastFire2.SetEntityLife("FB.MeteoriteTrain", 10.0);
+          FastFire2.SetEntityLife("MeteoritePath0*", 10.0);
           CPrintToChatAll("{darkviolet}[{red}WARN{darkviolet}] {white}Uh oh, a {red}METEOR{white}has been spotted coming towards Dovah's Ass!!!");
           FastFire2.Execute("FB.MeteoriteTrain", "StartForward", "", 0.1);
         }

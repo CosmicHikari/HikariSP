@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.1.0";
+char SUDO_VER[8] = "1.1.1";
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
   AssLogger(LOGLVL_DEBUG, "Calling sudo with %i", task);
@@ -174,6 +174,7 @@ void sudo(int task) {
     case 8: {
       FastFire2.Execute("FB.FakeTankSpawner", "ForceSpawn", "", 0.1);
     }
+    case 9 : { Bombs.OnBombReady(); }
   //Client was Sacrificed.
     case 10: {
       core.sacrificedByClient = true;
@@ -238,6 +239,10 @@ void sudo(int task) {
         if (g_BombIndex >= BombRegistry[0].stateMax) return;
         else g_BombIndex += 2;
       }
+      FastFire2.SetEntityLife("BombPush", 1.0);
+      FastFire2.SetEntityLife("BombPushRegen", 1.0);
+      FastFire2.SetEntityLife("BombTrain0x*", 1.0);
+      FastFire2.SetEntityLife("BombTrainDamage", 1.0);
       return;
     }
   //Tank deployed its bomb or boss reached hatch
