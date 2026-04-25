@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.3.1";
+char FSE_VER[8] = "2.3.2";
 
 // All background music
 enum struct BGM {
@@ -538,7 +538,6 @@ enum struct WEATHERMANAGER {
   bool hasTornado;
   bool powerSurging;
   bool reset;
-  bool sirenExplode;
   bool sirenExploded;
   bool tickWeather;
   bool TornadoTimerActive;
@@ -568,6 +567,7 @@ enum struct WEATHERMANAGER {
   int iStormMin;
   int iStormMax;
   int ticks;
+  int ticksSiren;
   bool CanFormTornado() {
     return WaveSystem().IsActive() && this.canTornado && !this.hasTornado;
   }
@@ -650,7 +650,6 @@ enum struct WEATHERMANAGER {
       this.sirenPitchRate = 0.1;
       FastFire2.Execute("Weather.EASScreen", "Enable");
       FastFire2.Execute("Weather.EAS", "PlaySound");
-      CreateTimer(GetRandomFloat(1.0, 3.0), ModulateSiren);
       AudioManager.OnTornadoWarning(true);
     }
   }
@@ -945,6 +944,13 @@ enum struct WEATHERMANAGER {
           CSEClientEx(i, SFXArray[120].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(this.sirenPitch), this.sirenPos);
         }
       }
+      if (++this.ticksSiren % GetRandomInt(70, 224) == 0) {
+        this.ticksSiren = 0;
+        if (this.TornadoWarning && !this.sirenExploded) {
+          this.sirenPitchTarget = this.powerSurging ? GetRandomFloat(115.0, 210.0) : GetRandomFloat(65.0, 105.0);
+          this.sirenPitchRate = this.powerSurging ? GetRandomFloat(0.0525, 0.25) : GetRandomFloat(0.01, 0.125);
+        }
+      }
     }
   }
   void TickTornado() {
@@ -989,9 +995,7 @@ enum struct WEATHERMANAGER {
         if (this.intensity > 9) GhostHandler.SpawnRandom();
         if (this.intensity > 0 && (this.intensity - 1 > this.mIntensity)) this.intensity--;
       }
-      case 1, 2, 3, 5, 6, 7, 9, 10: {
-        if (this.intensity < 15) this.intensity++;
-      }
+      case 1, 2, 3, 5, 6, 7, 9, 10: { if (this.intensity < 15) this.intensity++; }
     }
   }
   void OnStartup(int event, const char[] path) {
@@ -1010,40 +1014,7 @@ WEATHERMANAGER GetWeatherManager() { return WeatherManager; }
 
 //Timers
 public Action GetRandomWind(Handle timer, int intensity) {
-  switch (intensity) {
-    case 0: {
-      CustomSoundEmitter(SFXArray[GetRandomInt(113, 114)].realPath, 65, true, 1, 0.125, 100);
-    }
-    case 1: {
-      CustomSoundEmitter(SFXArray[GetRandomInt(113, 114)].realPath, 65, true, 1, 0.20, 100);
-    }
-    case 2: {
-      CustomSoundEmitter(SFXArray[GetRandomInt(113, 114)].realPath, 65, true, 1, 0.30, 100);
-    }
-    case 3: {
-      CustomSoundEmitter(SFXArray[GetRandomInt(113, 115)].realPath, 65, true, 1, 0.45, 100);
-    }
-    case 4: {
-      CustomSoundEmitter(SFXArray[GetRandomInt(113, 115)].realPath, 65, true, 1, 0.55, 100);
-    }
-    case 5: {
-      CustomSoundEmitter(SFXArray[GetRandomInt(113, 115)].realPath, 65, true, 1, 0.65, 100);
-    }
-    case 6: {
-      CustomSoundEmitter(SFXArray[GetRandomInt(113, 116)].realPath, 65, true, 1, 0.80, 100);
-    }
-    case 7: {
-      CustomSoundEmitter(SFXArray[GetRandomInt(113, 116)].realPath, 65, true, 1, 1.0, 100);
-    }
-  }
-  return Plugin_Stop;
-}
-public Action ModulateSiren(Handle timer) {
-  if (WeatherManager.TornadoWarning && !WeatherManager.sirenExplode) {
-    WeatherManager.sirenPitchTarget = WeatherManager.powerSurging ? GetRandomFloat(115.0, 210.0) : GetRandomFloat(65.0, 105.0);
-    WeatherManager.sirenPitchRate = WeatherManager.powerSurging ? GetRandomFloat(0.0525, 0.25) : GetRandomFloat(0.01, 0.125);
-    CreateTimer(GetRandomFloat(1.0, 3.0), ModulateSiren);
-  }
+  CustomSoundEmitter(SFXArray[GetRandomInt(113, intensity <  3 ? 114 : intensity < 6 ? 115 : 116)].realPath, intensity < 2 ? 35 : intensity < 4 ? 42 : intensity < 6 ? 45 : 50, true, 1, 0.125, 100);
   return Plugin_Stop;
 }
 
