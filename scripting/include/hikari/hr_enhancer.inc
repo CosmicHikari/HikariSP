@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.3.2";
+char FSE_VER[8] = "2.3.3";
 
 // All background music
 enum struct BGM {
@@ -567,7 +567,6 @@ enum struct WEATHERMANAGER {
   int iStormMin;
   int iStormMax;
   int ticks;
-  int ticksSiren;
   bool CanFormTornado() {
     return WaveSystem().IsActive() && this.canTornado && !this.hasTornado;
   }
@@ -641,8 +640,8 @@ enum struct WEATHERMANAGER {
     FastFire2.Execute("Weather.Siren", "StopSound", "", 5.0);
     AudioManager.OnTornadoWarning(false);
   }
-  // Gets a safe tick delay to prevent divide by 0 errors / stal5ls
-  int getTickDelay() { return GetRandomInt(this.iStormMin < 250 ? 250 : this.iStormMin, this.iStormMax < 300 ? 300 : this.iStormMax); }
+  // Gets a safe tick delay to prevent divide by 0 errors / stalls
+  int getTickDelay() { return GetRandomInt(this.iStormMin < 1 ? 1 : this.iStormMin, this.iStormMax < 2 ? 2 : this.iStormMax); }
   void IssueTornadoWarning() {
     if (WaveSystem().IsActive() && this.canTornado && !this.sirenExploded) {
       this.TornadoWarning = true;
@@ -689,8 +688,8 @@ enum struct WEATHERMANAGER {
   }
   void Tick() {
     if (this.TornadoWarning) this.TickSiren();
+    // Update intensity / queue wind sounds
     if (++this.ticks % this.getTickDelay() == 0) {
-      this.ticks = 0;
       if (!this.tickWeather) return;
       AssLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (this.intensity / 15.0), this.intensity);
       this.doLightning();
@@ -884,6 +883,9 @@ enum struct WEATHERMANAGER {
         default: {}
       }
     }
+    // Every 240 ticks: Assign player fog controllers.
+    if (this.ticks % 240 == 0) for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
+    // Every tick: Update fog
     if (this.fogDensity != this.fogTarget || this.reset) {
       char targetAlpha[4];
       char targetDensity[24];
@@ -906,8 +908,8 @@ enum struct WEATHERMANAGER {
       FastFire2.Execute("Weather.FogSky", "Color", target);
       this.reset = false;
     }
-    if (this.ticks % 240 == 0) for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
-    if (this.hasTornado) { AttackAllEnts(9000000.0, DMG_FALL, g_WeatherZone[0]); this.TickTornado(); }
+    // Every tick: Test if entities are above <g_WeatherZone> and if so, damage them, also tick the Tornado
+    if (this.hasTornado) { AttackAllEnts(9000000.0, DMG_FALL, g_WeatherZone[0]); if (this.ticks % 60 == 0) this.TickTornado(); }
   }
   void TickSiren() {
     if (this.TornadoWarning) {
@@ -944,8 +946,7 @@ enum struct WEATHERMANAGER {
           CSEClientEx(i, SFXArray[120].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(this.sirenPitch), this.sirenPos);
         }
       }
-      if (++this.ticksSiren % GetRandomInt(70, 224) == 0) {
-        this.ticksSiren = 0;
+      if (this.ticks % GetRandomInt(70, 224) == 0) {
         if (this.TornadoWarning && !this.sirenExploded) {
           this.sirenPitchTarget = this.powerSurging ? GetRandomFloat(115.0, 210.0) : GetRandomFloat(65.0, 105.0);
           this.sirenPitchRate = this.powerSurging ? GetRandomFloat(0.0525, 0.25) : GetRandomFloat(0.01, 0.125);
@@ -964,7 +965,7 @@ enum struct WEATHERMANAGER {
       float dx = tornadoPos[0] - entPos[0];
       float dy = tornadoPos[1] - entPos[1];
       float distance2D = SquareRoot(dx*dx + dy*dy);
-      if (distance2D <= 200.0) { PrintToServer("<Enhancer:929> Found entity that matches search pattern <= 200.0D"); }
+      if (distance2D <= 200.0) { PrintToServer("<Enhancer:968> Found entity that matches search pattern <= 200.0D"); }
     }
   }
   void TryFormTornado() {
