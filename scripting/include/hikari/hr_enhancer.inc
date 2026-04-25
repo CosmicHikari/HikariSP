@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.3.0";
+char FSE_VER[8] = "2.3.1";
 
 // All background music
 enum struct BGM {
@@ -641,8 +641,8 @@ enum struct WEATHERMANAGER {
     FastFire2.Execute("Weather.Siren", "StopSound", "", 5.0);
     AudioManager.OnTornadoWarning(false);
   }
-  // Gets a safe tick delay to prevent divide by 0 errors / stalls
-  int getTickDelay() { return GetRandomInt(this.iStormMin < 100 ? 100 : this.iStormMin, this.iStormMax < 300 ? 300 : this.iStormMax); }
+  // Gets a safe tick delay to prevent divide by 0 errors / stal5ls
+  int getTickDelay() { return GetRandomInt(this.iStormMin < 250 ? 250 : this.iStormMin, this.iStormMax < 300 ? 300 : this.iStormMax); }
   void IssueTornadoWarning() {
     if (WaveSystem().IsActive() && this.canTornado && !this.sirenExploded) {
       this.TornadoWarning = true;
@@ -909,7 +909,6 @@ enum struct WEATHERMANAGER {
     }
     if (this.ticks % 240 == 0) for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
     if (this.hasTornado) { AttackAllEnts(9000000.0, DMG_FALL, g_WeatherZone[0]); this.TickTornado(); }
-    
   }
   void TickSiren() {
     if (this.TornadoWarning) {
