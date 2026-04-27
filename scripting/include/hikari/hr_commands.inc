@@ -23,8 +23,8 @@ public Action Command_SetFogSEU(int client, int args){
   GetCmdArg(1, arg01, sizeof(arg01));
   GetCmdArg(2, arg02, sizeof(arg02));
   GetCmdArg(3, arg03, sizeof(arg03));
-  WeatherManager.SetFogStartQueued(arg01);
-  WeatherManager.SetFogEndQueued(arg02);
+  WeatherManager.SetFogStartQueued(StringToInt(arg01));
+  WeatherManager.SetFogEndQueued(StringToInt(arg02));
   if (StringToInt(arg03) == 1) WeatherManager.StartFogTransition();
   PrintToChatAll("Received fog start: %s, fog end: %s, begin transition: %s", arg01, arg02, arg03);
   return Plugin_Handled;
