@@ -1,2 +1,2 @@
-# fartsys SMScripts
-Fartsalot's Sourcemod mods, repo is messy at the moment. Please bear with us.
+# HikariSP
+Hikari's Sourcemod mods, slowly but surely updating this dumpster fire.
