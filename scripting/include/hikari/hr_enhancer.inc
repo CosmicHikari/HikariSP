@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.3.3";
+char FSE_VER[8] = "2.4.4";
 
 // All background music
 enum struct BGM {
@@ -67,6 +67,7 @@ enum struct AUDIOSTATE {
   int savedIndexBGM;
   int indexBGM;
   int loops;
+  int ticks;
   int savedLoops;
   int VIPBGM;
   int VIPIndex;
@@ -153,10 +154,7 @@ methodmap AUDIOMANAGER {
     if (IsValidClient(client)) PrintToChat(client, "Your BGM was changed. %i = %i > 0 ? %i : %i == 0 ? %i : %i, playing at sndlvl %i volume %f", AudioState[client].indexBGM, AudioState[client].VIPBGM, AudioState[client].VIPBGM, bgm, g_indexBGM, bgm, GetSNDLVL(client, true, BGMArray[AudioState[client].indexBGM].SNDLVL), GetVolume(client, true, 1.0));
     AudioState[client].indexBGM = AudioState[client].VIPBGM > 0 ? AudioState[client].VIPBGM : bgm == 0 ? g_indexBGM : bgm;
     PrintToServer("Set %i for %N", AudioState[client].indexBGM, client);
-    if (instant) {
-      AudioState[client].timeSeconds = 0.0;
-      CreateTimer(1.0, SyncMusic, client);
-    }
+    if (instant) { AudioState[client].timeSeconds = 0.0; }
     PrintToServer("%f", GetEngineTime());
     AudioState[client].shouldTick = true;
     AudioState[client].hasTimeOffset = BGMArray[AudioState[client].indexBGM].introSeconds > 0 ? true : false;
@@ -202,7 +200,6 @@ methodmap AUDIOMANAGER {
       int new_bgm = AudioState[client].indexBGM;
       CSEClientEx(client, BGMArray[new_bgm].realPath, -2, g_chanBGM, BGMArray[new_bgm].SNDLVL, true, 1, 1.0, 100);
       AudioState[client].eventMode = false;
-      CreateTimer(1.0, SyncMusic, client);
       PrintToServer("[AudioState] Exiting event mode with song %s", BGMArray[new_bgm].songName);
     }
   }
@@ -247,12 +244,14 @@ methodmap AUDIOMANAGER {
         StopSound(client, g_chanBGM, AudioState[client].cachedPath);
         AudioState[client].loops = 0;
       }
-      AudioState[client].stopBGM = StrContains(BGMArray[AudioState[client].indexBGM].realPath, "mp3", false) != -1;
-      CSEClientEx(client, BGMArray[AudioState[client].indexBGM].realPath, -2, g_chanBGM, BGMArray[AudioState[client].indexBGM].SNDLVL, true, 1, 1.0, 100);
-      strcopy(AudioState[client].songName, sizeof(AudioState[client].songName), BGMArray[AudioState[client].indexBGM].songName);
-      AudioState[client].introSeconds = AudioState[client].loops >= 1 ? BGMArray[AudioState[client].indexBGM].introSeconds : 0.0;
-      AudioState[client].loopSeconds = BGMArray[AudioState[client].indexBGM].loopSeconds;
-      CreateTimer(1.0, SyncMusic, client);
+      int index = AudioState[client].indexBGM;
+      AudioState[client].stopBGM = StrContains(BGMArray[index].realPath, "mp3", false) != -1;
+      CSEClientEx(client, BGMArray[index].realPath, -2, g_chanBGM, BGMArray[index].SNDLVL, true, 1, 1.0, 100);
+      strcopy(AudioState[client].cachedPath, sizeof(AudioState[client].cachedPath), BGMArray[index].realPath);
+      strcopy(AudioState[client].songName, sizeof(AudioState[client].songName), BGMArray[index].songName);
+      AudioState[client].introSeconds = AudioState[client].loops >= 1 ? BGMArray[index].introSeconds : 0.0;
+      AudioState[client].loopSeconds = BGMArray[index].loopSeconds;
+      AssLogger(LOGLVL_DEBUG, "[AudioState for %N]: We are on wave %i, now playing: %s (from %s) for %f seconds. It will start looping at %f seconds after the first cycle.", client, WaveSystem().GetWave(), AudioState[client].songName, AudioState[client].cachedPath, AudioState[client].loopSeconds, BGMArray[index].introSeconds);
     }
   }
 
@@ -260,10 +259,7 @@ methodmap AUDIOMANAGER {
   public void UpdateBGM() {
     for (int i = 0; i < MaxClients; ++i) {
       if (IsValidClient(i)) {
-        if (this.isClientInEventMode(i) || !IsValidClient(i)) {
-          PrintToServer("Client %N valid? %s Event Mode? %s", i, IsValidClient(i) ? "true" : "false", this.isClientInEventMode(i) ? "true" : "false");
-          continue;
-        }
+        if (this.isClientInEventMode(i) || !IsValidClient(i)) { PrintToServer("Client %N valid? %s Event Mode? %s", i, IsValidClient(i) ? "true" : "false", this.isClientInEventMode(i) ? "true" : "false"); continue; }
         this.setBGM(i, AudioState[i].VIPBGM > 0 && !this.isClientInEventMode(i) ? AudioState[i].VIPBGM : AudioState[i].indexBGM == 0 ? g_indexBGM : AudioState[i].indexBGM, true);
         AudioState[i].shouldTick = GetWeatherManager().TornadoWarning && g_SirenMutesMusic[i] ? false : true;
       }
@@ -271,9 +267,7 @@ methodmap AUDIOMANAGER {
   }
 
   // Enables AudioStates
-  public void SetEnabled(bool state) {
-    for (int i = 0; i < MaxClients; i++) { AudioState[i].shouldTick = state; }
-  }
+  public void SetEnabled(bool state) { for (int i = 0; i < MaxClients; i++) { AudioState[i].shouldTick = state; } }
 
   /* When a client joins the server, set this audio manager to theirs */
   public void OnClientConnected(int client) {
@@ -567,9 +561,7 @@ enum struct WEATHERMANAGER {
   int iStormMin;
   int iStormMax;
   int ticks;
-  bool CanFormTornado() {
-    return WaveSystem().IsActive() && this.canTornado && !this.hasTornado;
-  }
+  bool CanFormTornado() { return WaveSystem().IsActive() && this.canTornado && !this.hasTornado; }
   void Activate() {
     this.Reset();
     if (!WaveSystem().IsWaveNull()) this.tickWeather = true; // Start weather system ONLY IF NOT IN GAMEMODE 2.
@@ -593,7 +585,7 @@ enum struct WEATHERMANAGER {
       }
       case 11, 15: {
         g_PowerOutage = true;
-        if (!this.hasTornado)CreateTimer(GetRandomFloat(5.0, 30.0), RestorePower, GetRandomInt(0, 3));
+        if (!this.hasTornado) CreateTimer(GetRandomFloat(5.0, 30.0), RestorePower, GetRandomInt(0, 3));
         FastFire2.Execute("MapLighting.*", "LightOff");
         FastFire2.Execute("MapLighting.*", "TurnOff");
         FastFire2.Execute("MapLighting.*", "LightOff", "", 1.0);
@@ -610,20 +602,15 @@ enum struct WEATHERMANAGER {
     this.fogTarget = this.defFogDensity;
     g_PowerOutage = false;
     this.hasTornado = false;
-    if (WaveSystem().IsActive()) {
-      this.mIntensity = 5;
-      this.intensity = 7;
-    } else {
-      this.mIntensity = 0;
-      this.intensity = 0;
-    }
+    this.mIntensity = WaveSystem().IsActive() ? 5 : 0;
+    this.intensity = WaveSystem().IsActive() ? 7 : 0;
     if (this.sirenExploded) {
       this.sirenPitch = 0.0;
       this.sirenExploded = false;
     }
     this.TornadoWarning = false;
     CreateTimer(GetRandomFloat(45.0, 135.0), ResetTornado);
-    for (int i = 0; i < sizeof(MapLighting); i++)if (!MapLighting[i].isBroken)FastFire2.Execute(MapLighting[i].light, "TurnOn");
+    for (int i = 0; i < sizeof(MapLighting); i++) if (!MapLighting[i].isBroken)FastFire2.Execute(MapLighting[i].light, "TurnOn");
     FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerp", this.defFogStartDist);
     FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerp", this.defFogEndDist);
     FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition");
@@ -639,6 +626,86 @@ enum struct WEATHERMANAGER {
     FastFire2.Execute("Weather.Siren.ExplodeParticle", "Stop");
     FastFire2.Execute("Weather.Siren", "StopSound", "", 5.0);
     AudioManager.OnTornadoWarning(false);
+  }
+  // Emits storm sounds
+  void EmitStormSounds() {
+    switch (GetRandomInt(this.mIntensity, this.intensity)) {
+        case 0: {
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
+        }
+        case 1: {
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
+        }
+        case 2: {
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
+        }
+        case 3: {
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
+        }
+        case 4: {
+          CustomSoundEmitter(SFXArray[108].realPath, 45, false, 1, 1.0, 100); //Rain, no wind, increased volume
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.1, 100); //Rain, wind, decreased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.01, 100); //Extra wind
+        }
+        case 5: {
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, decreased volume
+          CustomSoundEmitter(SFXArray[107].realPath, 45, false, 1, 0.15, 100); //Rain, wind
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.05, 100); //Extra wind
+        }
+        case 6: {
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.21, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.125, 100); //Extra wind
+        }
+        case 7: {
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 0);
+          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.26, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.25, 100); //Extra wind
+        }
+        case 8: {
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 1);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.37, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.35, 100); //Extra wind
+        }
+        case 9: {
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 2);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.41, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.42, 100); //Extra wind
+        }
+        case 10: {
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 3);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.45, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.56, 100); //Extra wind
+        }
+        case 11: {
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 4);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.63, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.69, 100); //Extra wind
+        }
+        case 12: {
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 5);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.72, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.76, 100); //Extra wind
+        }
+        case 13: {
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 6);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.85, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.83, 100); //Extra wind
+        }
+        case 14: {
+          FastFire2.Execute("rain", "Alpha", "255");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.9, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.92, 100); //Extra wind
+        }
+        case 15: {
+          FastFire2.Execute("rain", "Alpha", "255");
+          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
+          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 1.0, 100); //Rain, wind, increased volume
+          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 1.0, 100); //Extra wind
+        }
+      }
   }
   // Gets a safe tick delay to prevent divide by 0 errors / stalls
   int getTickDelay() { return GetRandomInt(this.iStormMin < 1 ? 1 : this.iStormMin, this.iStormMax < 2 ? 2 : this.iStormMax); }
@@ -679,8 +746,8 @@ enum struct WEATHERMANAGER {
     }
     sirenRef = EntIndexToEntRef(siren);
   }
-  void SetFogStartQueued(const char[] fsq) { FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerpTo", fsq); }
-  void SetFogEndQueued(const char[] feq) { FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerpTo", feq); }
+  void SetFogStartQueued(int fsq) { FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerpTo", "%i", _, _, fsq); }
+  void SetFogEndQueued(int feq) { FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerpTo","%i", _, _, feq); }
   void StartFogTransition() { FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition"); }
   void StartTornadoTimer(float t) {
     CreateTimer(t - 20.0, TimedOperator, 40);
@@ -694,194 +761,19 @@ enum struct WEATHERMANAGER {
       AssLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (this.intensity / 15.0), this.intensity);
       this.doLightning();
       this.updateIntensity();
-      switch (GetRandomInt(this.mIntensity, this.intensity)) {
-        case 0: {
-          this.SetFogStartQueued("500");
-          this.SetFogEndQueued("3000");
-          this.StartFogTransition();
-          this.iStormMin = 1000;
-          this.iStormMax = 3000;
-          this.fogTarget = 0.55;
-          FastFire2.Execute("rain", "Alpha", "15");
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
-        }
-        case 1: {
-          this.SetFogStartQueued("500");
-          this.SetFogEndQueued("2700");
-          this.StartFogTransition();
-          this.iStormMin = 800;
-          this.iStormMax = 2700;
-          this.fogTarget = 0.60;
-          FastFire2.Execute("rain", "Alpha", "30");
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
-        }
-        case 2: {
-          this.SetFogStartQueued("500");
-          this.SetFogEndQueued("2500");
-          this.StartFogTransition();
-          this.mIntensity = 1;
-          this.iStormMin = 700;
-          this.iStormMax = 2500;
-          FastFire2.Execute("rain", "Alpha", "50");
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
-        }
-        case 3: {
-          this.SetFogStartQueued("500");
-          this.SetFogEndQueued("2500");
-          this.StartFogTransition();
-          this.iStormMin = 600;
-          this.iStormMax = 2200;
-          this.fogTarget = 0.70;
-          FastFire2.Execute("rain", "Alpha", "65");
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
-        }
-        case 4: {
-          this.iStormMin = 500;
-          this.iStormMax = 2000;
-          FastFire2.Execute("rain", "Alpha", "75");
-          CustomSoundEmitter(SFXArray[108].realPath, 45, false, 1, 1.0, 100); //Rain, no wind, increased volume
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.1, 100); //Rain, wind, decreased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.01, 100); //Extra wind
-        }
-        case 5: {
-          this.SetFogStartQueued("500");
-          this.SetFogEndQueued("2100");
-          this.StartFogTransition();
-          this.mIntensity = 3;
-          this.iStormMin = 450;
-          this.iStormMax = 1750;
-          this.fogTarget = 0.75;
-          FastFire2.Execute("rain", "Alpha", "95");
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, decreased volume
-          CustomSoundEmitter(SFXArray[107].realPath, 45, false, 1, 0.15, 100); //Rain, wind
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.05, 100); //Extra wind
-        }
-        case 6: {
-          this.mIntensity = 4;
-          this.iStormMin = 400;
-          this.iStormMax = 1650;
-          FastFire2.Execute("rain", "Alpha", "125");
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.21, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.125, 100); //Extra wind
-        }
-        case 7: {
-          this.SetFogStartQueued("500");
-          this.SetFogEndQueued("2000");
-          this.StartFogTransition();
-          this.iStormMin = 375;
-          this.iStormMax = 1550;
-          this.fogTarget = 0.80;
-          FastFire2.Execute("rain", "Alpha", "155");
-          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 0);
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.26, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.25, 100); //Extra wind
-        }
-        case 8: {
-          this.mIntensity = 6;
-          this.SetFogStartQueued("470");
-          this.SetFogEndQueued("2000");
-          this.StartFogTransition();
-          this.iStormMin = 325;
-          this.iStormMax = 1450;
-          this.fogTarget = 0.875;
-          FastFire2.Execute("rain", "Alpha", "175");
-          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 1);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.37, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.35, 100); //Extra wind
-        }
-        case 9: {
-          this.SetFogStartQueued("425");
-          this.SetFogEndQueued("1500");
-          this.StartFogTransition();
-          this.mIntensity = 7;
-          this.iStormMin = 300;
-          this.iStormMax = 1375;
-          FastFire2.Execute("rain", "Alpha", "200");
-          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 2);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.41, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.42, 100); //Extra wind
-        }
-        case 10: {
-          this.SetFogStartQueued("375");
-          this.SetFogEndQueued("1500");
-          this.StartFogTransition();
-          this.iStormMin = 300;
-          this.iStormMax = 1300;
-          this.fogTarget = 0.925;
-          FastFire2.Execute("rain", "Alpha", "215", 0.0);
-          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 3);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.45, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.56, 100); //Extra wind
-        }
-        case 11: {
-          this.mIntensity = 9;
-          this.iStormMin = 300;
-          this.iStormMax = 1200;
-          FastFire2.Execute("rain", "Alpha", "235");
-          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 4);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.63, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.69, 100); //Extra wind
-        }
-        case 12: {
-          this.mIntensity = 10;
-          this.iStormMin = 300;
-          this.iStormMax = 1150;
-          this.fogTarget = 1.0;
-          this.SetFogStartQueued("225");
-          this.SetFogEndQueued("700");
-          this.StartFogTransition();
-          FastFire2.Execute("rain", "Alpha", "255");
-          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 5);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.72, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.76, 100); //Extra wind
-          if (!this.TornadoTimerActive) sudo(1004);
-        }
-        case 13: {
-          this.SetFogStartQueued("200");
-          this.SetFogEndQueued("700");
-          this.StartFogTransition();
-          this.mIntensity = 12;
-          this.iStormMin = 300;
-          this.iStormMax = 1000;
-          this.fogTarget = 1.0;
-          FastFire2.Execute("rain", "Alpha", "255");
-          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 6);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.85, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.83, 100); //Extra wind
-          if (!this.TornadoTimerActive) sudo(1004);
-        }
-        case 14: {
-          this.mIntensity = 13;
-          this.SetFogStartQueued("100");
-          this.SetFogEndQueued("700");
-          this.StartFogTransition();
-          this.iStormMin = 300;
-          this.iStormMax = 850;
-          this.fogTarget = 1.0;
-          FastFire2.Execute("rain", "Alpha", "255");
-          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.9, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.92, 100); //Extra wind
-          if (!this.TornadoTimerActive) sudo(1004);
-        }
-        case 15: {
-          this.mIntensity = 14;
-          this.SetFogStartQueued("50");
-          this.SetFogEndQueued("500");
-          this.StartFogTransition();
-          this.iStormMin = 300;
-          this.iStormMax = 700;
-          this.fogTarget = 1.0;
-          FastFire2.Execute("rain", "Alpha", "255");
-          CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 1.0, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 1.0, 100); //Extra wind
-          if (!this.TornadoTimerActive) sudo(1004);
-        }
-        default: {}
+      this.mIntensity = this.intensity - 2;
+      this.SetFogStartQueued(RoundToNearest(float (1000 - (this.intensity * ((1000 - 150) / 15)))));
+      this.SetFogEndQueued(RoundToNearest(float (3000 - (this.intensity * ((3000 - 250) / 15)))));
+      this.fogTarget = 0.4 + (0.5 * (this.intensity / 15));
+      this.iStormMin = RoundToNearest(float (1000 - (this.intensity * ((1000 - 300) / 15))));
+      this.iStormMax = RoundToNearest(float (3000 - (this.intensity * ((3000 - 700) / 15))));
+      FastFire2.Execute("rain", "Alpha", "%i", _, _, RoundToNearest(255 * (this.intensity / 15.0)));
+      if (!this.TornadoTimerActive && this.intensity > 13 && this.CanFormTornado()) {
+        this.TornadoTimerActive = true;
+        this.StartTornadoTimer(WaveSystem().GetWave() == 4 ? GetRandomFloat(30.0, 90.0) : GetRandomFloat(90.0, 210.0));
       }
+      this.StartFogTransition();
+      this.EmitStormSounds();
     }
     // Every 240 ticks: Assign player fog controllers.
     if (this.ticks % 240 == 0) for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
@@ -1091,20 +983,12 @@ public Action SurgePowerFX(Handle timer) {
   }
   return Plugin_Stop;
 }
+
 public Action TornadoShaker(Handle timer) {
   if (WeatherManager.hasTornado) {
     FastFire2.Execute("tornadoshake_f1", "StartShake");
     CreateTimer(1.5, TornadoShaker);
   }
-  return Plugin_Stop;
-}
-
-//Used to keep StopSound from stopping the music we're trying to play - now with support for loop offsets!
-public Action SyncMusic(Handle timer, int client) {
-  int index = AudioState[client].indexBGM;
-  strcopy(AudioState[client].cachedPath, sizeof(AudioState[client].cachedPath), BGMArray[index].realPath);
-  strcopy(AudioState[client].songName, sizeof(AudioState[client].songName), BGMArray[index].songName);
-  AssLogger(LOGLVL_INFO, "[AudioState for %N]: We are on wave %i, now playing: %s (from %s) for %f seconds. It will start looping at %f seconds after the first cycle.", client, WaveSystem().GetWave(), AudioState[client].songName, AudioState[client].cachedPath, AudioState[client].loopSeconds, BGMArray[index].introSeconds);
   return Plugin_Stop;
 }
 

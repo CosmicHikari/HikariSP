@@ -9,7 +9,7 @@ public void InitAllZones() {
   g_IndoorZones[0].start = {-4440.0, -200.0, -850.0};
   g_IndoorZones[0].end = {-2400.0, 2400.0, 500.0};
   g_IndoorZones[1].start = {-882.0, 1400.0, -630.0};
-  g_IndoorZones[1].end = {-320.0, 3350.0, -170.0};
+  g_IndoorZones[1].end = {-320.0, 3350.0, -285.0};
   g_IndoorZones[2].start = {400.0, 1190.0, -425.0};
   g_IndoorZones[2].end = {790.0, 1410.0, -230.0};
   g_WeatherZone[0].start = {-3200.0, -4600.0, 1200.0}
