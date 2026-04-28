@@ -1,6 +1,6 @@
  //ASS_CONFIGSYSTEM - Contains the config loaders and all the plugin core data entries.
 #include <smjansson> // Needed for JSON parsing
-char HRCFG_VERSION[8] = "1.0.1";
+char HRCFG_VERSION[8] = "1.0.2";
 
 //Default values per wave
 enum struct DEFAULTS {
@@ -18,7 +18,7 @@ methodmap DEFAULTSMANAGER {
   public DEFAULTS GetDefaults(int wave) { return DefaultsArray[wave]; }
   // Only called during plugin startup
   public void SetupDefaults(Handle confCoreData) {
-    AssLogger(1, "[CORE] Setting up Wave Defaults...");
+    LightLogger(1, "[CORE] Setting up Wave Defaults...");
     char bufCoreData[256];
     PrintToServer("confCoreData returned %s", OVERRIDE_AND_GET_COREDATA());
     confCoreData = OpenFile(OVERRIDE_AND_GET_COREDATA(), "rt", false);
@@ -112,18 +112,18 @@ enum struct COREDATA {
     OnBulkfireStartup(basePath);
     Format(subFolder, sizeof(subFolder), "%s/Core", basePath);
     CreateDirectory(subFolder);
-    AssLogger(LOGLVL_DEBUG, "HikarisRequiem folder structure created!");
+    LightLogger(LOGLVL_DEBUG, "HikarisRequiem folder structure created!");
   }
   void init_post() {
     CPrintToChatAll("{gray}[Server]: Reloading!");
-    AssLogger(LOGLVL_INFO, "[Server]: Reloading!");
+    LightLogger(LOGLVL_INFO, "[Server]: Reloading!");
     strcopy(this.configDefault, sizeof(this.configDefault), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults.ini");
     strcopy(this.configTacoBell, sizeof(this.configTacoBell), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults_TacoBell.ini");
     strcopy(this.configWaveNull, sizeof(this.configWaveNull), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults_WaveNull.ini");
     WaveSystem().SetActive(false);
     WaveSystem().SetWave(0);
     AudioManager.OnStartup(1);
-    AssLogger(1, "Setting up bosses...");
+    LightLogger(1, "Setting up bosses...");
     ass[0].name = "[10] Bath Salts";
     ass[1].name = "[20] Summon Goobbue or Kirby";
     ass[2].name = "[30] Robot Trap (Wave Fail-safe)";
@@ -136,7 +136,7 @@ enum struct COREDATA {
     ass[9].name = "[100] Professor Fartsalot";
     for (int i = 0; i < sizeof(ass); i++) ass[i].price = 10 + (10 * i);
     for (int i = 0; i < sizeof(ass); i++) ass[i].purchase = 30 + i;
-    AssLogger(1, "[BULKFIRE] Setting up Crusader...");
+    LightLogger(1, "[BULKFIRE] Setting up Crusader...");
     Handle confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/crusader.ini", "rt", false);
     char bufCoreData[256];
     int crusaderIndex = -1;
@@ -149,7 +149,7 @@ enum struct COREDATA {
       }
       if (IsEndOfFile(confCoreData)) break;
     }
-    AssLogger(1, "[BULKFIRE] Setting up Lightning Flashes...");
+    LightLogger(1, "[BULKFIRE] Setting up Lightning Flashes...");
     confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/lightning_flash.ini", "rt", false);
     int lightningFlashIndex = -1;
     if (confCoreData == INVALID_HANDLE) return;
@@ -161,7 +161,7 @@ enum struct COREDATA {
       }
       if (IsEndOfFile(confCoreData)) break;
     }
-    AssLogger(1, "[BULKFIRE] Setting up Lightning Strikes...");
+    LightLogger(1, "[BULKFIRE] Setting up Lightning Strikes...");
     confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/lightning_strike.ini", "rt", false);
     int lightningStrikeIndex = -1;
     if (confCoreData == INVALID_HANDLE) return;
@@ -174,7 +174,7 @@ enum struct COREDATA {
       if (IsEndOfFile(confCoreData)) break;
     }
     DefaultsManager.SetupDefaults(confCoreData);
-    AssLogger(1, "Core data setup complete!");
+    LightLogger(1, "Core data setup complete!");
   }
   void Reset() {
     SephBoss[0].Reset();
@@ -338,7 +338,7 @@ char SpecEnt[][24] = {
 
 //Register our commands.
 void RegisterAllCommands() {
-  AssLogger(1, "Registering commands...");
+  LightLogger(1, "Registering commands...");
   RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client.");
   RegAdminCmd("sm_music", Command_Music, ADMFLAG_RESERVATION, "Set music to be played for the next wave");
   RegConsoleCmd("sm_bombstatus", Command_FBBombStatus, "Check bomb status");
@@ -360,7 +360,7 @@ void RegisterAllCommands() {
 }
 
 void RegisterAndPrecacheAllFiles() {
-  AssLogger(0, "Loading EVERYTHING to RAM...");
+  LightLogger(0, "Loading EVERYTHING to RAM...");
   int bgmIndex;
   int sfxIndex;
   char _path_BGM[PLATFORM_MAX_PATH];
@@ -372,28 +372,28 @@ void RegisterAndPrecacheAllFiles() {
   if (!FileExists(_path_BGM)) { GenerateDefaultConfig(0, _path_BGM); }
   if (!FileExists(_path_SFX)) { GenerateDefaultConfig(1, _path_SFX); }
   if (!FileExists(_path_WM)) { GenerateDefaultConfig(2, _path_WM); }
-  AssLogger(LOGLVL_DEBUG, "Loading BGMs...");
+  LightLogger(LOGLVL_DEBUG, "Loading BGMs...");
   LoadConfig(0);
-  AssLogger(LOGLVL_DEBUG, "Loading SFX...");
+  LightLogger(LOGLVL_DEBUG, "Loading SFX...");
   LoadConfig(1);
   for (int i = 0; i < sizeof(BGMArray); i++) {
     if (!StrEqual(BGMArray[i].realPath, "")) {
       bgmIndex++;
-      AssLogger(LOGLVL_DEBUG, "Precaching BGM: %s (%s), Duration %f seconds, Start Loop Point %f seconds, Volume %i @ %i", BGMArray[i].songName, BGMArray[i].realPath, BGMArray[i].loopSeconds, BGMArray[i].introSeconds, BGMArray[i].SNDLVL, i);
+      LightLogger(LOGLVL_DEBUG, "Precaching BGM: %s (%s), Duration %f seconds, Start Loop Point %f seconds, Volume %i @ %i", BGMArray[i].songName, BGMArray[i].realPath, BGMArray[i].loopSeconds, BGMArray[i].introSeconds, BGMArray[i].SNDLVL, i);
       PrecacheSound(BGMArray[i].realPath, true);
     }
   }
   for (int i = 0; i < sizeof(SFXArray); i++) {
     if (!StrEqual(SFXArray[i].realPath, "")) {
       sfxIndex++;
-      AssLogger(LOGLVL_DEBUG, "Precaching SFX: %s @ %i", SFXArray[i].realPath, i);
+      LightLogger(LOGLVL_DEBUG, "Precaching SFX: %s @ %i", SFXArray[i].realPath, i);
       PrecacheSound(SFXArray[i].realPath, true);
     }
   }
-  AssLogger(LOGLVL_INFO, "Done! BGM Count: %i, SFX Count: %i, Total: %i files loaded to RAM.", bgmIndex, sfxIndex, bgmIndex + sfxIndex);
-  AssLogger(LOGLVL_DEBUG, "Loading WeatherManager...");
+  LightLogger(LOGLVL_INFO, "Done! BGM Count: %i, SFX Count: %i, Total: %i files loaded to RAM.", bgmIndex, sfxIndex, bgmIndex + sfxIndex);
+  LightLogger(LOGLVL_DEBUG, "Loading WeatherManager...");
   LoadConfig(2);
-  AssLogger(LOGLVL_DEBUG, "Setting up Lasers...");
+  LightLogger(LOGLVL_DEBUG, "Setting up Lasers...");
   //LoadConfig(3); -- Not implemented yet!!!
   char LsrName[16];
   for (int g = 0; g < 3; g++) { for (int i = 0; i < sizeof(WBLasers[g]); i++) { Format(LsrName, sizeof(LsrName), g == 0 ? "LaserEntWind%i" : g == 1 ? "LaserEntEarth%i" : g == 2 ? "LaserEntIce%i" : "LaserEnt%i", i); strcopy(WBLasers[g][i].tName, 16, LsrName); } }

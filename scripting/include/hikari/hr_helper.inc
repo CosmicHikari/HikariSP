@@ -7,6 +7,17 @@ enum {
   LOGLVL_ERROR = 3
 };
 
+void LightLogger(int logLevel, const char[] logData, any...) {
+  char buffer[256];
+  VFormat(buffer, sizeof(buffer), logData, 3);
+  switch (logLevel) {
+    case LOGLVL_DEBUG: { LogMessage("[DEBUG]: %s", buffer); }
+    case LOGLVL_INFO: { LogMessage("[INFO]: %s", buffer); }
+    case LOGLVL_WARN: { LogMessage("[WARN]: %s", buffer); }
+    case LOGLVL_ERROR: { LogMessage("[ERROR]: %s", buffer); }
+  }
+}
+
 //Idle system
 bool _serverActive = false;
 public void OnClientDisconnect_Post() {
@@ -20,26 +31,6 @@ public Action ServerIdleThread(Handle timer) {
   if (!_serverActive) ServerCommand("_restart");
   return Plugin_Stop;
 }
-
-void AssLogger(int logLevel, const char[] logData, any...) {
-  char buffer[256];
-  VFormat(buffer, sizeof(buffer), logData, 3);
-  switch (logLevel) {
-    case LOGLVL_DEBUG: {
-      LogMessage("[DEBUG]: %s", buffer);
-    }
-    case LOGLVL_INFO: {
-      LogMessage("[INFO]: %s", buffer);
-    }
-    case LOGLVL_WARN: {
-      LogMessage("[WARN]: %s", buffer);
-    }
-    case LOGLVL_ERROR: {
-      LogMessage("[ERROR]: %s", buffer);
-    }
-  }
-}
-
 int attemptSpawn = 0;
 
 public int GetHealerOfClient(int client){

@@ -1,4 +1,4 @@
-char WaveSystem_Version[8] = "1.2.0";
+char WaveSystem_Version[8] = "1.2.1";
 const int WaveTypes_NORMAL = 0;
 const int WaveTypes_TACOBELL = 1;
 const int WaveTypes_WAVENULL = 2;
@@ -195,7 +195,7 @@ methodmap WAVESYSTEM {
     int target = (StrContains(popfile, "tacobell") != -1 ? 1 : (StrContains(popfile, "wavenull") != -1) ? 2 : 0);
     if (WSData.type != target) {
       Format(logdata, sizeof(logdata), "Current type %i does not match detected type %i! Someone must have changed the gamemode! Setting up core data immediately!!!", this.GetType(), target);
-      AssLogger(LOGLVL_DEBUG, logdata);
+      LightLogger(LOGLVL_DEBUG, logdata);
       WSData.type = target;
       core.init_post();
     }
@@ -225,7 +225,7 @@ void PerformWaveFailsafe(int x){
 public int GetCurWave() {
   int ent = FindEntityByClassname(-1, "tf_objective_resource");
   if (ent != -1) return GetEntData(ent, FindSendPropInfo("CTFObjectiveResource", "m_nMannVsMachineWaveCount"));
-  AssLogger(LOGLVL_ERROR, "tf_objective_resource not found");
+  LightLogger(LOGLVL_ERROR, "tf_objective_resource not found");
   return -1;
 }
 

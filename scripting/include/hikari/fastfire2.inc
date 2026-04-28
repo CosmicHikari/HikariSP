@@ -1,5 +1,5 @@
 // Hikari's FastFire2 - Used for interacting with map logic
-char FF2_VER[7] = "2.1.1";
+char FF2_VER[7] = "2.1.2";
 int ff2Ref;
 
 // Used for any time we need to fo a LOT of things in quick succession... Or when we want to do something at random using arrayname[index].fireStr.
@@ -22,7 +22,7 @@ methodmap FASTFIRE2 {
     int cce = FindEntityByTargetname(targetname, classname);
     if (!IsValidEntity(cce) && ICanSummon(1)) {
       cce = CreateEntityByName(classname);
-      if (!IsValidEdict(cce)) { AssLogger(LOGLVL_ERROR, "Could not create %s, aborting!", classname); return -2; }
+      if (!IsValidEdict(cce)) { LogError("[FastFire2] Could not create %s, aborting!", classname); return -2; }
       DispatchSpawn(cce);
       DispatchKeyValue(cce, "targetname", targetname);
       ActivateEntity(cce);
@@ -58,7 +58,7 @@ FASTFIRE2 FastFire2;
 
 // Startup event - Inject entity IO logic
 public void OnMapStart() {
-  AssLogger(LOGLVL_INFO, "OnMapStart Received: Injecting FastFire2! (v%s)", FF2_VER);
+  LogMessage("[FastFire2] OnMapStart Received: Injecting FastFire2! (v%s)", FF2_VER);
   int ff2 = FindEntityByTargetname("FastFire2", "info_target"); 
   if (!IsValidEntity(ff2)) {
     ff2 = FastFire2.CreateCustomEntity("info_target", "FastFire2");

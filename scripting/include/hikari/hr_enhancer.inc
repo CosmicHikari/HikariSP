@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.4.4";
+char FSE_VER[8] = "2.4.5";
 
 // All background music
 enum struct BGM {
@@ -94,7 +94,7 @@ methodmap AUDIOMANAGER {
 
   // Initialise all AudioStates
   public void init() {
-    AssLogger(LOGLVL_INFO, "Initializing Audio System...");
+    LightLogger(LOGLVL_INFO, "Initializing Audio System...");
     g_chanBGM = 6;
     for (int i = 1; i < MaxClients; ++i) {
       AudioState[i].bgmPlaying = false;
@@ -124,7 +124,7 @@ methodmap AUDIOMANAGER {
     if (fullReset) {
       g_indexBGM = !WaveSystem().IsWaveNull() ? GetRandomInt(1, 4) : 28;
       for (int i = 0; i < MaxClients; ++i) this.Reset(false, i);
-      AssLogger(LOGLVL_DEBUG, "All AudioStates have been reset!");
+      LightLogger(LOGLVL_DEBUG, "All AudioStates have been reset!");
     }
     else {
       AudioState[client].stopBGM = true;
@@ -132,7 +132,7 @@ methodmap AUDIOMANAGER {
       AudioState[client].indexBGM = 0;
       AudioState[client].timeSeconds = 0.0;
       if (IsValidClient(client)) for (int s = AudioState[client].indexBGM; s < sizeof(BGMArray); s++) StopSound(client, g_chanBGM, BGMArray[s].realPath);
-      AssLogger(LOGLVL_DEBUG, "AudioState %i has been reset!", client);
+      LightLogger(LOGLVL_DEBUG, "AudioState %i has been reset!", client);
     }
   }
 
@@ -251,7 +251,7 @@ methodmap AUDIOMANAGER {
       strcopy(AudioState[client].songName, sizeof(AudioState[client].songName), BGMArray[index].songName);
       AudioState[client].introSeconds = AudioState[client].loops >= 1 ? BGMArray[index].introSeconds : 0.0;
       AudioState[client].loopSeconds = BGMArray[index].loopSeconds;
-      AssLogger(LOGLVL_DEBUG, "[AudioState for %N]: We are on wave %i, now playing: %s (from %s) for %f seconds. It will start looping at %f seconds after the first cycle.", client, WaveSystem().GetWave(), AudioState[client].songName, AudioState[client].cachedPath, AudioState[client].loopSeconds, BGMArray[index].introSeconds);
+      LightLogger(LOGLVL_DEBUG, "[AudioManager for %N]: We are on wave %i, now playing: %s (from %s) for %f seconds. It will start looping at %f seconds after the first cycle.", client, WaveSystem().GetWave(), AudioState[client].songName, AudioState[client].cachedPath, AudioState[client].loopSeconds, BGMArray[index].introSeconds);
     }
   }
 
@@ -382,7 +382,7 @@ public void ShowHikariMusicMenu(int client) {
 // VIP Music Menu Handler
 public int MenuHandlerHikariMusic(Menu menu, MenuAction action, int client, int bgm) {
   if (action == MenuAction_Select) {
-    AssLogger(LOGLVL_WARN, "WE SHOULDNT BE USING TACO BELL BGM INDEX ANYMORE DUE TO NEW CONFIGS!!!");
+    LightLogger(LOGLVL_WARN, "WE SHOULDNT BE USING TACO BELL BGM INDEX ANYMORE DUE TO NEW CONFIGS!!!");
     CPrintToChat(client, (bgm == 0 ? "{darkgreen}[CORE] Confirmed. Next song set to {aqua}Default{darkgreen}." : "{limegreen}[CORE] Confirmed. Next song set to {aqua}%s{limegreen}."), BGMArray[bgm].songName);
     AudioManager.setBGM_VIP(bgm == 0 ? -1 : bgm);
     for (int i = 0; i < MaxClients; ++i) { AudioState[i].stopBGM = (!StrEqual(AudioState[i].cachedPath, BGMArray[bgm].realPath) ? true : false); AudioState[i].VIPIndex = client; }
@@ -573,7 +573,7 @@ enum struct WEATHERMANAGER {
     CustomSoundEmitter(SFXArray[GetRandomInt(27, 34)].realPath, 65, false, 0, 1.0, 100);
     // Affect lights
     int i = GetRandomInt(this.intensity, 15);
-    AssLogger(LOGLVL_DEBUG, "Doing light interactions with %i", i);
+    LightLogger(LOGLVL_DEBUG, "Doing light interactions with %i", i);
     switch (i) {
       case 2, 3, 5: {
         int index = GetRandomInt(0, 12);
@@ -720,7 +720,7 @@ enum struct WEATHERMANAGER {
     }
   }
   void Reset() {
-    AssLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] WeatherManager has been reset!");
+    LightLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] WeatherManager has been reset!");
     this.fogDensity = 0.50;
     this.fogColorRTarget = 35.0;
     this.fogColorGTarget = 55.0;
@@ -742,7 +742,7 @@ enum struct WEATHERMANAGER {
       DispatchKeyValue(siren, "targetname", "WeatherSiren");
       ActivateEntity(siren);
       TeleportEntity(siren, this.sirenPos, NULL_VECTOR, NULL_VECTOR);
-      AssLogger(LOGLVL_INFO, "Injected info_target WeatherSiren to map!");
+      LightLogger(LOGLVL_INFO, "Injected info_target WeatherSiren to map!");
     }
     sirenRef = EntIndexToEntRef(siren);
   }
@@ -758,7 +758,7 @@ enum struct WEATHERMANAGER {
     // Update intensity / queue wind sounds
     if (++this.ticks % this.getTickDelay() == 0) {
       if (!this.tickWeather) return;
-      AssLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (this.intensity / 15.0), this.intensity);
+      LightLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (this.intensity / 15.0), this.intensity);
       this.doLightning();
       this.updateIntensity();
       this.mIntensity = this.intensity - 2;
@@ -850,7 +850,7 @@ enum struct WEATHERMANAGER {
     float tornadoPos[3];
     bool found = false;
     int tornado = -1;
-    while ((tornado = FindEntityByTargetname("tornado", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
+    while ((tornado = FindEntityByTargetname("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
     if (!found) { PrintToServer("No tornado found."); return; }
     for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
       float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
@@ -865,6 +865,7 @@ enum struct WEATHERMANAGER {
       this.hasTornado = true;
       this.mIntensity = 15;
       this.intensity = 15;
+      FastFire2.Execute("tornado", "ForceSpawn");
       CreateTimer(1.5, TornadoShaker);
       FastFire2.Execute("TornadoKill", "Enable");
       FastFire2.Execute("tornadobutton", "Lock");
@@ -874,7 +875,7 @@ enum struct WEATHERMANAGER {
       FastFire2.Execute("tornadof1wind", "Enable", "", 21.50);
       float f = GetRandomFloat(60.0, 120.0);
       CreateTimer(f, TimedOperator, 42);
-      FastFire2.SetEntityLife("tornado", f);
+      FastFire2.SetEntityLife("tornadotrain", f);
       FastFire2.SetEntityLife("TorTrack*", f);
       FastFire2.SetEntityLife("tornadotrain", f);
       FastFire2.SetEntityLife("tornadof1", f);

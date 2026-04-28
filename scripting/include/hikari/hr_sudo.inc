@@ -1,7 +1,7 @@
-char SUDO_VER[8] = "1.1.1";
+char SUDO_VER[8] = "1.1.2";
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
-  AssLogger(LOGLVL_DEBUG, "Calling sudo with %i", task);
+  LightLogger(LOGLVL_DEBUG, "Calling sudo with %i", task);
   switch (task) {
     //When the map is complete
     case 0: {
@@ -788,7 +788,7 @@ void sudo(int task) {
         AudioManager.SetEnabled(false);
         sudo(1001);
         crusader = true;
-        AssLogger(LOGLVL_INFO, "Starting Crusader!");
+        LightLogger(LOGLVL_INFO, "Starting Crusader!");
         FastFire2.Execute("TheCrusaderTemplate", "ForceSpawn");
         FastFire2.SetEntityLife("CrusaderTrack*", 80.0);
         FastFire2.SetEntityLife("CrusaderTrain", 80.0);
@@ -1002,7 +1002,7 @@ void sudo(int task) {
     default: {
       char LogData[256];
       Format(LogData, sizeof(LogData), "No valid operator code %i found.", task);
-      AssLogger(LOGLVL_ERROR, LogData);
+      LightLogger(LOGLVL_ERROR, LogData);
     }
   }
   return;
@@ -1260,7 +1260,7 @@ public Action TimedOperator(Handle timer, int job) {
 
     }
     case 99999:{
-      AssLogger(LOGLVL_INFO, "Server empty for 600s, restarting!");
+      LightLogger(LOGLVL_INFO, "Server empty for 600s, restarting!");
       ServerCommand("_restart");
     }
   }

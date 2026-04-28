@@ -1,6 +1,6 @@
 // Hooks all events used for the plugin
 public void HookAllEvents() {
-  AssLogger(1, "Hooking game events...");
+  LightLogger(1, "Hooking game events...");
   HookEvent("player_death", EventDeath);
   HookEvent("player_spawn", EventSpawn);
   HookEvent("server_cvar", Event_Cvar, EventHookMode_Pre);
