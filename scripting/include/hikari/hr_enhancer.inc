@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.4.3";
+char FSE_VER[8] = "2.4.4";
 
 // All background music
 enum struct BGM {
@@ -767,7 +767,7 @@ enum struct WEATHERMANAGER {
       this.fogTarget = 0.4 + (0.5 * (this.intensity / 15));
       this.iStormMin = RoundToNearest(float (1000 - (this.intensity * ((1000 - 300) / 15))));
       this.iStormMax = RoundToNearest(float (3000 - (this.intensity * ((3000 - 700) / 15))));
-      FastFire2.Execute("rain", "Alpha", "%i", _, _, RoundToNearest(float(255 * (this.intensity / 15))));
+      FastFire2.Execute("rain", "Alpha", "%i", _, _, RoundToNearest(255 * (this.intensity / 15.0)));
       if (!this.TornadoTimerActive && this.intensity > 13 && this.CanFormTornado()) {
         this.TornadoTimerActive = true;
         this.StartTornadoTimer(WaveSystem().GetWave() == 4 ? GetRandomFloat(30.0, 90.0) : GetRandomFloat(90.0, 210.0));
