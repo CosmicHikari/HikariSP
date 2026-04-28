@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.5.0";
+char HSE_VER[8] = "2.5.1";
 
 // All background music
 enum struct BGM {
@@ -862,6 +862,8 @@ methodmap WEATHERMANAGER {
         float v[3]; GetEntPropVector(i, Prop_Data, "m_vecVelocity", v);
         v[2] = (2000.0 * str);
         TeleportEntity(i, NULL_VECTOR, NULL_VECTOR, v);
+        char classname[32]; GetEntityClassname(i, classname, sizeof(classname));
+        if (StrEqual(classname, "tank_boss")) { AttackEntity(i, 10000000.0, DMG_GENERIC); FastFire2.Execute("FB.FakeTankSpawner", "ForceSpawn"); }
       }
       SetEntityGravity(i, distance2D <= 1250.0 ? str : 1.0);
     }
