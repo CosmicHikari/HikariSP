@@ -850,7 +850,7 @@ enum struct WEATHERMANAGER {
     float tornadoPos[3];
     bool found = false;
     int tornado = -1;
-    while ((tornado = FindEntityByTargetname("tornado", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
+    while ((tornado = FindEntityByTargetname("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
     if (!found) { PrintToServer("No tornado found."); return; }
     for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
       float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
@@ -865,6 +865,7 @@ enum struct WEATHERMANAGER {
       this.hasTornado = true;
       this.mIntensity = 15;
       this.intensity = 15;
+      FastFire2.Execute("tornado", "ForceSpawn");
       CreateTimer(1.5, TornadoShaker);
       FastFire2.Execute("TornadoKill", "Enable");
       FastFire2.Execute("tornadobutton", "Lock");
@@ -874,7 +875,7 @@ enum struct WEATHERMANAGER {
       FastFire2.Execute("tornadof1wind", "Enable", "", 21.50);
       float f = GetRandomFloat(60.0, 120.0);
       CreateTimer(f, TimedOperator, 42);
-      FastFire2.SetEntityLife("tornado", f);
+      FastFire2.SetEntityLife("tornadotrain", f);
       FastFire2.SetEntityLife("TorTrack*", f);
       FastFire2.SetEntityLife("tornadotrain", f);
       FastFire2.SetEntityLife("tornadof1", f);
