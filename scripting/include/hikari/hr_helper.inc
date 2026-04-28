@@ -1,23 +1,4 @@
 //ASS_HELPER - Contains the config loaders and all the plugin core data entries as well as some stocks required for base functionality.
-//Log debug info
-enum {
-  LOGLVL_DEBUG = 0,
-  LOGLVL_INFO = 1,
-  LOGLVL_WARN = 2,
-  LOGLVL_ERROR = 3
-};
-
-void LightLogger(int logLevel, const char[] logData, any...) {
-  char buffer[256];
-  VFormat(buffer, sizeof(buffer), logData, 3);
-  switch (logLevel) {
-    case LOGLVL_DEBUG: { LogMessage("[DEBUG]: %s", buffer); }
-    case LOGLVL_INFO: { LogMessage("[INFO]: %s", buffer); }
-    case LOGLVL_WARN: { LogMessage("[WARN]: %s", buffer); }
-    case LOGLVL_ERROR: { LogMessage("[ERROR]: %s", buffer); }
-  }
-}
-
 //Idle system
 bool _serverActive = false;
 public void OnClientDisconnect_Post() {
