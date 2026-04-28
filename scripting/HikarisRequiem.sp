@@ -15,6 +15,7 @@ public char PLUGIN_VERSION[8] = "10.0.0a";
 #include <hikari/tf2_damagebits>
 #include <hikari/newcolors>
 #include <hikari/fastfire2>
+#include <hikari/lightlogger>
 #include <hikari/hr_discord>
 #include <hikari/hr_database>
 #include <hikari/hr_serverutils>
