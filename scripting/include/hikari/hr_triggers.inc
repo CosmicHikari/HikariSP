@@ -4,7 +4,6 @@ enum struct Zone {
 }
 Zone g_IndoorZones[4];
 Zone g_WeatherZone;
-Zone g_Lightning;
 
 public void InitAllZones() {
   g_IndoorZones[0].start = {-4440.0, -200.0, -850.0};

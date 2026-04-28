@@ -604,11 +604,11 @@ methodmap WEATHERMANAGER {
     for (int i = 0; i == GetRandomInt(1, 3); i++){
       int ent = CreateEntityByName("env_beam");
       if (ent != -1) {
-        g_Lightning.start = Lightning[GetRandomInt(0, sizeof(Lightning))].sPos;
-        g_Lightning.end = Lightning[GetRandomInt(0, sizeof(Lightning))].ePos;
-        TeleportEntity(ent, g_Lightning.start, NULL_VECTOR, NULL_VECTOR);
+        float sPos[3]; sPos = Lightning[GetRandomInt(0, sizeof(Lightning))].sPos;
+        float ePos[3]; ePos = Lightning[GetRandomInt(0, sizeof(Lightning))].ePos;
+        TeleportEntity(ent, sPos, NULL_VECTOR, NULL_VECTOR);
         SetEntityModel(ent, "sprites/laserbeam.spr"); // This is where you would put the texture, ie "sprites/laser.vmt" or whatever.
-        SetEntPropVector(ent, Prop_Data, "m_vecEndPos", g_Lightning.end);
+        SetEntPropVector(ent, Prop_Data, "m_vecEndPos", ePos);
         DispatchKeyValue(ent, "targetname", "LightningStrike");
         DispatchKeyValue(ent, "rendercolor", "255 255 255");
         DispatchKeyValue(ent, "renderamt", "255");
@@ -620,7 +620,7 @@ methodmap WEATHERMANAGER {
         for (int c = 1; c <= MaxClients; c++) {
           if (!IsPlayerAlive(i) || !IsClientInGame(i)) continue;
           float entPos[3]; GetEntPropVector(i, Prop_Data, "m_vecOrigin", entPos);
-          AttackInZone(10000000.0, DMG_ENERGYBEAM, g_Lightning, true);
+          if (GetVectorDistance(entPos, ePos) <= 300.0) AttackEntity(i, 10000000.0, DMG_ENERGYBEAM);
         }
       }
     }
