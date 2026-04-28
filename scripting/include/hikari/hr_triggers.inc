@@ -31,7 +31,7 @@ public bool g_IsPlayerIndoors[MAXPLAYERS+1] = { true }
 
 public void TickAllTriggers() {
   for (int i = 1; i <= MaxClients; i++) {
-    if (!IsClientConnected(i) || !IsClientInGame(i)) continue;
+    if (!IsClientConnected(i) || !IsPlayerAlive(i) || !IsClientInGame(i)) continue;
     g_IsPlayerIndoors[i] = IsClientIndoors(i);
   }
 }
