@@ -39,7 +39,7 @@ methodmap BOMBCONTROLLER {
   */
   public void explode(int index, bool realExplosion) {
     BOMBREGISTRY bomb; bomb = BombRegistry[index];
-    AssLogger(LOGLVL_DEBUG, "Exploding a %s - isRealExplosion: %d canHinden: %d, canStars: %d, canShark: %d, isNuclear: %d, shouldFreezeBots: %d, explEnt: %s, explShake: %s, explSnd: %s, identifier: %s, explDly: %f, explShakeDly: %f, fadeDly: %f, NukeStart: %f, sacVal: %i...", bomb.name, realExplosion, bomb.canHindenburg, bomb.canSENTStars, bomb.canSENTShark, bomb.isNuclear, bomb.freezeBots, bomb.explEnt, bomb.explShake, bomb.explSnd, bomb.identifier, bomb.explDly, bomb.explShakeDly, bomb.FadeDly, bomb.NukeStart, bomb.sacVal);
+    LightLogger(LOGLVL_DEBUG, "Exploding a %s - isRealExplosion: %d canHinden: %d, canStars: %d, canShark: %d, isNuclear: %d, shouldFreezeBots: %d, explEnt: %s, explShake: %s, explSnd: %s, identifier: %s, explDly: %f, explShakeDly: %f, fadeDly: %f, NukeStart: %f, sacVal: %i...", bomb.name, realExplosion, bomb.canHindenburg, bomb.canSENTStars, bomb.canSENTShark, bomb.isNuclear, bomb.freezeBots, bomb.explEnt, bomb.explShake, bomb.explSnd, bomb.identifier, bomb.explDly, bomb.explShakeDly, bomb.FadeDly, bomb.NukeStart, bomb.sacVal);
     //Freeze bots?
     if (bomb.freezeBots) {
       ServerCommand("sm_freeze @blue 10");

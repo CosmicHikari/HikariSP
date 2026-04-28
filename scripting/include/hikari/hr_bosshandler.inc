@@ -1,5 +1,5 @@
 // Hikari's Boss Handler
-char HRBOSS_VER[8] = "1.1.1";
+char HRBOSS_VER[8] = "1.1.2";
 
 bool canCrusaderNuke = false;
 bool crusader = false;
@@ -675,7 +675,7 @@ stock int SuggestEmnityThreshold() {
 
 //Used for emitting boss sounds
 public Action QueueBossSound(Handle timer, int sound) {
-  AssLogger(LOGLVL_DEBUG, "QueueBossSound played %i", sound);
+  LightLogger(LOGLVL_DEBUG, "QueueBossSound played %i", sound);
   switch (sound) {
     case 2: {
     }

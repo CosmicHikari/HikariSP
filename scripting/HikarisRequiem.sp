@@ -7,7 +7,7 @@
  *        IF IT'S WAR THAT YOU WANT, THEN I'M READY TO PLAY. GLHF!
  */
 // Weather manager's sky height needs to be a zone (float 3 start end)...
-public char PLUGIN_VERSION[8] = "10.0.0";
+public char PLUGIN_VERSION[8] = "10.0.0a";
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
@@ -43,11 +43,11 @@ public Plugin myinfo = {
 // Check if extensions are loaded, send startup log
 public void OnPluginStart() {
   if (GetExtensionFileStatus("smjansson.ext") != 1) { SetFailState("Required extension (smjansson) is not loaded!"); }
-  AssLogger(LOGLVL_INFO, "Starting up Hikari's Framework! Waiting for Map Start...");
+  LightLogger(LOGLVL_INFO, "Starting up Hikari's Framework! Waiting for Map Start...");
 }
 // Begin executing IO when ready
 public void OnFastFire2Ready() {
-  AssLogger(LOGLVL_INFO, "####### FASTFIRE2 IS READY! INITIATE STARTUP SEQUENCE... PREPARE FOR THE END TIMES #######");
+  LightLogger(LOGLVL_INFO, "####### FASTFIRE2 IS READY! INITIATE STARTUP SEQUENCE... PREPARE FOR THE END TIMES #######");
   core.init_pre();
   RegisterAndPrecacheAllFiles();
   RegisterAllCommands();
@@ -57,7 +57,7 @@ public void OnFastFire2Ready() {
   CPrintToChatAll("{hikarired}Plugin Reloaded. If you do not hear music, please do !sounds and configure your preferences.");
   AudioManager.Reset(true);
   WeatherManager.Reset();
-  AssLogger(LOGLVL_INFO, "####### STARTUP COMPLETE (v%s) #######", PLUGIN_VERSION);
+  LightLogger(LOGLVL_INFO, "####### STARTUP COMPLETE (v%s) #######", PLUGIN_VERSION);
 }
 // Process ticks and requests in real time
 public void OnGameFrame() {
