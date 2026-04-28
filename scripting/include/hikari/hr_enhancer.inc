@@ -604,11 +604,11 @@ methodmap WEATHERMANAGER {
     for (int i = 0; i == GetRandomInt(1, 3); i++){
       int ent = CreateEntityByName("env_beam");
       if (ent != -1) {
-        float sPos[3]; sPos = Lightning[GetRandomInt(0, sizeof(Lightning))].sPos;
-        float ePos[3]; ePos = Lightning[GetRandomInt(0, sizeof(Lightning))].ePos;
-        TeleportEntity(ent, sPos, NULL_VECTOR, NULL_VECTOR);
+        g_Lightning.start = Lightning[GetRandomInt(0, sizeof(Lightning))].sPos;
+        g_Lightning.end = Lightning[GetRandomInt(0, sizeof(Lightning))].ePos;
+        TeleportEntity(ent, g_Lightning.start, NULL_VECTOR, NULL_VECTOR);
         SetEntityModel(ent, "sprites/laserbeam.spr"); // This is where you would put the texture, ie "sprites/laser.vmt" or whatever.
-        SetEntPropVector(ent, Prop_Data, "m_vecEndPos", ePos);
+        SetEntPropVector(ent, Prop_Data, "m_vecEndPos", g_Lightning.end);
         DispatchKeyValue(ent, "targetname", "LightningStrike");
         DispatchKeyValue(ent, "rendercolor", "255 255 255");
         DispatchKeyValue(ent, "renderamt", "255");
@@ -620,7 +620,7 @@ methodmap WEATHERMANAGER {
         for (int c = 1; c <= MaxClients; c++) {
           if (!IsPlayerAlive(i) || !IsClientInGame(i)) continue;
           float entPos[3]; GetEntPropVector(i, Prop_Data, "m_vecOrigin", entPos);
-          if (GetVectorDistance(entPos, ePos) <= 200.0) AttackEntity(i, 10000000.0, DMG_ENERGYBEAM);
+          AttackInZone(10000000.0, DMG_ENERGYBEAM, g_Lightning, true);
         }
       }
     }
@@ -847,7 +847,7 @@ methodmap WEATHERMANAGER {
       WDATA.reset = false;
     }
     // Every tick: Test if entities are above <g_WeatherZone> and if so, damage them, also tick the Tornado
-    if (WDATA.hasTornado) { AttackAllEnts(9000000.0, DMG_FALL, g_WeatherZone[0]); if (WDATA.ticks % GetRandomInt(30, 60) == 0) this.TickTornado(); }
+    if (WDATA.hasTornado) { AttackInZone(9000000.0, DMG_FALL, g_WeatherZone, false); if (WDATA.ticks % GetRandomInt(30, 60) == 0) this.TickTornado(); }
   }
   public void TickSiren() {
     if (WDATA.TornadoWarning) {
