@@ -1,4 +1,5 @@
-char SUDO_VER[8] = "1.1.2";
+char SUDO_VER[8] = "1.1.3";
+void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[SUDO @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
   LightLogger(LOGLVL_DEBUG, "Calling sudo with %i", task);
@@ -8,11 +9,12 @@ void sudo(int task) {
       CPrintToChatAll(core.tacobell ? "WOW, YOU DID IT! The server will restart in 30 seconds, prepare to do it again! LULW" : "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}YOU HAVE SUCCESSFULLY COMPLETED PROF'S ASS ! THE SERVER WILL RESTART IN 10 SECONDS.");
       CreateTimer(10.0, TimedOperator, 100);
     }
+    case 1111: { WaveSystem().run(); }
     //Prepare yourself!
     case 1: {
       WaveSystem().init();
     }
-    case 2 : { WeatherManager.canTornado = true; WaveSystem().SetActive(true); WeatherManager.IssueTornadoWarning(); }
+    case 2 : { WeatherManager.setCanTornado(true); WaveSystem().SetActive(true); WeatherManager.IssueTornadoWarning(); }
     case 2100 : { WeatherManager.Dissipate(); }
     case 2200: {
       int target = FastFire2.CreateCustomEntity("info_target", "ImADumbass");
@@ -214,7 +216,7 @@ void sudo(int task) {
           SephBoss[0].shouldNuke = false;
           ass_sacPoints += 100;
           core.waveFlags = 0;
-          WeatherManager.canTornado = false;
+          WeatherManager.setCanTornado(false);
           BossHandler.OnKilled();
         }
       }
@@ -355,8 +357,8 @@ void sudo(int task) {
   //Banish Tornadoes
     case 34: {
       if (WeatherManager.CanFormTornado()) ass_sacPoints -= 50;
-      CPrintToChatAll(WeatherManager.CanFormTornado() ? "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}A PINK KIRBY HAS BANISHED TORNADOES FOR THIS WAVE! ({red}-50 pts{white})" : !WeatherManager.canTornado ? "{red}TTV/professorfartsalot {white}: Please do not, the tornado button. Thanks. ({red} -0 pts{white})" : WeatherManager.hasTornado ? "{red}TTV/professorfartsalot {white}:  You fool. It is much too late for you. ({red} -0 pts{white})" : "{red}TTV/professorfartsalot {white}:  To be honest, I never thought I'd get this far... ({red} -0 pts{white})");
-      WeatherManager.canTornado = WeatherManager.hasTornado ? true : false;
+      CPrintToChatAll(WeatherManager.CanFormTornado() ? "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}A PINK KIRBY HAS BANISHED TORNADOES FOR THIS WAVE! ({red}-50 pts{white})" : !WeatherManager.canTornado() ? "{red}TTV/professorfartsalot {white}: Please do not, the tornado button. Thanks. ({red} -0 pts{white})" : WeatherManager.hasTornado() ? "{red}TTV/professorfartsalot {white}:  You fool. It is much too late for you. ({red} -0 pts{white})" : "{red}TTV/professorfartsalot {white}:  To be honest, I never thought I'd get this far... ({red} -0 pts{white})");
+      WeatherManager.setCanTornado(WeatherManager.hasTornado() ? true : false);
     }
   //Ass Gas spend
     case 35: {
@@ -645,10 +647,6 @@ void sudo(int task) {
     case 200: {
       CreateTimer(0.1, TimedOperator, 201);
     }
-  //Debug, somethingsomething siren explosion thingy
-    case 201: {
-      WeatherManager.sirenPitch = 300.0;
-    }
     case 203: {
       BossHandler.bDoTankBuster = true;
     }
@@ -769,8 +767,8 @@ void sudo(int task) {
     }
   //Activate Tornado Timer
     case 1004: {
-      if (!WaveSystem().IsActive() || !WeatherManager.canTornado || WeatherManager.hasTornado) return;
-      WeatherManager.TornadoTimerActive = true;
+      if (!WaveSystem().IsActive() || !WeatherManager.canTornado() || WeatherManager.hasTornado()) return;
+      WeatherManager.setTornadoTimerActive(true);
       WeatherManager.StartTornadoTimer(WaveSystem().GetWave() == 4 ? GetRandomFloat(30.0, 90.0) : GetRandomFloat(90.0, 210.0));
     }
   //Despawn the tornado
@@ -1112,7 +1110,6 @@ public Action TimedOperator(Handle timer, int job) {
       return Plugin_Stop;
     }
     case 42: {
-      WeatherManager.TornadoWarning = false;
       WeatherManager.Dissipate();
       sudo(1004);
     }

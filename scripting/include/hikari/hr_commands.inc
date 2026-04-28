@@ -11,7 +11,7 @@ public Action Command_AOE(int client, int args){
 public Action Command_SetFogDensity(int client, int args){
   char arg1[5];
   GetCmdArg(1, arg1, sizeof(arg1));
-  WeatherManager.fogTarget = StringToFloat(arg1);
+  WeatherManager.setFogTarget(StringToFloat(arg1));
   PrintToChatAll("Changing fog density to %s", arg1);
   return Plugin_Handled;
 }
@@ -98,7 +98,7 @@ public void ShowFartsysAss(int client) {
 public int MenuHandlerFartsysAss(Menu menu, MenuAction action, int client, int item) {
   if (action == MenuAction_Select) {
     if (ass_sacPoints < ass[item].price) return 0;
-    if(WeatherManager.TornadoWarning && item == 5){
+    if(WeatherManager.hasTornadoWarning() && item == 5){
       CPrintToChatAll("{darkred}[Fartsy's Operator] {limegreen}-> {red}%N {darkred}I'm sorry, it is too late for that.. You are doomed...", client);
     }
     else sudo(ass[item].purchase);
