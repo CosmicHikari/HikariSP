@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.1.3";
+char SUDO_VER[8] = "1.1.4";
 void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[SUDO @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
