@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.4.0";
+char FSE_VER[8] = "2.4.3";
 
 // All background music
 enum struct BGM {
@@ -244,16 +244,13 @@ methodmap AUDIOMANAGER {
         StopSound(client, g_chanBGM, AudioState[client].cachedPath);
         AudioState[client].loops = 0;
       }
-      AudioState[client].stopBGM = StrContains(BGMArray[AudioState[client].indexBGM].realPath, "mp3", false) != -1;
-      CSEClientEx(client, BGMArray[AudioState[client].indexBGM].realPath, -2, g_chanBGM, BGMArray[AudioState[client].indexBGM].SNDLVL, true, 1, 1.0, 100);
-      strcopy(AudioState[client].songName, sizeof(AudioState[client].songName), BGMArray[AudioState[client].indexBGM].songName);
-      AudioState[client].introSeconds = AudioState[client].loops >= 1 ? BGMArray[AudioState[client].indexBGM].introSeconds : 0.0;
-      AudioState[client].loopSeconds = BGMArray[AudioState[client].indexBGM].loopSeconds;
-    }
-    if (++AudioState[client].ticks % 70 == 0) {
       int index = AudioState[client].indexBGM;
+      AudioState[client].stopBGM = StrContains(BGMArray[index].realPath, "mp3", false) != -1;
+      CSEClientEx(client, BGMArray[index].realPath, -2, g_chanBGM, BGMArray[index].SNDLVL, true, 1, 1.0, 100);
       strcopy(AudioState[client].cachedPath, sizeof(AudioState[client].cachedPath), BGMArray[index].realPath);
       strcopy(AudioState[client].songName, sizeof(AudioState[client].songName), BGMArray[index].songName);
+      AudioState[client].introSeconds = AudioState[client].loops >= 1 ? BGMArray[index].introSeconds : 0.0;
+      AudioState[client].loopSeconds = BGMArray[index].loopSeconds;
       AssLogger(LOGLVL_DEBUG, "[AudioState for %N]: We are on wave %i, now playing: %s (from %s) for %f seconds. It will start looping at %f seconds after the first cycle.", client, WaveSystem().GetWave(), AudioState[client].songName, AudioState[client].cachedPath, AudioState[client].loopSeconds, BGMArray[index].introSeconds);
     }
   }
@@ -765,12 +762,12 @@ enum struct WEATHERMANAGER {
       this.doLightning();
       this.updateIntensity();
       this.mIntensity = this.intensity - 2;
-      this.SetFogStartQueued(RoundToNearest(float (500 - (this.intensity * (500 / 15)))));
-      this.SetFogEndQueued(RoundToNearest(float (3000 - (this.intensity * ((3000 - 42) / 15)))));
-      this.fogTarget = 0.35 + (0.65 *(this.intensity / 15));
+      this.SetFogStartQueued(RoundToNearest(float (1000 - (this.intensity * ((1000 - 150) / 15)))));
+      this.SetFogEndQueued(RoundToNearest(float (3000 - (this.intensity * ((3000 - 250) / 15)))));
+      this.fogTarget = 0.4 + (0.5 * (this.intensity / 15));
       this.iStormMin = RoundToNearest(float (1000 - (this.intensity * ((1000 - 300) / 15))));
       this.iStormMax = RoundToNearest(float (3000 - (this.intensity * ((3000 - 700) / 15))));
-      FastFire2.Execute("rain", "Alpha", "%i", _, _, RoundToNearest(float (255 * (this.intensity / 15))));
+      FastFire2.Execute("rain", "Alpha", "%i", _, _, RoundToNearest(float(255 * (this.intensity / 15))));
       if (!this.TornadoTimerActive && this.intensity > 13 && this.CanFormTornado()) {
         this.TornadoTimerActive = true;
         this.StartTornadoTimer(WaveSystem().GetWave() == 4 ? GetRandomFloat(30.0, 90.0) : GetRandomFloat(90.0, 210.0));

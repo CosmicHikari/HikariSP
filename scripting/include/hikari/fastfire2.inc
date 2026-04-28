@@ -1,5 +1,5 @@
 // Hikari's FastFire2 - Used for interacting with map logic
-char FF2_VER[7] = "2.1.0";
+char FF2_VER[7] = "2.1.1";
 int ff2Ref;
 
 // Used for any time we need to fo a LOT of things in quick succession... Or when we want to do something at random using arrayname[index].fireStr.
@@ -40,7 +40,7 @@ methodmap FASTFIRE2 {
     int ff2 = EntRefToEntIndex(ff2Ref); // Get the entity index from EntRef
     char buffers[3][128]; // Vars used to format input parameters ( any ... )
     for (int i = 0; i < 3; i++) { strcopy(buffers[i], sizeof(buffers[]), i == 0 ? target : i == 1 ? input : param); }
-    for (int i = 0; i < 3; i++) { if (StrContains(buffers[i], "%") != -1) VFormat(buffers[i], sizeof(buffers[]), i == 0 ? target : i == 1 ? input : param, 6); }
+    for (int i = 0; i < 3; i++) { if (StrContains(buffers[i], "%") != -1) VFormat(buffers[i], sizeof(buffers[]), i == 0 ? target : i == 1 ? input : param, 7); }
     char FireStr[512]; // Support using "OnUser1 MyEntity,MyInput,MyParameter,MyDelay,MyRefireCount"
     FormatEx(FireStr, sizeof(FireStr), (StrContains(target, "OnUser1", true) != -1 ? target : "OnUser1 %s,%s,%s,%f,%i"), buffers[0], buffers[1], buffers[2], delay, refire);
     SetVariantString(FireStr); // Execute the IO
