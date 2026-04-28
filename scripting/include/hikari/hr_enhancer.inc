@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.4.4";
+char FSE_VER[8] = "2.4.5";
 
 // All background music
 enum struct BGM {
@@ -251,7 +251,7 @@ methodmap AUDIOMANAGER {
       strcopy(AudioState[client].songName, sizeof(AudioState[client].songName), BGMArray[index].songName);
       AudioState[client].introSeconds = AudioState[client].loops >= 1 ? BGMArray[index].introSeconds : 0.0;
       AudioState[client].loopSeconds = BGMArray[index].loopSeconds;
-      AssLogger(LOGLVL_DEBUG, "[AudioState for %N]: We are on wave %i, now playing: %s (from %s) for %f seconds. It will start looping at %f seconds after the first cycle.", client, WaveSystem().GetWave(), AudioState[client].songName, AudioState[client].cachedPath, AudioState[client].loopSeconds, BGMArray[index].introSeconds);
+      AssLogger(LOGLVL_DEBUG, "[AudioManager for %N]: We are on wave %i, now playing: %s (from %s) for %f seconds. It will start looping at %f seconds after the first cycle.", client, WaveSystem().GetWave(), AudioState[client].songName, AudioState[client].cachedPath, AudioState[client].loopSeconds, BGMArray[index].introSeconds);
     }
   }
 
