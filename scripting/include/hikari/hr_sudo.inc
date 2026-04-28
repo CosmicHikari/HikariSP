@@ -364,11 +364,8 @@ void sudo(int task) {
     case 35: {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {white}ANYTHING BUT THE ASS GAS!!!! ({red}-60 pts{white})");
       ass_sacPoints -= 60;
-      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 524288");
+      AttackInZoneDuration(400.0, DMG_DROWNRECOVER, g_FrontRottenburg, true, GetRandomInt(45, 75), 0.1, 4.1);
       FastFire2.Execute("FB.ShakeBOOM", "StartShake", "", 0.1);
-      FastFire2.Execute("HurtAll", "AddOutput", "damage 400");
-      FastFire2.Execute("HurtAll", "Enable", "", 0.1);
-      FastFire2.Execute("HurtAll", "Disable", "", 4.1); //Add a sound to this in the future. Maybe gas sound from gbombs? Maybe custom fart sounds? hmm....
       FastFire2.Execute("FB.ShakeBOOM", "StopShake", "", 4.1);
     }
   //Nuclear fallout spend
@@ -413,10 +410,7 @@ void sudo(int task) {
     case 41: {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Why would you even eat {red}The Forbidden Burrito{white}?");
       CustomSoundEmitter("vo/sandwicheat09.mp3", 65, false, 0, 1.0, 100);
-      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 8");
-      FastFire2.Execute("HurtAll", "AddOutput", "damage 2000");
-      FastFire2.Execute("HurtAll", "Enable", "", 4.0);
-      FastFire2.Execute("HurtAll", "Disable", "", 8.0);
+      AttackInZoneDuration(2400.0, DMG_BURN, g_FrontRottenburg, true, GetRandomInt(25, 75), 4.0, 8.0);
     }
   //Found goobbue
     case 42: {
@@ -435,14 +429,11 @@ void sudo(int task) {
     case 44: {
       CustomSoundEmitter(SFXArray[53].realPath, 65, false, 0, 1.0, 100);
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Oh no, someone has found and (probably) consumed a {red}WAFFLE OF MASS DESTRUCTION{white}!");
-    //Yup, another one for the explosion array
-      FastFire2.Execute("HurtAll", "AddOutput", "damage 2000000", 0.0);
-      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 262144", 10.0);
+      // Yup, another one for the explosion array
+      AttackInZoneDuration(2000000.0, DMG_RADIATION, g_FrontRottenburg, _, GetRandomInt(10, 50), 10.3, 13.7);
       FastFire2.Execute("ShakeBOOM", "StartShake", "", 10.3);
       FastFire2.Execute("HUGEExplosion", "Explode", "", 10.3);
       FastFire2.Execute("FB.Fade", "Fade", "", 10.3);
-      FastFire2.Execute("HurtAll", "Enable", "", 10.3);
-      FastFire2.Execute("HurtAll", "Disable", "", 12.3);
     }
   //Medium Explosion (defined again, but we aren't using a bomb this time)
     case 51: {
@@ -455,10 +446,7 @@ void sudo(int task) {
       FastFire2.Execute("BlueBall*", "Kill");
       FastFire2.Execute("HUGEExplosion", "Explode");
       FastFire2.Execute("BlueKirb", "Kill");
-      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 32768");
-      FastFire2.Execute("HurtAll", "AddOutput", "damage 777777.777");
-      FastFire2.Execute("HurtAll", "Enable", "", 0.1);
-      FastFire2.Execute("HurtAll", "Disable", "", 2.1);
+      AttackInZoneDuration(777777.777, DMG_PARALYZE, g_FrontRottenburg, _, GetRandomInt(35, 75), 0.1, 2.1);
       isGoobbue = false;
     }
   //Giant Goobbue
@@ -467,10 +455,7 @@ void sudo(int task) {
       FastFire2.Execute("FB.BOOM", "StartShake");
       FastFire2.Execute("GiantGoob*", "Kill");
       FastFire2.Execute("HUGEExplosion", "Explode");
-      FastFire2.Execute("HurtAll", "AddOutput", "damagetype 1048576");
-      FastFire2.Execute("HurtAll", "AddOutput", "damage 777777.777");
-      FastFire2.Execute("HurtAll", "Enable", "", 0.1);
-      FastFire2.Execute("HurtAll", "Disable", "", 2.1);
+      AttackInZoneDuration(777777.777, DMG_ACID, g_FrontRottenburg, _, GetRandomInt(35, 75), 0.1, 2.1);
     }
     case 75:{
       char onsHP[32];
@@ -811,6 +796,7 @@ void sudo(int task) {
         EmitSoundToAll("fartsy/misc/fartsyscrusader_bgm_locus.mp3");
         CreateTimer(80.0, TimedOperator, 79);
         for (int i = 0; i < sizeof(crusaderAtk); i++) FastFire2.Execute(crusaderAtk[i].fireStr);
+        AttackInZoneDuration(2000000.0, DMG_ENERGYBEAM, g_FrontRottenburg, false, GetRandomInt(25, 35), 65.10, 70.0);
       }
     }
   //Choose bomb path

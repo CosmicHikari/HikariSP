@@ -622,6 +622,7 @@ methodmap WEATHERMANAGER {
           float entPos[3]; GetEntPropVector(i, Prop_Data, "m_vecOrigin", entPos);
           if (GetVectorDistance(entPos, ePos) <= 300.0) AttackEntity(i, 10000000.0, DMG_ENERGYBEAM);
         }
+        FastFire2.SetEntityLife("LightningStrike", 1.0);
       }
     }
     sudo(1003);
@@ -766,7 +767,9 @@ methodmap WEATHERMANAGER {
     }
   }
   public void Reset() {
-    LightLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] WeatherManager has been reset!");
+    LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] WeatherManager has been reset!", HSE_VER);
+    g_IndoorZones[0].tickrate = 77;
+    g_IndoorZones[0].shouldTick = true;
     WDATA.fogDensity = 0.50;
     WDATA.fogColorRTarget = 35.0;
     WDATA.fogColorGTarget = 55.0;
