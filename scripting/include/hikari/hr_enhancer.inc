@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char FSE_VER[8] = "2.4.5";
+char HSE_VER[8] = "2.5.0";
 
 // All background music
 enum struct BGM {
@@ -261,7 +261,7 @@ methodmap AUDIOMANAGER {
       if (IsValidClient(i)) {
         if (this.isClientInEventMode(i) || !IsValidClient(i)) { PrintToServer("Client %N valid? %s Event Mode? %s", i, IsValidClient(i) ? "true" : "false", this.isClientInEventMode(i) ? "true" : "false"); continue; }
         this.setBGM(i, AudioState[i].VIPBGM > 0 && !this.isClientInEventMode(i) ? AudioState[i].VIPBGM : AudioState[i].indexBGM == 0 ? g_indexBGM : AudioState[i].indexBGM, true);
-        AudioState[i].shouldTick = GetWeatherManager().TornadoWarning && g_SirenMutesMusic[i] ? false : true;
+        AudioState[i].shouldTick = GetWeatherManager().hasTornadoWarning() && g_SirenMutesMusic[i] ? false : true;
       }
     }
   }
@@ -285,7 +285,7 @@ methodmap AUDIOMANAGER {
   /* When a client respawns */
   public void OnClientRespawned(int client) {
     if (AudioState[client].clientIsFresh && IsValidClient(client)) {
-      if (soundPreference[client] == 1 || soundPreference[client] == 3) CPrintToChat(client, "[AudioState v%s] Welcome! We are listening to %s", FSE_VER, BGMArray[g_indexBGM].songName);
+      if (soundPreference[client] == 1 || soundPreference[client] == 3) CPrintToChat(client, "[AudioState v%s] Welcome! We are listening to %s", HSE_VER, BGMArray[g_indexBGM].songName);
       this.setBGM(client, g_indexBGM, true);
       AudioState[client].clientIsFresh = false;
     }
@@ -311,9 +311,17 @@ methodmap AUDIOMANAGER {
   public void OnStartup(int event, const char[] path = "") {
     switch (event) {
       case 0: {
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Startup commenced!", HSE_VER);
         char finalPath[PLATFORM_MAX_PATH];
         Format(finalPath, sizeof(finalPath), "%s/Files", path);
         CreateDirectory(finalPath);
+        RegAdminCmd("sm_music", Command_Music, ADMFLAG_RESERVATION, "Set music to be played for the next wave");
+        RegConsoleCmd("sm_song", Command_GetCurrentSong, "Get current song name");
+        RegConsoleCmd("sm_sounds", Command_Sounds, "Toggle sounds on or off via menu");
+        RegConsoleCmd("sm_volume", Command_SetVolume, "Set the music SNDLVL to whatever you want (up to 130)");
+        RegConsoleCmd("sm_volume_sfx", Command_SetVolumeSFX, "Set the sfx SNDLVL to whatever you want (up to 130)");
+        RegConsoleCmd("sm_setvolumereal", Command_SetVolumeReal, "Set the real volume for sfx/music. Ex: sm_setvolumereal sfx 100, sm_setvolumereal music 100");
+        cvarSNDDefault = CreateConVar("hr_sound", "3", "Default sound for new users, 3 = Everything, 2 = Sounds Only, 1 = Music Only, 0 = Nothing");
       }
     }
   }
@@ -523,11 +531,11 @@ methodmap GHOSTHANDLER {
 }
 GHOSTHANDLER GhostHandler;
 
-//Weather Manager
+// Weather Stuffs
 int sirenRef;
 BULKFIRE lightningStrike[16];
 BULKFIRE lightningFlash[17];
-enum struct WEATHERMANAGER {
+enum struct WEATHERDATA {
   bool canTornado;
   bool hasTornado;
   bool powerSurging;
@@ -536,12 +544,12 @@ enum struct WEATHERMANAGER {
   bool tickWeather;
   bool TornadoTimerActive;
   bool TornadoWarning;
-  char defFogStartDist[5];
-  char defFogEndDist[5];
   char defRainDensity;
   char rainDensity;
   float fogDensity;
   float defFogDensity;
+  float defFogEndDist;
+  float defFogStartDist;
   float fogTarget;
   float fogChangeRate;
   float fogChangeRateRGB;
@@ -561,18 +569,22 @@ enum struct WEATHERMANAGER {
   int iStormMin;
   int iStormMax;
   int ticks;
-  bool CanFormTornado() { return WaveSystem().IsActive() && this.canTornado && !this.hasTornado; }
-  void Activate() {
+}
+WEATHERDATA WDATA;
+
+methodmap WEATHERMANAGER {
+  public bool CanFormTornado() { return WaveSystem().IsActive() && WDATA.canTornado && !WDATA.hasTornado; }
+  public void Activate() {
     this.Reset();
-    if (!WaveSystem().IsWaveNull()) this.tickWeather = true; // Start weather system ONLY IF NOT IN GAMEMODE 2.
+    if (!WaveSystem().IsWaveNull()) WDATA.tickWeather = true; // Start weather system ONLY IF NOT IN GAMEMODE 2.
   }
-  void doLightning() {
+  public void doLightning() {
     sudo(1003);
     FastFire2.Execute(lightningStrike[GetRandomInt(0, sizeof(lightningStrike) - 1)].fireStr);
     FastFire2.Execute("Weather.LightningHurt*", "Disable", "", 0.07);
     CustomSoundEmitter(SFXArray[GetRandomInt(27, 34)].realPath, 65, false, 0, 1.0, 100);
     // Affect lights
-    int i = GetRandomInt(this.intensity, 15);
+    int i = GetRandomInt(WDATA.intensity, 15);
     LightLogger(LOGLVL_DEBUG, "Doing light interactions with %i", i);
     switch (i) {
       case 2, 3, 5: {
@@ -585,7 +597,7 @@ enum struct WEATHERMANAGER {
       }
       case 11, 15: {
         g_PowerOutage = true;
-        if (!this.hasTornado) CreateTimer(GetRandomFloat(5.0, 30.0), RestorePower, GetRandomInt(0, 3));
+        if (!WDATA.hasTornado) CreateTimer(GetRandomFloat(5.0, 30.0), RestorePower, GetRandomInt(0, 3));
         FastFire2.Execute("MapLighting.*", "LightOff");
         FastFire2.Execute("MapLighting.*", "TurnOff");
         FastFire2.Execute("MapLighting.*", "LightOff", "", 1.0);
@@ -596,23 +608,20 @@ enum struct WEATHERMANAGER {
       }
     }
   }
-  void Dissipate() {
-    this.sirenPitchTarget = 0.0;
-    this.sirenPitchRate = 0.25;
-    this.fogTarget = this.defFogDensity;
+  public void Dissipate() {
+    WDATA.sirenPitchTarget = 0.0;
+    WDATA.sirenPitchRate = 0.25;
+    WDATA.fogTarget = WDATA.defFogDensity;
     g_PowerOutage = false;
-    this.hasTornado = false;
-    this.mIntensity = WaveSystem().IsActive() ? 5 : 0;
-    this.intensity = WaveSystem().IsActive() ? 7 : 0;
-    if (this.sirenExploded) {
-      this.sirenPitch = 0.0;
-      this.sirenExploded = false;
-    }
-    this.TornadoWarning = false;
+    WDATA.hasTornado = false;
+    WDATA.mIntensity = WaveSystem().IsActive() ? 5 : 0;
+    WDATA.intensity = WaveSystem().IsActive() ? 7 : 0;
+    if (WDATA.sirenExploded) { WDATA.sirenPitch = 0.0; WDATA.sirenExploded = false; }
+    WDATA.TornadoWarning = false;
     CreateTimer(GetRandomFloat(45.0, 135.0), ResetTornado);
     for (int i = 0; i < sizeof(MapLighting); i++) if (!MapLighting[i].isBroken)FastFire2.Execute(MapLighting[i].light, "TurnOn");
-    FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerp", this.defFogStartDist);
-    FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerp", this.defFogEndDist);
+    FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerp", "%f", _, _, WDATA.defFogStartDist);
+    FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerp", "%f", _, _, WDATA.defFogEndDist);
     FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition");
     FastFire2.Execute("tornadof1", "Stop");
     FastFire2.Execute("TornadoKill", "Disable");
@@ -628,20 +637,12 @@ enum struct WEATHERMANAGER {
     AudioManager.OnTornadoWarning(false);
   }
   // Emits storm sounds
-  void EmitStormSounds() {
-    switch (GetRandomInt(this.mIntensity, this.intensity)) {
-        case 0: {
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
-        }
-        case 1: {
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, reduced volume
-        }
-        case 2: {
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
-        }
-        case 3: {
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, increased volume
-        }
+  public void EmitStormSounds() {
+    switch (GetRandomInt(WDATA.mIntensity, WDATA.intensity)) {
+        case 0: { CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); } // 0-3: Rain, no wind, reduced volume
+        case 1: { CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); }
+        case 2: { CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); }
+        case 3: { CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); }
         case 4: {
           CustomSoundEmitter(SFXArray[108].realPath, 45, false, 1, 1.0, 100); //Rain, no wind, increased volume
           CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.1, 100); //Rain, wind, decreased volume
@@ -708,32 +709,32 @@ enum struct WEATHERMANAGER {
       }
   }
   // Gets a safe tick delay to prevent divide by 0 errors / stalls
-  int getTickDelay() { return GetRandomInt(this.iStormMin < 1 ? 1 : this.iStormMin, this.iStormMax < 2 ? 2 : this.iStormMax); }
-  void IssueTornadoWarning() {
-    if (WaveSystem().IsActive() && this.canTornado && !this.sirenExploded) {
-      this.TornadoWarning = true;
-      this.sirenPitchTarget = 100.0;
-      this.sirenPitchRate = 0.1;
+  public int getTickDelay() { return GetRandomInt(WDATA.iStormMin < 1 ? 1 : WDATA.iStormMin, WDATA.iStormMax < 2 ? 2 : WDATA.iStormMax); }
+  public void IssueTornadoWarning() {
+    if (WaveSystem().IsActive() && WDATA.canTornado && !WDATA.sirenExploded) {
+      WDATA.TornadoWarning = true;
+      WDATA.sirenPitchTarget = 100.0;
+      WDATA.sirenPitchRate = 0.1;
       FastFire2.Execute("Weather.EASScreen", "Enable");
       FastFire2.Execute("Weather.EAS", "PlaySound");
       AudioManager.OnTornadoWarning(true);
     }
   }
-  void Reset() {
+  public void Reset() {
     LightLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] WeatherManager has been reset!");
-    this.fogDensity = 0.50;
-    this.fogColorRTarget = 35.0;
-    this.fogColorGTarget = 55.0;
-    this.fogColorBTarget = 55.0;
+    WDATA.fogDensity = 0.50;
+    WDATA.fogColorRTarget = 35.0;
+    WDATA.fogColorGTarget = 55.0;
+    WDATA.fogColorBTarget = 55.0;
     this.Dissipate();
-    this.reset = true;
-    this.tickWeather = false;
+    WDATA.reset = true;
+    WDATA.tickWeather = false;
     FastFire2.Execute("rain", "Alpha", "0");
     FastFire2.Execute("Weather.Sky", "Enable");
     FastFire2.Execute("Weather.Sky", "Skin", "0");
     FastFire2.Execute("Weather.FogSky", "Enable", "", 2.0);
     for (int i = 0; i < sizeof(MapLighting); i++)MapLighting[i].Repair();
-    this.sirenPos = {-2305.0, 2095.0, 1102.0};
+    WDATA.sirenPos = {-2305.0, 2095.0, 1102.0};
     int siren = FindEntityByTargetname("WeatherSiren", "info_target");
     if (!IsValidEntity(siren)) {
       siren = CreateEntityByName("info_target");
@@ -741,71 +742,71 @@ enum struct WEATHERMANAGER {
       DispatchSpawn(siren);
       DispatchKeyValue(siren, "targetname", "WeatherSiren");
       ActivateEntity(siren);
-      TeleportEntity(siren, this.sirenPos, NULL_VECTOR, NULL_VECTOR);
+      TeleportEntity(siren, WDATA.sirenPos, NULL_VECTOR, NULL_VECTOR);
       LightLogger(LOGLVL_INFO, "Injected info_target WeatherSiren to map!");
     }
     sirenRef = EntIndexToEntRef(siren);
   }
-  void SetFogStartQueued(int fsq) { FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerpTo", "%i", _, _, fsq); }
-  void SetFogEndQueued(int feq) { FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerpTo","%i", _, _, feq); }
-  void StartFogTransition() { FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition"); }
-  void StartTornadoTimer(float t) {
+  public void SetFogStartQueued(int fsq) { FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerpTo", "%i", _, _, fsq); }
+  public void SetFogEndQueued(int feq) { FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerpTo","%i", _, _, feq); }
+  public void StartFogTransition() { FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition"); }
+  public void StartTornadoTimer(float t) {
     CreateTimer(t - 20.0, TimedOperator, 40);
     CreateTimer((t + GetRandomFloat(5.0, 25.0)), TimedOperator, 41);
   }
-  void Tick() {
-    if (this.TornadoWarning) this.TickSiren();
+  public void Tick() {
+    if (WDATA.TornadoWarning) this.TickSiren();
     // Update intensity / queue wind sounds
-    if (++this.ticks % this.getTickDelay() == 0) {
-      if (!this.tickWeather) return;
-      LightLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (this.intensity / 15.0), this.intensity);
+    if (++WDATA.ticks % this.getTickDelay() == 0) {
+      if (!WDATA.tickWeather) return;
+      LightLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (WDATA.intensity / 15.0), WDATA.intensity);
       this.doLightning();
       this.updateIntensity();
-      this.mIntensity = this.intensity - 2;
-      this.SetFogStartQueued(RoundToNearest(float (1000 - (this.intensity * ((1000 - 150) / 15)))));
-      this.SetFogEndQueued(RoundToNearest(float (3000 - (this.intensity * ((3000 - 250) / 15)))));
-      this.fogTarget = 0.4 + (0.5 * (this.intensity / 15));
-      this.iStormMin = RoundToNearest(float (1000 - (this.intensity * ((1000 - 300) / 15))));
-      this.iStormMax = RoundToNearest(float (3000 - (this.intensity * ((3000 - 700) / 15))));
-      FastFire2.Execute("rain", "Alpha", "%i", _, _, RoundToNearest(255 * (this.intensity / 15.0)));
-      if (!this.TornadoTimerActive && this.intensity > 13 && this.CanFormTornado()) {
-        this.TornadoTimerActive = true;
+      WDATA.mIntensity = WDATA.intensity - 2;
+      this.SetFogStartQueued(RoundToNearest(float (1000 - (WDATA.intensity * ((1000 - 150) / 15)))));
+      this.SetFogEndQueued(RoundToNearest(float (3000 - (WDATA.intensity * ((3000 - 250) / 15)))));
+      WDATA.fogTarget = 0.4 + (0.5 * (WDATA.intensity / 15));
+      WDATA.iStormMin = RoundToNearest(float (1000 - (WDATA.intensity * ((1000 - 300) / 15))));
+      WDATA.iStormMax = RoundToNearest(float (3000 - (WDATA.intensity * ((3000 - 700) / 15))));
+      FastFire2.Execute("rain", "Alpha", "%i", _, _, RoundToNearest(255 * (WDATA.intensity / 15.0)));
+      if (!WDATA.TornadoTimerActive && WDATA.intensity > 13 && this.CanFormTornado()) {
+        WDATA.TornadoTimerActive = true;
         this.StartTornadoTimer(WaveSystem().GetWave() == 4 ? GetRandomFloat(30.0, 90.0) : GetRandomFloat(90.0, 210.0));
       }
       this.StartFogTransition();
       this.EmitStormSounds();
     }
     // Every 240 ticks: Assign player fog controllers.
-    if (this.ticks % 240 == 0) for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
+    if (WDATA.ticks % 240 == 0) for (int i = 1; i < MaxClients; i++) { if (!IsClientInGame(i) || !IsClientConnected(i)) continue; else { SetVariantString(g_IsPlayerIndoors[i] ? "Weather.FogIndoor" : "Weather.FogOutdoor"); AcceptEntityInput(i, "SetFogController", i, i); }}
     // Every tick: Update fog
-    if (this.fogDensity != this.fogTarget || this.reset) {
+    if (WDATA.fogDensity != WDATA.fogTarget || WDATA.reset) {
       char targetAlpha[4];
       char targetDensity[24];
-      this.fogDensity = (this.fogDensity < this.fogTarget) ? FloatMin(Maths().Adjust(this.fogDensity, this.fogChangeRate), this.fogTarget) : FloatMax(Maths().Adjust(this.fogDensity, -this.fogChangeRate), this.fogTarget);
-      IntToString(RoundFloat(FloatMin(255.0 * (this.fogDensity * 1.20), 255.0)), targetAlpha, sizeof(targetAlpha));
-      FloatToString(this.fogDensity, targetDensity, sizeof(targetDensity));
+      WDATA.fogDensity = (WDATA.fogDensity < WDATA.fogTarget) ? FloatMin(Maths().Adjust(WDATA.fogDensity, WDATA.fogChangeRate), WDATA.fogTarget) : FloatMax(Maths().Adjust(WDATA.fogDensity, -WDATA.fogChangeRate), WDATA.fogTarget);
+      IntToString(RoundFloat(FloatMin(255.0 * (WDATA.fogDensity * 1.20), 255.0)), targetAlpha, sizeof(targetAlpha));
+      FloatToString(WDATA.fogDensity, targetDensity, sizeof(targetDensity));
       FastFire2.Execute("Weather.FogOutdoor", "SetMaxDensity", targetDensity);
       FastFire2.Execute("Weather.FogSky", "Alpha", targetAlpha);
     }
-    if (this.fogColorR != this.fogColorRTarget || this.fogColorG != this.fogColorGTarget || this.fogColorB != this.fogColorBTarget || this.reset) {
+    if (WDATA.fogColorR != WDATA.fogColorRTarget || WDATA.fogColorG != WDATA.fogColorGTarget || WDATA.fogColorB != WDATA.fogColorBTarget || WDATA.reset) {
       char target[24];
-      this.fogColorR = (this.fogColorR < this.fogColorRTarget) ? FloatMin(this.fogColorR += this.fogChangeRateRGB, this.fogColorRTarget) : FloatMax(this.fogColorR -= this.fogChangeRateRGB, this.fogColorRTarget);
-      this.fogColorG = (this.fogColorG < this.fogColorGTarget) ? FloatMin(this.fogColorG += this.fogChangeRateRGB, this.fogColorGTarget) : FloatMax(this.fogColorG -= this.fogChangeRateRGB, this.fogColorGTarget);
-      this.fogColorB = (this.fogColorB < this.fogColorBTarget) ? FloatMin(this.fogColorB += this.fogChangeRateRGB, this.fogColorBTarget) : FloatMax(this.fogColorB -= this.fogChangeRateRGB, this.fogColorBTarget);
-      Format(target, sizeof(target), "%i %i %i", RoundFloat(this.fogColorR), RoundFloat(this.fogColorG), RoundFloat(this.fogColorB));
+      WDATA.fogColorR = (WDATA.fogColorR < WDATA.fogColorRTarget) ? FloatMin(WDATA.fogColorR += WDATA.fogChangeRateRGB, WDATA.fogColorRTarget) : FloatMax(WDATA.fogColorR -= WDATA.fogChangeRateRGB, WDATA.fogColorRTarget);
+      WDATA.fogColorG = (WDATA.fogColorG < WDATA.fogColorGTarget) ? FloatMin(WDATA.fogColorG += WDATA.fogChangeRateRGB, WDATA.fogColorGTarget) : FloatMax(WDATA.fogColorG -= WDATA.fogChangeRateRGB, WDATA.fogColorGTarget);
+      WDATA.fogColorB = (WDATA.fogColorB < WDATA.fogColorBTarget) ? FloatMin(WDATA.fogColorB += WDATA.fogChangeRateRGB, WDATA.fogColorBTarget) : FloatMax(WDATA.fogColorB -= WDATA.fogChangeRateRGB, WDATA.fogColorBTarget);
+      Format(target, sizeof(target), "%i %i %i", RoundFloat(WDATA.fogColorR), RoundFloat(WDATA.fogColorG), RoundFloat(WDATA.fogColorB));
       FastFire2.Execute("Weather.FogIndoor", "SetColor", target);
       FastFire2.Execute("Weather.FogIndoor", "SetColorSecondary", target);
       FastFire2.Execute("Weather.FogOutdoor", "SetColor", target);
       FastFire2.Execute("Weather.FogOutdoor", "SetColorSecondary", target);
       FastFire2.Execute("Weather.FogSky", "Color", target);
-      this.reset = false;
+      WDATA.reset = false;
     }
     // Every tick: Test if entities are above <g_WeatherZone> and if so, damage them, also tick the Tornado
-    if (this.hasTornado) { AttackAllEnts(9000000.0, DMG_FALL, g_WeatherZone[0]); if (this.ticks % 60 == 0) this.TickTornado(); }
+    if (WDATA.hasTornado) { AttackAllEnts(9000000.0, DMG_FALL, g_WeatherZone[0]); if (WDATA.ticks % GetRandomInt(30, 60) == 0) this.TickTornado(); }
   }
-  void TickSiren() {
-    if (this.TornadoWarning) {
-      if (!this.sirenExploded && (this.sirenPitch > 165.0)) {
+  public void TickSiren() {
+    if (WDATA.TornadoWarning) {
+      if (!WDATA.sirenExploded && (WDATA.sirenPitch > 165.0)) {
         FastFire2.Execute("Weather.Siren.ExplodeParticle", "Start");
         CustomSoundEmitter(SFXArray[121].realPath, SFXArray[121].SNDLVL, false, 0, 1.0, 100);
         for (int i = 0; i < MaxClients; i++) if (IsValidClient(i) && g_SirenEnabled[i]) {
@@ -820,33 +821,31 @@ enum struct WEATHERMANAGER {
         }
         FastFire2.Execute("Weather.Siren.ExplodeParticle", "Stop", "", 5.0);
         FastFire2.Execute("Weather.Siren.ExplodeParticle", "Start", "", 5.1);
-        this.sirenExploded = true;
+        WDATA.sirenExploded = true;
       }
-      if (this.sirenPitch != this.sirenPitchTarget && !this.sirenExploded) {
-        char targetPitch[24];
-        this.sirenPitch = (this.sirenPitch < this.sirenPitchTarget) ? FloatMin(this.sirenPitch += this.sirenPitchRate, this.sirenPitchTarget) : FloatMax(this.sirenPitch -= this.sirenPitchRate, this.sirenPitchTarget);
-        FloatToString(this.sirenPitch, targetPitch, sizeof(targetPitch));
+      if (WDATA.sirenPitch != WDATA.sirenPitchTarget && !WDATA.sirenExploded) {
+        WDATA.sirenPitch = (WDATA.sirenPitch < WDATA.sirenPitchTarget) ? FloatMin(WDATA.sirenPitch += WDATA.sirenPitchRate, WDATA.sirenPitchTarget) : FloatMax(WDATA.sirenPitch -= WDATA.sirenPitchRate, WDATA.sirenPitchTarget);
         int siren = EntRefToEntIndex(sirenRef);
         for (int i = 0; i < MaxClients; i++) if (IsValidClient(i) && g_SirenEnabled[i]) {
-          CSEClientEx(i, SFXArray[119].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(this.sirenPitch), this.sirenPos); 
-          CSEClientEx(i, SFXArray[120].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(this.sirenPitch), this.sirenPos);
-          CSEClientEx(i, SFXArray[119].realPath, siren, 3, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(this.sirenPitch), this.sirenPos); 
-          CSEClientEx(i, SFXArray[120].realPath, siren, 3, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(this.sirenPitch), this.sirenPos);
-          CSEClientEx(i, SFXArray[119].realPath, siren, 2, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(this.sirenPitch), this.sirenPos); 
-          CSEClientEx(i, SFXArray[120].realPath, siren, 2, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(this.sirenPitch), this.sirenPos);
-          CSEClientEx(i, SFXArray[119].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 0.7, RoundFloat(this.sirenPitch), this.sirenPos); 
-          CSEClientEx(i, SFXArray[120].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(this.sirenPitch), this.sirenPos);
+          CSEClientEx(i, SFXArray[119].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
+          CSEClientEx(i, SFXArray[120].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
+          CSEClientEx(i, SFXArray[119].realPath, siren, 3, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
+          CSEClientEx(i, SFXArray[120].realPath, siren, 3, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
+          CSEClientEx(i, SFXArray[119].realPath, siren, 2, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
+          CSEClientEx(i, SFXArray[120].realPath, siren, 2, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
+          CSEClientEx(i, SFXArray[119].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 0.7, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
+          CSEClientEx(i, SFXArray[120].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
         }
       }
-      if (this.ticks % GetRandomInt(70, 224) == 0) {
-        if (this.TornadoWarning && !this.sirenExploded) {
-          this.sirenPitchTarget = this.powerSurging ? GetRandomFloat(115.0, 210.0) : GetRandomFloat(65.0, 105.0);
-          this.sirenPitchRate = this.powerSurging ? GetRandomFloat(0.0525, 0.25) : GetRandomFloat(0.01, 0.125);
+      if (WDATA.ticks % GetRandomInt(70, 224) == 0) {
+        if (WDATA.TornadoWarning && !WDATA.sirenExploded) {
+          WDATA.sirenPitchTarget = WDATA.powerSurging ? GetRandomFloat(115.0, 210.0) : GetRandomFloat(65.0, 105.0);
+          WDATA.sirenPitchRate = WDATA.powerSurging ? GetRandomFloat(0.0525, 0.25) : GetRandomFloat(0.01, 0.125);
         }
       }
     }
   }
-  void TickTornado() {
+  public void TickTornado() {
     float tornadoPos[3];
     bool found = false;
     int tornado = -1;
@@ -857,14 +856,21 @@ enum struct WEATHERMANAGER {
       float dx = tornadoPos[0] - entPos[0];
       float dy = tornadoPos[1] - entPos[1];
       float distance2D = SquareRoot(dx*dx + dy*dy);
-      if (distance2D <= 200.0) { PrintToServer("<Enhancer:968> Found entity that matches search pattern <= 200.0D"); }
+      if (IsValidClient(i)) PrintToChat(i, "Your distance to the tornado is %f", distance2D);
+      float str = 1.0 - ((distance2D / 1250.0) * (distance2D / 1250.0));
+      if (distance2D <= 1250.0) {
+        float v[3]; GetEntPropVector(i, Prop_Data, "m_vecVelocity", v);
+        v[2] = (2000.0 * str);
+        TeleportEntity(i, NULL_VECTOR, NULL_VECTOR, v);
+      }
+      SetEntityGravity(i, distance2D <= 1250.0 ? str : 1.0);
     }
   }
-  void TryFormTornado() {
+  public void TryFormTornado() {
     if (this.CanFormTornado() && ICanSummon(7)) {
-      this.hasTornado = true;
-      this.mIntensity = 15;
-      this.intensity = 15;
+      WDATA.hasTornado = true;
+      WDATA.mIntensity = 15;
+      WDATA.intensity = 15;
       FastFire2.Execute("tornado", "ForceSpawn");
       CreateTimer(1.5, TornadoShaker);
       FastFire2.Execute("TornadoKill", "Enable");
@@ -883,25 +889,46 @@ enum struct WEATHERMANAGER {
       FastFire2.SetEntityLife("tornadowindf1", f);  
     }
   }
-  void updateIntensity() {
+  public void updateIntensity() {
     switch (GetRandomInt(0, 10)) {
       case 0, 4, 8: {
-        if (this.intensity > 9) GhostHandler.SpawnRandom();
-        if (this.intensity > 0 && (this.intensity - 1 > this.mIntensity)) this.intensity--;
+        if (WDATA.intensity > 9) GhostHandler.SpawnRandom();
+        if (WDATA.intensity > 0 && (WDATA.intensity - 1 > WDATA.mIntensity)) WDATA.intensity--;
       }
-      case 1, 2, 3, 5, 6, 7, 9, 10: { if (this.intensity < 15) this.intensity++; }
+      case 1, 2, 3, 5, 6, 7, 9, 10: { if (WDATA.intensity < 15) WDATA.intensity++; }
     }
   }
-  void OnStartup(int event, const char[] path) {
+  public void OnStartup(int event, const char[] path) {
     switch (event){
-      case 0:{
+      case 0: {
         char finalPath[PLATFORM_MAX_PATH];
         Format(finalPath, sizeof(finalPath), "%s/Weather", path);
         CreateDirectory(finalPath);
+        RegConsoleCmd("sm_fogsetdensity", Command_SetFogDensity, "[TESTING] Set fog density");
+        RegConsoleCmd("sm_fogstartendupdate", Command_SetFogSEU, "[TESTING] Set fog start end with optional flag");
+        cvarSirenEnabledDefault = CreateConVar("hr_sirenenabled", "1", "Enables the tornado siren for clients to hear it by default (they can still opt in/out of it via !sounds). 1/0");
+        cvarSirenMutesMusicDefault = CreateConVar("hr_sirenmutemusic", "1", "Allows the tornado siren to mute music for clients by default (they can still opt in/out of it via !sounds). 1/0");
       }
     }
-
   }
+  public void setCanTornado(bool c) { WDATA.canTornado = c; }
+  public void setPowerSurging(bool p) { WDATA.powerSurging = p; }
+  public void setTornadoTimerActive(bool t) { WDATA.TornadoTimerActive = t; }
+  public bool canTornado() { return WDATA.canTornado; }
+  public bool hasTornado() { return WDATA.hasTornado; }
+  public bool hasTornadoWarning() { return WDATA.TornadoWarning; }
+  public bool isPowerSurging() { return WDATA.powerSurging; }
+  public void setFogDensity(float d) { WDATA.fogDensity = d; }
+  public void setFogColorRTarget(float r) { WDATA.fogColorRTarget = r; }
+  public void setFogColorGTarget(float g) { WDATA.fogColorRTarget = g; }
+  public void setFogColorBTarget(float b) { WDATA.fogColorRTarget = b; }
+  public void setFogTarget(float t) { WDATA.fogTarget = t; }
+  public void setDefFogStartDist(float s) { WDATA.defFogStartDist = s; }
+  public void setDefFogEndDist(float e) { WDATA.defFogEndDist = e; }
+  public void setDefFogDensity(float d) { WDATA.defFogDensity = d; }
+  public void setFogChangeRate(float r) { WDATA.fogChangeRate = r; }
+  public void setFogChangeRateRGB(float rgb) { WDATA.fogChangeRateRGB = rgb; }
+  public void setSkyHeight(float sH) { WDATA.skyHeight = sH; }
 }
 WEATHERMANAGER WeatherManager;
 WEATHERMANAGER GetWeatherManager() { return WeatherManager; }
@@ -913,14 +940,14 @@ public Action GetRandomWind(Handle timer, int intensity) {
 }
 
 public Action ResetTornado(Handle timer) {
-  WeatherManager.canTornado = true;
-  WeatherManager.TornadoTimerActive = false;
+  WeatherManager.setCanTornado(true);
+  WeatherManager.setTornadoTimerActive(false);
   return Plugin_Stop;
 }
 
 public Action RestorePower(Handle timer, int surge) {
   g_PowerOutage = false;
-  WeatherManager.powerSurging = ((surge == 1) ? true : false);
+  WeatherManager.setPowerSurging((surge == 1) ? true : false);
   if (surge == 1) {
     CreateTimer(1.0, SurgePower);
   }
@@ -956,7 +983,7 @@ char LightingPatterns[][25] =  {
 };
 
 public Action SurgePower(Handle timer) {
-  if (WeatherManager.powerSurging) {
+  if (WeatherManager.isPowerSurging()) {
     int target = GetRandomInt(0, 12);
     if (MapLighting[target].isBroken)target = GetRandomInt(0, 12);
     if (!MapLighting[target].isBroken) {
@@ -974,7 +1001,7 @@ public Action SurgePower(Handle timer) {
 
 public Action SurgePowerFX(Handle timer) {
   for (int i = 0; i < sizeof(MapLighting); i++) {
-    if (WeatherManager.powerSurging && !MapLighting[i].isBroken) {
+    if (WeatherManager.isPowerSurging() && !MapLighting[i].isBroken) {
       FastFire2.Execute(MapLighting[i].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
       FastFire2.Execute(MapLighting[i].beam, "LightOff");
       FastFire2.Execute(MapLighting[i].beam, "LightOn", "", GetRandomFloat(0.1, 0.35));
@@ -986,7 +1013,7 @@ public Action SurgePowerFX(Handle timer) {
 }
 
 public Action TornadoShaker(Handle timer) {
-  if (WeatherManager.hasTornado) {
+  if (WeatherManager.hasTornado()) {
     FastFire2.Execute("tornadoshake_f1", "StartShake");
     CreateTimer(1.5, TornadoShaker);
   }

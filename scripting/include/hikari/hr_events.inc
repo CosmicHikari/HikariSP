@@ -181,7 +181,7 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
     strcopy(weapon, sizeof(weapon), "Attempted Train Robbery");
   }
   if (damagebits & DMG_FALL) {
-    if (WeatherManager.hasTornado) {
+    if (WeatherManager.hasTornado()) {
       switch (GetClientTeam(client)) {
         case 2: {
           CPrintToChatAll("{darkviolet}[{red}CORE{darkviolet}] {white}Client %N was {red}%s{white}!", client, DeathMessage[GetRandomInt(0, 5)]);
@@ -231,7 +231,7 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
           FastFire2.Execute("FB.Tank", "Enable", "", 1.0);
         }
         case 6, 9: {
-          WeatherManager.canTornado = true;
+          WeatherManager.setCanTornado(true);
           CreateTimer(1.0, TimedOperator, 41);
         }
         case 7, 13: {

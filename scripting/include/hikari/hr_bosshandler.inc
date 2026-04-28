@@ -598,6 +598,7 @@ enum struct BOSSHANDLER {
       }
     }
   }
+  void OnStartup() { LightLogger(1, "Setting up bosses... v%s", HRBOSS_VER); }
 }
 BOSSHANDLER BossHandler;
 BOSSHANDLER Get_Boss_Handler() { return BossHandler; }

@@ -6,8 +6,7 @@
  *   FIVE..... TIPS AND TRICKS MAY BE ADDED TO THE TIMER, SEE PerformAdverts(Handle timer);
  *        IF IT'S WAR THAT YOU WANT, THEN I'M READY TO PLAY. GLHF!
  */
-// Weather manager's sky height needs to be a zone (float 3 start end)...
-public char PLUGIN_VERSION[8] = "10.0.0a";
+public char PLUGIN_VERSION[8] = "10.0.0b";
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
@@ -51,7 +50,7 @@ public void OnFastFire2Ready() {
   LightLogger(LOGLVL_INFO, "####### FASTFIRE2 IS READY! INITIATE STARTUP SEQUENCE... PREPARE FOR THE END TIMES #######");
   core.init_pre();
   RegisterAndPrecacheAllFiles();
-  RegisterAllCommands();
+  RegisterMiscCommands();
   HookAllEvents();
   WaveSystem().update();
   if (WaveSystem().IsDefault()) core.init_post();

@@ -1,4 +1,4 @@
-char WaveSystem_Version[8] = "1.2.1";
+char WaveSystem_Version[8] = "1.2.2";
 const int WaveTypes_NORMAL = 0;
 const int WaveTypes_TACOBELL = 1;
 const int WaveTypes_WAVENULL = 2;
@@ -55,7 +55,7 @@ methodmap WAVESYSTEM {
     g_BombIndex = DefaultsArray[WSData.wave].defBombStatus;
     BombRegistry[0].stateMax = DefaultsArray[WSData.wave].defBombStatusMax;
     core.canHWBoss = DefaultsArray[WSData.wave].defCanHWBoss;
-    WeatherManager.canTornado = DefaultsArray[WSData.wave].defCanTornado;
+    WeatherManager.setCanTornado(DefaultsArray[WSData.wave].defCanTornado);
     ass_sacPointsMax = DefaultsArray[WSData.wave].defSacPointsMax;
     core.FailedCount = 0; // Reset fail count to zero. (See EventWaveFailed - where we play the BGM.)
     WeatherManager.Activate();
@@ -154,14 +154,14 @@ methodmap WAVESYSTEM {
         CPrintToChatAll("{fartsyred} [WARNING]: SHOULD YOU FAIL THIS WAVE, YOU *WILL* BE RESTARTING FROM THE VERY BEGINNING WITH NO UPGRADES.");
         CPrintToChatAll("{fartsyred} [WARNING]: THE FATE OF THIS SERVER IS IN YOUR HANDS. DO. NOT. FAIL.");
         FastFire2.Execute("Weather.Sky", "Skin", "3");
-        WeatherManager.fogDensity = 0.1;
+        WeatherManager.setFogDensity(0.1);
         PrintToChatAll("playing sound\\fartsy\\music\\wavenull_intro.mp3, waves should be timed so that the music changes right at the end of this intro.");
         FastFire2.Execute("weather.sky", "Skin", "2");
         sudo(1001);
         EmitSoundToAll("sound/fartsy/music/wavenull_intro.mp3");
-        WeatherManager.fogColorRTarget = 95.0;
-        WeatherManager.fogColorGTarget = 35.0;
-        WeatherManager.fogColorBTarget = 35.0;
+        WeatherManager.setFogColorRTarget(95.0);
+        WeatherManager.setFogColorGTarget(35.0);
+        WeatherManager.setFogColorBTarget(35.0);
       }
     }
     WSData.wave++;
@@ -247,7 +247,7 @@ public Action PerformWaveAdverts(Handle timer) {
         Format(music, sizeof(music), AudioState[i].bgmPlaying ? "\n Music: %s (%s/%s)" : "", AudioState[i].songName, buffer, tbuffer);
         Format(HintText, sizeof(HintText), (BombRegistry[0].isMoving ? "Payload: MOVING (%i/%i) | !sacpoints: %i/%i %s" : BombRegistry[0].isReady ? "Payload: READY (%i/%i) | !sacpoints: %i/%i %s" : "Payload: PREPARING (%i/%i) | !sacpoints: %i/%i %s"), g_BombIndex, BombRegistry[0].stateMax, ass_sacPoints, ass_sacPointsMax, music);
         emnity = EmnityManager[i].getClientEmnity();
-        PrintHintText(i, (WeatherManager.TornadoWarning ? "%s \n\n[TORNADO WARNING]" : "%s\n\nEmnity: %i٪"), HintText, emnity >= 0 ? emnity : 0);
+        PrintHintText(i, (WeatherManager.hasTornadoWarning() ? "%s \n\n[TORNADO WARNING]" : "%s\n\nEmnity: %i٪"), HintText, emnity >= 0 ? emnity : 0);
         StopSound(i, SNDCHAN_STATIC, "UI/hint.wav");
       }
     }

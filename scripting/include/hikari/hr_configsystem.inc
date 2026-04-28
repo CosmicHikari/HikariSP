@@ -1,6 +1,6 @@
  //ASS_CONFIGSYSTEM - Contains the config loaders and all the plugin core data entries.
 #include <smjansson> // Needed for JSON parsing
-char HRCFG_VERSION[8] = "1.0.2";
+char HRCFG_VERSION[8] = "1.0.3";
 
 //Default values per wave
 enum struct DEFAULTS {
@@ -18,9 +18,9 @@ methodmap DEFAULTSMANAGER {
   public DEFAULTS GetDefaults(int wave) { return DefaultsArray[wave]; }
   // Only called during plugin startup
   public void SetupDefaults(Handle confCoreData) {
-    LightLogger(1, "[CORE] Setting up Wave Defaults...");
+    LightLogger(LOGLVL_INFO, "[ConfigSystem @ v%s] Setting up Wave Defaults... ", HRCFG_VERSION);
     char bufCoreData[256];
-    PrintToServer("confCoreData returned %s", OVERRIDE_AND_GET_COREDATA());
+    LightLogger(LOGLVL_DEBUG, "[ConfigSystem:23] OVERRIDE_AND_GET_COREDATA() returned %s", OVERRIDE_AND_GET_COREDATA());
     confCoreData = OpenFile(OVERRIDE_AND_GET_COREDATA(), "rt", false);
     int defIndexHW, defIndexTornado, defIndexBGM, defIndexBS, defIndexBSM, defIndexSPM; // Start at 0 because we don't have a wave 0
     if (confCoreData == INVALID_HANDLE) return;
@@ -110,9 +110,10 @@ enum struct COREDATA {
     WeatherManager.OnStartup(0, basePath);
     AudioManager.OnStartup(0, basePath);
     OnBulkfireStartup(basePath);
+    OnSudoStartup();
     Format(subFolder, sizeof(subFolder), "%s/Core", basePath);
     CreateDirectory(subFolder);
-    LightLogger(LOGLVL_DEBUG, "HikarisRequiem folder structure created!");
+    LightLogger(LOGLVL_DEBUG, "[ConfigSystem @ v%s] HikarisRequiem folder structure created!", HRCFG_VERSION);
   }
   void init_post() {
     CPrintToChatAll("{gray}[Server]: Reloading!");
@@ -123,7 +124,7 @@ enum struct COREDATA {
     WaveSystem().SetActive(false);
     WaveSystem().SetWave(0);
     AudioManager.OnStartup(1);
-    LightLogger(1, "Setting up bosses...");
+    BossHandler.OnStartup();
     ass[0].name = "[10] Bath Salts";
     ass[1].name = "[20] Summon Goobbue or Kirby";
     ass[2].name = "[30] Robot Trap (Wave Fail-safe)";
@@ -136,7 +137,7 @@ enum struct COREDATA {
     ass[9].name = "[100] Professor Fartsalot";
     for (int i = 0; i < sizeof(ass); i++) ass[i].price = 10 + (10 * i);
     for (int i = 0; i < sizeof(ass); i++) ass[i].purchase = 30 + i;
-    LightLogger(1, "[BULKFIRE] Setting up Crusader...");
+    LightLogger(1, "[ConfigSystem @ v%s] Setting up Crusader...", HRCFG_VERSION);
     Handle confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/crusader.ini", "rt", false);
     char bufCoreData[256];
     int crusaderIndex = -1;
@@ -149,7 +150,7 @@ enum struct COREDATA {
       }
       if (IsEndOfFile(confCoreData)) break;
     }
-    LightLogger(1, "[BULKFIRE] Setting up Lightning Flashes...");
+    LightLogger(1, "[ConfigSystem @ v%s] Setting up Lightning Flashes...", HRCFG_VERSION);
     confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/lightning_flash.ini", "rt", false);
     int lightningFlashIndex = -1;
     if (confCoreData == INVALID_HANDLE) return;
@@ -161,7 +162,7 @@ enum struct COREDATA {
       }
       if (IsEndOfFile(confCoreData)) break;
     }
-    LightLogger(1, "[BULKFIRE] Setting up Lightning Strikes...");
+    LightLogger(1, "[ConfigSystem @ v%s] Setting up Lightning Strikes...", HRCFG_VERSION);
     confCoreData = OpenFile("addons/sourcemod/configs/HikarisRequiem/BulkFire/lightning_strike.ini", "rt", false);
     int lightningStrikeIndex = -1;
     if (confCoreData == INVALID_HANDLE) return;
@@ -174,7 +175,7 @@ enum struct COREDATA {
       if (IsEndOfFile(confCoreData)) break;
     }
     DefaultsManager.SetupDefaults(confCoreData);
-    LightLogger(1, "Core data setup complete!");
+    LightLogger(1, "[ConfigSystem @ v%s] Core data setup complete!", HRCFG_VERSION);
   }
   void Reset() {
     SephBoss[0].Reset();
@@ -336,27 +337,15 @@ char SpecEnt[][24] = {
   "Spec*"
 };
 
-//Register our commands.
-void RegisterAllCommands() {
-  LightLogger(1, "Registering commands...");
-  RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client.");
-  RegAdminCmd("sm_music", Command_Music, ADMFLAG_RESERVATION, "Set music to be played for the next wave");
+// Register other commands.
+void RegisterMiscCommands() {
+  LightLogger(1, "Registering misc commands...");
   RegConsoleCmd("sm_bombstatus", Command_FBBombStatus, "Check bomb status");
-  RegConsoleCmd("sm_song", Command_GetCurrentSong, "Get current song name");
   RegConsoleCmd("sm_stats", Command_MyStats, "Print current statistics");
   RegConsoleCmd("sm_return", Command_Return, "Return to Spawn");
-  RegConsoleCmd("sm_sacpoints", Command_SacrificePointShop, "Fartsy's Annihilation Supply Shop");
+  RegConsoleCmd("sm_sacpoints", Command_SacrificePointShop, "Hikari's Annihilation Supply Shop");
   RegConsoleCmd("sm_discord", Command_Discord, "Join our Discord server!");
-  RegConsoleCmd("sm_sounds", Command_Sounds, "Toggle sounds on or off via menu");
   RegConsoleCmd("sm_aoe", Command_AOE, "[TESTING] Dispatch AOE Effect");
-  RegConsoleCmd("sm_fogsetdensity", Command_SetFogDensity, "[TESTING] Set fog density");
-  RegConsoleCmd("sm_fogstartendupdate", Command_SetFogSEU, "[TESTING] Set fog start end with optional flag");
-  RegConsoleCmd("sm_volume", Command_SetVolume, "Set the music SNDLVL to whatever you want (up to 130)");
-  RegConsoleCmd("sm_volume_sfx", Command_SetVolumeSFX, "Set the sfx SNDLVL to whatever you want (up to 130)");
-  RegConsoleCmd("sm_setvolumereal", Command_SetVolumeReal, "Set the real volume for sfx/music. Ex: sm_setvolumereal sfx 100, sm_setvolumereal music 100");
-  cvarSNDDefault = CreateConVar("hr_sound", "3", "Default sound for new users, 3 = Everything, 2 = Sounds Only, 1 = Music Only, 0 = Nothing");
-  cvarSirenEnabledDefault = CreateConVar("hr_sirenenabled", "1", "Enables the tornado siren for clients to hear it by default (they can still opt in/out of it via !sounds). 1/0");
-  cvarSirenMutesMusicDefault = CreateConVar("hr_sirenmutemusic", "1", "Allows the tornado siren to mute music for clients by default (they can still opt in/out of it via !sounds). 1/0");
 }
 
 void RegisterAndPrecacheAllFiles() {
@@ -649,8 +638,8 @@ public bool GenerateDefaultConfig(const int type, const char[] path)
     // Weather
     case 2: {
       WriteFileLine(file, "  \"WeatherManager\": {");
-      WriteFileLine(file, "    \"defFogStartDist\": \"300\",");
-      WriteFileLine(file, "    \"defFogEndDist\": \"3000\",");
+      WriteFileLine(file, "    \"defFogStartDist\": 300.0,");
+      WriteFileLine(file, "    \"defFogEndDist\": 3000.0,");
       WriteFileLine(file, "    \"defFogDensity\": 0.55,");
       WriteFileLine(file, "    \"fogChangeRate\": 0.001,");
       WriteFileLine(file, "    \"fogChangeRateRGB\": 0.25,");
@@ -721,12 +710,12 @@ void LoadConfig(int type)
       }
     }
     else if (type == 2) {  // Weather
-      json_object_get_string(jsHeader, "defFogStartDist", WeatherManager.defFogStartDist, sizeof(WeatherManager.defFogStartDist));
-      json_object_get_string(jsHeader, "defFogEndDist", WeatherManager.defFogEndDist, sizeof(WeatherManager.defFogEndDist));
-      WeatherManager.defFogDensity = json_object_get_float(jsHeader, "defFogDensity");
-      WeatherManager.fogChangeRate = json_object_get_float(jsHeader, "fogChangeRate");
-      WeatherManager.fogChangeRateRGB = json_object_get_float(jsHeader, "fogChangeRateRGB");
-      WeatherManager.skyHeight = json_object_get_float(jsHeader, "skyHeight");
+      WeatherManager.setDefFogStartDist(json_object_get_float(jsHeader, "defFogStartDist"));
+      WeatherManager.setDefFogEndDist(json_object_get_float(jsHeader, "defFogEndDist"));
+      WeatherManager.setDefFogDensity(json_object_get_float(jsHeader, "defFogDensity"));
+      WeatherManager.setFogChangeRate(json_object_get_float(jsHeader, "fogChangeRate"));
+      WeatherManager.setFogChangeRateRGB(json_object_get_float(jsHeader, "fogChangeRateRGB"));
+      WeatherManager.setSkyHeight(json_object_get_float(jsHeader, "skyHeight"));
       for (int i = 0; i < sizeof(MapLighting); i++) {
         char key[40];
         Format(key, sizeof(key), "MapLighting%iArcs", i); json_object_get_string(jsHeader, key, MapLighting[i].arcs, sizeof(MapLighting[i].arcs));
@@ -757,7 +746,6 @@ void LoadConfig(int type)
 // Extra stuff that hasn't been moved to config files yet
 void SetVarDefaults() {
   SetupBombSystem();
-  WeatherManager.hasTornado = false;
   core.bombReset = false;
   brawler_emergency = false;
   core.canCrusaderNuke = false;
@@ -774,7 +762,6 @@ void SetVarDefaults() {
   core.sephiroth = false;
   core.tacobell = false;
   core.tickingClientHealth = false;
-  WeatherManager.TornadoWarning = false;
   core.FailedCount = 0;
   INCOMINGDISPLAYED = 0;
   core.camSel = 0;
