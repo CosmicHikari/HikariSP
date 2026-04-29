@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.1.4";
+char SUDO_VER[8] = "1.1.5";
 void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[SUDO @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
@@ -364,7 +364,7 @@ void sudo(int task) {
     case 35: {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {white}ANYTHING BUT THE ASS GAS!!!! ({red}-60 pts{white})");
       ass_sacPoints -= 60;
-      AttackInZoneDuration(400.0, DMG_DROWNRECOVER, g_FrontRottenburg, true, GetRandomInt(45, 75), 0.1, 4.1);
+      SetupAttackZone(400.0, DMG_DROWNRECOVER, g_FrontRottenburg, true, GetRandomInt(45, 75), 0.1, 4.1);
       FastFire2.Execute("FB.ShakeBOOM", "StartShake", "", 0.1);
       FastFire2.Execute("FB.ShakeBOOM", "StopShake", "", 4.1);
     }
@@ -410,7 +410,7 @@ void sudo(int task) {
     case 41: {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Why would you even eat {red}The Forbidden Burrito{white}?");
       CustomSoundEmitter("vo/sandwicheat09.mp3", 65, false, 0, 1.0, 100);
-      AttackInZoneDuration(2400.0, DMG_BURN, g_FrontRottenburg, true, GetRandomInt(25, 75), 4.0, 8.0);
+      SetupAttackZone(2400.0, DMG_BURN, g_FrontRottenburg, true, GetRandomInt(25, 75), 4.0, 8.0);
     }
   //Found goobbue
     case 42: {
@@ -430,7 +430,7 @@ void sudo(int task) {
       CustomSoundEmitter(SFXArray[53].realPath, 65, false, 0, 1.0, 100);
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Oh no, someone has found and (probably) consumed a {red}WAFFLE OF MASS DESTRUCTION{white}!");
       // Yup, another one for the explosion array
-      AttackInZoneDuration(2000000.0, DMG_RADIATION, g_FrontRottenburg, _, GetRandomInt(10, 50), 10.3, 13.7);
+      SetupAttackZone(2000000.0, DMG_RADIATION, g_FrontRottenburg, _, GetRandomInt(10, 50), 10.3, 13.7);
       FastFire2.Execute("ShakeBOOM", "StartShake", "", 10.3);
       FastFire2.Execute("HUGEExplosion", "Explode", "", 10.3);
       FastFire2.Execute("FB.Fade", "Fade", "", 10.3);
@@ -446,7 +446,7 @@ void sudo(int task) {
       FastFire2.Execute("BlueBall*", "Kill");
       FastFire2.Execute("HUGEExplosion", "Explode");
       FastFire2.Execute("BlueKirb", "Kill");
-      AttackInZoneDuration(777777.777, DMG_PARALYZE, g_FrontRottenburg, _, GetRandomInt(35, 75), 0.1, 2.1);
+      SetupAttackZone(777777.777, DMG_PARALYZE, g_FrontRottenburg, _, GetRandomInt(35, 75), 0.1, 2.1);
       isGoobbue = false;
     }
   //Giant Goobbue
@@ -455,7 +455,7 @@ void sudo(int task) {
       FastFire2.Execute("FB.BOOM", "StartShake");
       FastFire2.Execute("GiantGoob*", "Kill");
       FastFire2.Execute("HUGEExplosion", "Explode");
-      AttackInZoneDuration(777777.777, DMG_ACID, g_FrontRottenburg, _, GetRandomInt(35, 75), 0.1, 2.1);
+      SetupAttackZone(777777.777, DMG_ACID, g_FrontRottenburg, _, GetRandomInt(35, 75), 0.1, 2.1);
     }
     case 75:{
       char onsHP[32];
@@ -796,7 +796,7 @@ void sudo(int task) {
         EmitSoundToAll("fartsy/misc/fartsyscrusader_bgm_locus.mp3");
         CreateTimer(80.0, TimedOperator, 79);
         for (int i = 0; i < sizeof(crusaderAtk); i++) FastFire2.Execute(crusaderAtk[i].fireStr);
-        AttackInZoneDuration(2000000.0, DMG_ENERGYBEAM, g_FrontRottenburg, false, GetRandomInt(25, 35), 65.10, 70.0);
+        SetupAttackZone(2000000.0, DMG_ENERGYBEAM, g_FrontRottenburg, false, GetRandomInt(25, 35), 65.10, 70.0);
       }
     }
   //Choose bomb path

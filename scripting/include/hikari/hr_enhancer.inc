@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.5.2";
+char HSE_VER[8] = "2.5.3";
 
 // Used to make lasers
 enum struct LaserData {
@@ -664,13 +664,13 @@ methodmap WEATHERMANAGER {
     WDATA.intensity = WaveSystem().IsActive() ? 7 : 0;
     if (WDATA.sirenExploded) { WDATA.sirenPitch = 0.0; WDATA.sirenExploded = false; }
     WDATA.TornadoWarning = false;
+    StopAttackZone(g_WeatherZone);
     CreateTimer(GetRandomFloat(45.0, 135.0), ResetTornado);
     for (int i = 0; i < sizeof(MapLighting); i++) if (!MapLighting[i].isBroken)FastFire2.Execute(MapLighting[i].light, "TurnOn");
     FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerp", "%f", _, _, WDATA.defFogStartDist);
     FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerp", "%f", _, _, WDATA.defFogEndDist);
     FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition");
     FastFire2.Execute("tornadof1", "Stop");
-    FastFire2.Execute("TornadoKill", "Disable");
     FastFire2.Execute("tornadof1wind", "Disable");
     FastFire2.Execute("tornadowindf1", "StopSound");
     FastFire2.Execute("shaketriggerf1", "Disable");
@@ -849,8 +849,7 @@ methodmap WEATHERMANAGER {
       FastFire2.Execute("Weather.FogSky", "Color", target);
       WDATA.reset = false;
     }
-    // Every tick: Test if entities are above <g_WeatherZone> and if so, damage them, also tick the Tornado
-    if (WDATA.hasTornado) { AttackInZone(9000000.0, DMG_FALL, g_WeatherZone, false); if (WDATA.ticks % GetRandomInt(30, 60) == 0) this.TickTornado(); }
+    if (WDATA.hasTornado && (WDATA.ticks % GetRandomInt(30, 60) == 0)) { this.TickTornado(); }
   }
   public void TickSiren() {
     if (WDATA.TornadoWarning) {
@@ -921,16 +920,16 @@ methodmap WEATHERMANAGER {
       WDATA.hasTornado = true;
       WDATA.mIntensity = 15;
       WDATA.intensity = 15;
-      FastFire2.Execute("tornado", "ForceSpawn");
+      float f = GetRandomFloat(60.0, 120.0);
+      SetupAttackZone(9000000.0, DMG_FALL, g_WeatherZone, false, 32, _, f);
+      CreateTimer(f, TimedOperator, 42);
       CreateTimer(1.5, TornadoShaker);
-      FastFire2.Execute("TornadoKill", "Enable");
+      FastFire2.Execute("tornado", "ForceSpawn");
       FastFire2.Execute("tornadobutton", "Lock");
       FastFire2.Execute("tornadof1", "Start", "", 20.0);
       FastFire2.Execute("shaketriggerf1", "Enable", "", 20.0);
       FastFire2.Execute("tornadowindf1", "PlaySound", "", 20.0);
       FastFire2.Execute("tornadof1wind", "Enable", "", 21.50);
-      float f = GetRandomFloat(60.0, 120.0);
-      CreateTimer(f, TimedOperator, 42);
       FastFire2.SetEntityLife("tornadotrain", f);
       FastFire2.SetEntityLife("TorTrack*", f);
       FastFire2.SetEntityLife("tornadotrain", f);
