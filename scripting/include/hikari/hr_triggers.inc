@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.2.1";
+char TR_VER[7] = "1.2.2";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -92,7 +92,7 @@ void AttackEntity(int ent, float damage, int type) { SDKHooks_TakeDamage(ent, 0,
 // @param stopTime - The time to wait before stopping, in seconds
 void SetupAttackZone(float damage, int type, const Zone zone, bool onlyPlayers = false, int tickrate = 33, float startTime = 0.0, float stopTime = 1.0) {
   bool delayed = startTime > 0.0;
-  zone.dmg = damage; zone.dmgType = type; zone.onlyPlayers = onlyPlayers; zone.tickrate = tickrate; zone.shouldTick = !delayed;
+  zone.dmg = damage; zone.dmgType = type; zone.onlyPlayers = onlyPlayers; zone.tickrate = tickrate < 1 ? 1 : tickrate; zone.shouldTick = !delayed;
   if (delayed) { CreateTimer(startTime, START_ATTACKING, zone); }
   CreateTimer(stopTime, STOP_ATTACKING, zone);
 }
