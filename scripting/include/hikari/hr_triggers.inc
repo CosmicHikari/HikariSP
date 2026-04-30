@@ -47,7 +47,7 @@ Zone g_FrontRottenburg;
 Zone g_BombPickup;
 Zone g_HatchExplode;
 Zone g_HatchFire;
-Zone g_Special[5];
+Zone g_Special[6];
 Zone g_CustomZone;
 Zone g_CustomZoneArray[7];
 Zone g_Lights[13];

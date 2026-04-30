@@ -184,3 +184,36 @@ void SetupBombSystem() {
   g_BombIndex = 0;
   BombRegistry[0].stateMax = 0;
 }
+
+// Targetnames of prop_dynamic models used by this system
+char SpecEnt[][24] = {
+  "Spec.Goobbue",
+  "Spec.Waffle",
+  "Spec.Burrito",
+  "Spec.Shroom",
+  "Spec.BlueBall",
+  "Spec*"
+};
+
+// Spec Timer
+public Action SpecTimer(Handle timer) {
+  if (WaveSystem().IsActive()) {
+    int s = GetRandomInt(0, sizeof(g_Special)-1);
+    FastFire2.Execute("Spec*","Disable"); FastFire2.Execute(SpecEnt[s], "Enable", _, 0.1); // Toggle the prop_dynamic for this ent.
+    for (int i = 0; i < sizeof(g_Special); i++) SetZoneActive(g_Special[i], false);
+    SetZoneActive(g_Special[s], true);
+    CreateTimer(GetRandomFloat(10.0, 30.0), SpecTimer);
+  }
+  return Plugin_Stop;
+}
+
+//Shark Timer
+public Action SharkTimer(Handle timer) {
+  if (Bombs.getCurBomb().canSENTShark) {
+    PrintToChatAll("TODO: DISABLE SHARK BOMB WHEN IT DEPLOYS. ENABLE IT WHEN BOMB IS READY.");
+    FastFire2.Execute("SentSharkTorpedo", "ForceSpawn");
+    CreateTimer(GetRandomFloat(2.0, 5.0), SharkTimer);
+    CustomSoundEmitter(SFXArray[GetRandomInt(43, 50)].realPath, 65, false, 0, 1.0, 100);
+  }
+  return Plugin_Stop;
+}

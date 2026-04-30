@@ -1,6 +1,6 @@
  //ASS_CONFIGSYSTEM - Contains the config loaders and all the plugin core data entries.
 #include <smjansson> // Needed for JSON parsing
-char HRCFG_VERSION[8] = "2.0.1";
+char HRCFG_VERSION[8] = "2.0.2";
 
 //Default values per wave
 enum struct DEFAULTS {
@@ -326,16 +326,6 @@ char SelectedCamera[][32] = {
   "Cam.MidThree",
   "CAM.Rear",
   "CAM.Spawn"
-};
-
-//Easter eggs
-char SpecEnt[][24] = {
-  "Spec.Goobbue",
-  "Spec.Waffle",
-  "Spec.Burrito",
-  "Spec.Shroom",
-  "Spec.BlueBall",
-  "Spec*"
 };
 
 // Register other commands.

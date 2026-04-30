@@ -287,27 +287,6 @@ public Action BossHPTimer(Handle timer) {
   return Plugin_Stop;
 }
 
-//Shark Timer
-public Action SharkTimer(Handle timer) {
-  if (Bombs.getCurBomb().canSENTShark) {
-    PrintToChatAll("TODO: DISABLE SHARK BOMB WHEN IT DEPLOYS. ENABLE IT WHEN BOMB IS READY.");
-    FastFire2.Execute("SentSharkTorpedo", "ForceSpawn");
-    CreateTimer(GetRandomFloat(2.0, 5.0), SharkTimer);
-    CustomSoundEmitter(SFXArray[GetRandomInt(43, 50)].realPath, 65, false, 0, 1.0, 100);
-  }
-  return Plugin_Stop;
-}
-
-//SpecTimer
-public Action SpecTimer(Handle timer) {
-  if (WaveSystem().IsActive()) {
-    FastFire2.Execute("Spec*","Disable");
-    FastFire2.Execute(SpecEnt[GetRandomInt(0, 5)], "Enable", "", 0.1);
-    CreateTimer(GetRandomFloat(10.0, 30.0), SpecTimer);
-  }
-  return Plugin_Stop;
-}
-
 //SENTMeteor (Scripted Entity Meteors)
 public Action SENTMeteorTimer(Handle timer) {
   if (core.canSENTMeteors) {
