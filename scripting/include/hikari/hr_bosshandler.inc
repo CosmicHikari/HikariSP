@@ -1,5 +1,5 @@
 // Hikari's Boss Handler
-char HRBOSS_VER[8] = "1.1.2";
+char HRBOSS_VER[8] = "1.1.3";
 
 bool canCrusaderNuke = false;
 bool crusader = false;
@@ -598,7 +598,7 @@ enum struct BOSSHANDLER {
       }
     }
   }
-  void OnStartup() { LightLogger(1, "Setting up bosses... v%s", HRBOSS_VER); }
+  void OnStartup() { LightLogger(LOGLVL_INFO, "[BossHandler @ v%s] Setting up bosses...", HRBOSS_VER); }
 }
 BOSSHANDLER BossHandler;
 BOSSHANDLER Get_Boss_Handler() { return BossHandler; }

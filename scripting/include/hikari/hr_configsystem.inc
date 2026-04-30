@@ -1,6 +1,6 @@
  //ASS_CONFIGSYSTEM - Contains the config loaders and all the plugin core data entries.
 #include <smjansson> // Needed for JSON parsing
-char HRCFG_VERSION[8] = "2.0.0";
+char HRCFG_VERSION[8] = "2.0.1";
 
 //Default values per wave
 enum struct DEFAULTS {
@@ -107,8 +107,9 @@ enum struct COREDATA {
     char basePath[PLATFORM_MAX_PATH]; char plgName[64]; GetPluginFilename(INVALID_HANDLE, plgName, sizeof(plgName)); ReplaceString(plgName, sizeof(plgName), ".smx", "", false);
     Format(basePath, sizeof(basePath), "configs/%s/", plgName); BuildPath(Path_SM, basePath, sizeof(basePath), basePath); if(!DirExists(basePath)) CreateDirectory(basePath, 711);
     char subFolder[PLATFORM_MAX_PATH];
-    WeatherManager.OnStartup(0, basePath);
     AudioManager.OnStartup(0, basePath);
+    WeatherManager.OnStartup(0, basePath);
+    BossHandler.OnStartup();
     OnBulkfireStartup(basePath);
     OnSudoStartup();
     Format(subFolder, sizeof(subFolder), "%s/Core", basePath);
@@ -125,7 +126,6 @@ enum struct COREDATA {
     strcopy(this.configWaveNull, sizeof(this.configWaveNull), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults_WaveNull.ini");
     WaveSystem().SetActive(false);
     WaveSystem().SetWave(0);
-    BossHandler.OnStartup();
     ass[0].name = "[10] Bath Salts";
     ass[1].name = "[20] Summon Goobbue or Kirby";
     ass[2].name = "[30] Robot Trap (Wave Fail-safe)";

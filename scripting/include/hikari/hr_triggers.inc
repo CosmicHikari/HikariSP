@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.3.1";
+char TR_VER[7] = "1.3.2";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -146,4 +146,4 @@ void StopAttackZone(const Zone zone) { zone.shouldTick = false; }
 // @param ex - End X
 // @param ey - End Y
 // @param ez - End Z
-void SetZoneExtents(const Zone zone, float sx, float sy, float sz, float ex, float ey, float ez) { zone.start[0] = sx; zone.start[1] = sy; zone.start[2] = sz; zone.end[0] = ex; zone.end[1] = ey; zone.end[2] = ez; LightLogger(LOGLVL_INFO, "[Triggers @ v%s] Set new zone extents %f %f %f to %f %f %f.", TR_VER, zone.start[0], zone.start[1], zone.start[2], zone.end[0], zone.end[1], zone.end[2]); }
+void SetZoneExtents(const Zone zone, float sx, float sy, float sz, float ex, float ey, float ez) { zone.start[0] = sx; zone.start[1] = sy; zone.start[2] = sz; zone.end[0] = ex; zone.end[1] = ey; zone.end[2] = ez; LightLogger(LOGLVL_DEBUG, "[Triggers @ v%s] Set new zone extents %f %f %f to %f %f %f.", TR_VER, zone.start[0], zone.start[1], zone.start[2], zone.end[0], zone.end[1], zone.end[2]); }

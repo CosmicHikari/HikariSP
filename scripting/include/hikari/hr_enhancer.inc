@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.6.1";
+char HSE_VER[8] = "2.6.2";
 
 // Used to make lasers
 enum struct LaserData {
@@ -324,12 +324,13 @@ methodmap AUDIOMANAGER {
     switch (event) {
       // Create Configs
       case 0: {
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager is starting up...", HSE_VER);
         FormatEx(finalPath, sizeof(finalPath), "%s/Files", finalPath); if (!DirExists(finalPath)) CreateDirectory(finalPath, 711);
         char MusicPath[PLATFORM_MAX_PATH];
         FormatEx(MusicPath, sizeof(MusicPath), "%s/Music.json", finalPath);
         if (!FileExists(MusicPath)) { 
           Handle file = OpenFile(MusicPath, "w");
-          if (file == null) { LightLogger(LOGLVL_ERROR, "Failed to open config file: %s", MusicPath); CloseHandle(file); return; }
+          if (file == null) { LightLogger(LOGLVL_ERROR, "[Enhancer @ v%s] AudioManager failed to open config file: %s", HSE_VER, MusicPath); CloseHandle(file); return; }
           WriteFileLine(file, "{");
           WriteFileLine(file, "  \"Music\": {");
           for (int i = 0; i < sizeof(BGMArray); i++) {
@@ -343,15 +344,15 @@ methodmap AUDIOMANAGER {
           }
           WriteFileLine(file, "  }");
           WriteFileLine(file, "}");
-          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Generated Default Config: %s", HSE_VER, MusicPath);
           CloseHandle(file);
+          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager generated Default Config: %s", HSE_VER, MusicPath);
         }
         this.OnStartup(1, MusicPath);
         char SFXPath[PLATFORM_MAX_PATH];
         FormatEx(SFXPath, sizeof(SFXPath), "%s/SFX.json", finalPath);
         if (!FileExists(SFXPath)) {
           Handle file = OpenFile(SFXPath, "w");
-          if (file == null) { LightLogger(LOGLVL_ERROR, "Failed to create config file: %s", SFXPath); CloseHandle(file); return; }
+          if (file == null) { LightLogger(LOGLVL_ERROR, "[Enhancer @ v%s] AudioManager failed to open config file: %s", HSE_VER, SFXPath); CloseHandle(file); return; }
           WriteFileLine(file, "{");
           WriteFileLine(file, "  \"SFX\": {");
           for (int i = 0; i < sizeof(SFXArray); i++) {
@@ -363,8 +364,8 @@ methodmap AUDIOMANAGER {
           }
           WriteFileLine(file, "  }");
           WriteFileLine(file, "}");
-          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Generated Default Config: %s", HSE_VER, SFXPath);
           CloseHandle(file);
+          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager generated Default Config: %s", HSE_VER, SFXPath);
         }
         this.OnStartup(1, SFXPath);
         RegAdminCmd("sm_music", Command_Music, ADMFLAG_RESERVATION, "Set music to be played for the next wave");
@@ -379,7 +380,7 @@ methodmap AUDIOMANAGER {
       case 1: {
         // Setup json loader
         Handle jsHandle = json_load_file(finalPath); if (jsHandle == INVALID_HANDLE) { CloseHandle(jsHandle); SetFailState("Failed to load json %s", finalPath); }
-        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Loading Config %s...", HSE_VER, finalPath);
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager is Loading Config %s...", HSE_VER, finalPath);
 
         // Attempt to locate headers
         bool isMusic = (StrContains(finalPath, "Music") != -1);
@@ -420,7 +421,7 @@ methodmap AUDIOMANAGER {
         for (int i = 0; i < sizeof(BGMArray); i++) {
           if (!StrEqual(BGMArray[i].realPath, "")) {
             bgmIndex++;
-            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] Precaching BGM: %s (%s), Duration %f seconds, Start Loop Point %f seconds, Volume %i @ %i", HSE_VER, BGMArray[i].songName, BGMArray[i].realPath, BGMArray[i].loopSeconds, BGMArray[i].introSeconds, BGMArray[i].SNDLVL, i);
+            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] AudioManager is Precaching BGM: %s (%s), Duration %f seconds, Start Loop Point %f seconds, Volume %i @ %i", HSE_VER, BGMArray[i].songName, BGMArray[i].realPath, BGMArray[i].loopSeconds, BGMArray[i].introSeconds, BGMArray[i].SNDLVL, i);
             PrecacheSound(BGMArray[i].realPath, true);
           }
         }
@@ -428,11 +429,11 @@ methodmap AUDIOMANAGER {
         for (int i = 0; i < sizeof(SFXArray); i++) {
           if (!StrEqual(SFXArray[i].realPath, "")) {
             sfxIndex++;
-            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] Precaching SFX: %s @ %i", HSE_VER, SFXArray[i].realPath, i);
+            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] AudioManager is Precaching SFX: %s @ %i", HSE_VER, SFXArray[i].realPath, i);
             PrecacheSound(SFXArray[i].realPath, true);
           }
         }
-        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Done! BGM Count: %i, SFX Count: %i, Total: %i files loaded to RAM.", HSE_VER, bgmIndex, sfxIndex, bgmIndex + sfxIndex);
+        if (!StrEqual(BGMArray[1].realPath, "") && (!StrEqual(SFXArray[0].realPath, ""))) LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager is Ready! BGM Count: %i, SFX Count: %i, Total: %i files precached.", HSE_VER, bgmIndex, sfxIndex, bgmIndex + sfxIndex);
       }
     }
   }
@@ -1052,6 +1053,7 @@ methodmap WEATHERMANAGER {
     switch (event) {
       // Create Configs
       case 0: {
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] WeatherManager is starting up...", HSE_VER);
         FormatEx(finalPath, sizeof(finalPath), "%s/Weather", finalPath); if (!DirExists(finalPath)) CreateDirectory(finalPath, 711);
         FormatEx(finalPath, sizeof(finalPath), "%s/WeatherManager.json", finalPath);
         if (!FileExists(finalPath)) { 
@@ -1091,7 +1093,7 @@ methodmap WEATHERMANAGER {
       case 1 : {
         // Setup json loader
         Handle jsHandle = json_load_file(finalPath); if (jsHandle == INVALID_HANDLE) { CloseHandle(jsHandle); SetFailState("Failed to load json %s", finalPath); }
-        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Loading Config %s...", HSE_VER, finalPath);
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] WeatherManager is Loading Config %s...", HSE_VER, finalPath);
       
         // Attempt to locate headers
         Handle jsHeader = json_object_get(jsHandle, "WeatherManager");
@@ -1124,6 +1126,7 @@ methodmap WEATHERMANAGER {
           jsIter = json_object_iter_next(jsHeader, jsIter);
         }
         CloseHandle(jsIter); CloseHandle(jsHeader); CloseHandle(jsHandle);
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] WeatherManager is Ready!", HSE_VER);
       }
     }
   }
