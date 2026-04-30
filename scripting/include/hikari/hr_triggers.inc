@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.3.0";
+char TR_VER[7] = "1.3.1";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -67,24 +67,22 @@ public void InitAllZones() {
   SetZoneExtents(g_BombPickup, -3860.0, -2275.0, -4.0, -3540.0, -1970.0, -120.0);
   SetZoneExtents(g_HatchExplode, -1024.0, 1169.0, 204.0, 1920.0, 1825.0, -372.0);
   SetZoneExtents(g_HatchFire, -1376.0, 1536.0, -112.0, -1520.0, 1680.0, -124.0);
-  /*
-  SetZoneExtents(g_Lights[0], );
-  SetZoneExtents(g_Lights[1], );
-  SetZoneExtents(g_Lights[2], );
-  SetZoneExtents(g_Lights[3], );
-  SetZoneExtents(g_Lights[4], );
-  SetZoneExtents(g_Lights[5], );
-  SetZoneExtents(g_Lights[6], );
-  SetZoneExtents(g_Lights[7], );
-  SetZoneExtents(g_Lights[8], );
-  SetZoneExtents(g_Lights[9], );
-  SetZoneExtents(g_Lights[10], );
-  SetZoneExtents(g_Lights[11], );
-  SetZoneExtents(g_Lights[12], );*/
+  SetZoneExtents(g_Lights[0], -564.0, 992.0, 0.0, -694.0, 1120.0, -224.0);
+  SetZoneExtents(g_Lights[1], -564.0, 1575.0, 69.0, -694.0, 1704.0, -224.0);
+  SetZoneExtents(g_Lights[2], -564.0, 2304.0, 69.0, -694.0, 2427.0, -204.0);
+  SetZoneExtents(g_Lights[3], 367.0, 2625.0, -20.0, 494.0, 2756.0, -192.0);
+  SetZoneExtents(g_Lights[4], 1108.0, 2680.0, 10.0, 1238.0, 2554.0, -192.0);
+  SetZoneExtents(g_Lights[5], 1108.0, 2068.0, 10.0, 1238.0, 1940.0, -192.0);
+  SetZoneExtents(g_Lights[6], 1008.0, 1458.0, 10.0, 880.0, 1586.0, -192.0);
+  SetZoneExtents(g_Lights[7], 1038.0, 648.0, -148.0, 900.0, 772.0, -300.0);
+  SetZoneExtents(g_Lights[8], 367.0, 1710.0, -224.0, 492.0, 1838.0, -384.0);
+  SetZoneExtents(g_Lights[9], 1704.0, 1832.0, -200.0, 1830.0, 1960.0, -330.0);
+  SetZoneExtents(g_Lights[10], 2230.0, 1512.0, -243.0, 2356.0, 1384.0, -384.0);
+  SetZoneExtents(g_Lights[11], 2252.0, 967.0, -240.0, 2380.0, 840.0, -376.0);
   g_FrontRottenburg.tickrate = 77;
   g_HatchExplode.tickrate = 77;
   g_HatchFire.tickrate = 32;
-  for (int i = 0; i < sizeof(g_Lights); i++) { g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
+  for (int i = 0; i < sizeof(g_Lights)-1; i++) { g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
 }
 
 // Used to check if client is an invalid trigger candidate
