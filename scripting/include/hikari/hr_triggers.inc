@@ -1,10 +1,11 @@
-char TR_VER[7] = "1.4.0";
+char TR_VER[7] = "1.5.0";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
   bool hasStatusEffect;
   bool onlyPlayers;
   bool shouldTick;
+  bool onlyOnce;
   float start[3];
   float end[3];
   float dmg;
@@ -17,25 +18,24 @@ enum struct Zone {
   bool isInvalid() { return (this.start[0] == 0.0 && this.end[0] == 0.0 || this.start[1] == 0.0 && this.end[1] == 0.0 || this.start[2] == 0.0 && this.end[2] == 0.0); }
   void Tick() {
     if (this.canTick()) {
-      // Tick Damage
-      if (this.dmg > 0) {
-        for (int i = 0; i <= (this.onlyPlayers ? MaxClients : GetMaxEntities()); i++) if (!IsEntityInvalidForTrigger(i)) {
-          float pos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
-          if (this.isTriggeredByEntityAt(pos)) AttackEntity(i, this.dmg, this.dmgType);
-        }
-      }
-      // Tick Status Effects
-      if (this.hasStatusEffect) {
-        float cPos[3];
-        for (int i = 0; i < MaxClients; i++) {
+      float pos[3];
+      for (int i = 0; i < (this.onlyPlayers ? MaxClients : GetMaxEntities()); i++) {
+        if (i < MaxClients) {
           if (!IsValidClient(i)) continue;
-          GetClientAbsOrigin(i, cPos);
-          if (!TF2_IsPlayerInCondition(i, this.statuseffect) && this.isTriggeredByEntityAt(cPos)) {
+          GetClientAbsOrigin(i, pos);
+          // Tick status effects
+          if (this.hasStatusEffect && !TF2_IsPlayerInCondition(i, this.statuseffect) && this.isTriggeredByEntityAt(pos)) {
             switch(this.statuseffect) {
               case TFCond_MVMBotRadiowave: { if (GetClientTeam(i) == 3) TF2_AddCondition(i, TFCond_MVMBotRadiowave); }
               default: { if (this.statuseffect != TFCond_MVMBotRadiowave) TF2_AddCondition(i, this.statuseffect); }
             }
           }
+        }
+        // Tick other entities
+        if (i >= MaxClients) GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
+        if (!IsEntityInvalidForTrigger(i) && this.isTriggeredByEntityAt(pos)) {
+          if (this.dmg > 0) { AttackEntity(i, this.dmg, this.dmgType); }
+          if (this.onlyOnce) { SetZoneActive(this, false); }
         }
       }
     }
@@ -83,6 +83,12 @@ public void InitAllZones() {
   g_HatchExplode.tickrate = 77;
   g_HatchFire.tickrate = 32;
   for (int i = 0; i < sizeof(g_Lights)-1; i++) { g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
+  for (int i = 0; i < sizeof(g_Special); i++) { g_Special[i].onlyPlayers = true; }
+  g_Special[0].statuseffect = TFCond_OnFire;
+  g_Special[1].statuseffect = TFCond_CritOnKill;
+  g_Special[2].statuseffect = TFCond_HalloweenHellHeal;
+  g_Special[3].statuseffect = TFCond_HalloweenGiant;
+  g_Special[4].statuseffect = TFCond_MarkedForDeath;
 }
 
 // Used to check if client is an invalid trigger candidate
@@ -110,6 +116,16 @@ public void TickAllTriggers() {
   for (int i = 0; i < sizeof(g_CustomZoneArray); i++) g_CustomZoneArray[i].Tick();
   for (int i = 0; i < sizeof(g_Lights); i++) g_Lights[i].Tick();
   if (g_IndoorZones[0].canTick()) { for (int i = 1; i <= MaxClients; i++) { if (IsClientInvalidForTrigger(i)) continue; g_IsPlayerIndoors[i] = IsClientIndoors(i); }} // Check if clients are indoors
+
+  // Manually tick special entities that should disable after providing their effect.
+  for (int i = 0; i < sizeof(g_Special); i++) {
+    if (!g_Special[i].canTick()) continue;
+    for (int c = 1; c <= MaxClients; i++) {
+      if (IsClientInvalidForTrigger(c)) continue;
+      float dest[3]; GetClientAbsOrigin(c, dest);
+      if (g_Special[i].isTriggeredByEntityAt(dest) && TF2_IsPlayerInCondition(c, g_Special[i].statuseffect)) SetZoneActive(g_Special[i], false);
+    }
+  }
 }
 
 // Damages <ent> for <damage> with <type>
