@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.6.0";
+char HSE_VER[8] = "2.6.1";
 
 // Used to make lasers
 enum struct LaserData {
@@ -436,17 +436,6 @@ methodmap AUDIOMANAGER {
       }
     }
   }
-
-  public void LoadConfig(const char[] path) {
-    char curPath[PLATFORM_MAX_PATH]; FormatEx(curPath, sizeof(curPath), "%s/Files", path); if (!DirExists(curPath)) return;
-    //FormatEx(curPath, sizeof(curPath), type == 0 ? "%s/Files/Music.json" : "%s/Files/SFX.json", path);
-  }
-    /*
-      case 1: {
-        
-      }
-    }
-  }*/
 }
 AUDIOMANAGER AudioManager;
 
