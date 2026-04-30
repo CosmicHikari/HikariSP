@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.6.2";
+char HSE_VER[8] = "2.6.3";
 
 // Used to make lasers
 enum struct LaserData {
@@ -882,7 +882,7 @@ methodmap WEATHERMANAGER {
     FastFire2.Execute("Weather.Sky", "Enable");
     FastFire2.Execute("Weather.Sky", "Skin", "0");
     FastFire2.Execute("Weather.FogSky", "Enable", "", 2.0);
-    for (int i = 0; i < sizeof(MapLighting); i++)MapLighting[i].Repair();
+    for (int i = 0; i < sizeof(MapLighting); i++) { MapLighting[i].Repair(); SetZoneActive(g_Lights[i], false); }
     WDATA.sirenPos = {-2305.0, 2095.0, 1102.0};
     int siren = FindEntityByTargetname("WeatherSiren", "info_target");
     if (!IsValidEntity(siren)) {
@@ -1206,7 +1206,7 @@ public Action SurgePower(Handle timer) {
     int target = GetRandomInt(0, 12);
     if (MapLighting[target].isBroken) target = GetRandomInt(0, 12);
     if (!MapLighting[target].isBroken) {
-      if (GetRandomInt(0, 7) == 5) MapLighting[target].Explode();
+      if (GetRandomInt(0, 7) == 5) { MapLighting[target].Explode(); SetZoneActive(g_Lights[target], true); }
       FastFire2.Execute(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
       FastFire2.Execute(MapLighting[target].light, "TurnOn");
       FastFire2.Execute(MapLighting[target].beam, "LightOn");
