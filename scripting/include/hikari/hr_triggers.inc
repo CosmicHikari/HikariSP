@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.5.1";
+char TR_VER[7] = "1.5.2";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -23,6 +23,7 @@ enum struct Zone {
         if (i < MaxClients) {
           if (!IsValidClient(i)) continue;
           GetClientAbsOrigin(i, pos);
+          PrintToChatAll("%N triggered the trigger at %f %f %f", i, pos[0], pos[1], pos[2]);
           // Tick status effects
           if (this.hasStatusEffect && !TF2_IsPlayerInCondition(i, this.statuseffect) && this.isTriggeredByEntityAt(pos)) {
             switch(this.statuseffect) {
@@ -32,7 +33,7 @@ enum struct Zone {
           }
         }
         // Tick other entities
-        if (i >= MaxClients) GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
+        if (i >= MaxClients && !IsEntityInvalidForTrigger(i)) GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
         if (!IsEntityInvalidForTrigger(i) && this.isTriggeredByEntityAt(pos)) {
           if (this.dmg > 0) { AttackEntity(i, this.dmg, this.dmgType); }
           if (this.onlyOnce) { SetZoneActive(this, false); }
@@ -87,6 +88,7 @@ public void InitAllZones() {
   g_Special[0].statuseffect = TFCond_OnFire;
   g_Special[3].statuseffect = TFCond_HalloweenGiant;
   g_Special[4].statuseffect = TFCond_MarkedForDeath;
+  g_WeatherZone.tickrate = 70;
 }
 
 // Used to check if client is an invalid trigger candidate
@@ -112,6 +114,7 @@ public void TickAllTriggers() {
   g_HatchExplode.Tick();
   g_HatchFire.Tick();
   g_CustomZone.Tick();
+  g_WeatherZone.Tick();
   for (int i = 0; i < sizeof(g_CustomZoneArray); i++) g_CustomZoneArray[i].Tick();
   for (int i = 0; i < sizeof(g_Lights); i++) g_Lights[i].Tick();
   if (g_IndoorZones[0].canTick()) { for (int i = 1; i <= MaxClients; i++) { if (IsClientInvalidForTrigger(i)) continue; g_IsPlayerIndoors[i] = IsClientIndoors(i); }} // Check if clients are indoors
@@ -138,20 +141,20 @@ void AttackEntity(int ent, float damage, int type) { SDKHooks_TakeDamage(ent, 0,
 // @param tickrate - The rate this trigger attacks. Lower values = faster
 // @param startTime - The time to wait before starting, in seconds
 // @param stopTime - The time to wait before stopping, in seconds
-void SetupAttackZone(float damage, int type, const Zone zone, bool onlyPlayers = false, int tickrate = 33, float startTime = 0.0, float stopTime = 1.0) {
+void SetupAttackZone(float damage, int type, Zone zone, bool onlyPlayers = false, int tickrate = 33, float startTime = 0.0, float stopTime = 1.0) {
   bool delayed = startTime > 0.0;
   zone.dmg = damage; zone.dmgType = type; zone.onlyPlayers = onlyPlayers; zone.tickrate = tickrate < 1 ? 1 : tickrate; zone.shouldTick = !delayed;
   if (delayed) { CreateTimer(startTime, START_ATTACKING, zone); }
   CreateTimer(stopTime, STOP_ATTACKING, zone);
 }
-public Action START_ATTACKING(Handle timer, const Zone zone) { SetZoneActive(zone, true); return Plugin_Stop; }
-public Action STOP_ATTACKING(Handle timer, const Zone zone) { SetZoneActive(zone, false); return Plugin_Stop; }
+public Action START_ATTACKING(Handle timer, Zone zone) { SetZoneActive(zone, true); return Plugin_Stop; }
+public Action STOP_ATTACKING(Handle timer, Zone zone) { SetZoneActive(zone, false); return Plugin_Stop; }
 
 // Resets an attack zone to its default values
-void RemoveAttackZone(const Zone zone) { zone.dmg = 0.0; zone.dmgType = 0; zone.onlyPlayers = false; SetZoneActive(zone, false); }
+void RemoveAttackZone(Zone zone) { zone.dmg = 0.0; zone.dmgType = 0; zone.onlyPlayers = false; SetZoneActive(zone, false); }
 
 // Sets whether a zone is enabled or disabled
-void SetZoneActive(const Zone zone, bool active) { zone.shouldTick = active; }
+void SetZoneActive(Zone zone, bool active) { zone.shouldTick = active; }
 
 // Set a zone's extents
 // @param zone - The zone to affect
@@ -161,4 +164,4 @@ void SetZoneActive(const Zone zone, bool active) { zone.shouldTick = active; }
 // @param ex - End X
 // @param ey - End Y
 // @param ez - End Z
-void SetZoneExtents(const Zone zone, float sx, float sy, float sz, float ex, float ey, float ez) { zone.start[0] = sx; zone.start[1] = sy; zone.start[2] = sz; zone.end[0] = ex; zone.end[1] = ey; zone.end[2] = ez; LightLogger(LOGLVL_DEBUG, "[Triggers @ v%s] Set new zone extents %f %f %f to %f %f %f.", TR_VER, zone.start[0], zone.start[1], zone.start[2], zone.end[0], zone.end[1], zone.end[2]); }
+void SetZoneExtents(Zone zone, float sx, float sy, float sz, float ex, float ey, float ez) { zone.start[0] = sx; zone.start[1] = sy; zone.start[2] = sz; zone.end[0] = ex; zone.end[1] = ey; zone.end[2] = ez; LightLogger(LOGLVL_DEBUG, "[Triggers @ v%s] Set new zone extents %f %f %f to %f %f %f.", TR_VER, zone.start[0], zone.start[1], zone.start[2], zone.end[0], zone.end[1], zone.end[2]); }
