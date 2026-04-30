@@ -765,7 +765,7 @@ methodmap WEATHERMANAGER {
     WDATA.intensity = WaveSystem().IsActive() ? 7 : 0;
     if (WDATA.sirenExploded) { WDATA.sirenPitch = 0.0; WDATA.sirenExploded = false; }
     WDATA.TornadoWarning = false;
-    StopAttackZone(g_WeatherZone);
+    SetZoneActive(g_WeatherZone, false);
     CreateTimer(GetRandomFloat(45.0, 135.0), ResetTornado);
     for (int i = 0; i < sizeof(MapLighting); i++) if (!MapLighting[i].isBroken)FastFire2.Execute(MapLighting[i].light, "TurnOn");
     FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerp", "%f", _, _, WDATA.defFogStartDist);

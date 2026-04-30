@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.3.2";
+char TR_VER[7] = "1.4.0";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -129,14 +129,14 @@ void SetupAttackZone(float damage, int type, const Zone zone, bool onlyPlayers =
   if (delayed) { CreateTimer(startTime, START_ATTACKING, zone); }
   CreateTimer(stopTime, STOP_ATTACKING, zone);
 }
-public Action START_ATTACKING(Handle timer, const Zone zone) { zone.shouldTick = true; return Plugin_Stop; }
-public Action STOP_ATTACKING(Handle timer, const Zone zone) { zone.shouldTick = false; return Plugin_Stop; }
+public Action START_ATTACKING(Handle timer, const Zone zone) { SetZoneActive(zone, true); return Plugin_Stop; }
+public Action STOP_ATTACKING(Handle timer, const Zone zone) { SetZoneActive(zone, false); return Plugin_Stop; }
 
 // Resets an attack zone to its default values
-void RemoveAttackZone(const Zone zone) { zone.dmg = 0.0; zone.dmgType = 0; zone.onlyPlayers = false; StopAttackZone(zone); }
+void RemoveAttackZone(const Zone zone) { zone.dmg = 0.0; zone.dmgType = 0; zone.onlyPlayers = false; SetZoneActive(zone, false); }
 
-// Stops a zone from ticking manually
-void StopAttackZone(const Zone zone) { zone.shouldTick = false; }
+// Sets whether a zone is enabled or disabled
+void SetZoneActive(const Zone zone, bool active) { zone.shouldTick = active; }
 
 // Set a zone's extents
 // @param zone - The zone to affect
