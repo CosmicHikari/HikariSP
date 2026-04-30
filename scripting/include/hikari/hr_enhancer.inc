@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.6.3";
+char HSE_VER[8] = "2.6.4";
 
 // Used to make lasers
 enum struct LaserData {
@@ -581,7 +581,6 @@ enum struct MAPLIGHTING {
     float dest[3]; GetEntPropVector(FindEntityByTargetname(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
     dest[2] = dest[2] - 8.0;
     TeleportEntity(FindEntityByTargetname(this.explosion, "env_explosion"), dest, _, _);
-    this.isBroken = true;
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.0);
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.1);
     FastFire2.Execute(this.beam, "LightOff", "", 0.0);
@@ -591,6 +590,7 @@ enum struct MAPLIGHTING {
     FastFire2.Execute(this.status, "Color", "255 0 0", 0.0);
     FastFire2.Execute(this.stun, "Enable", "", 0.0);
     FastFire2.Execute(this.zap, "Enable", "", 0.0);
+    this.isBroken = true;
   }
   void Repair() {
     this.isBroken = false;
@@ -768,6 +768,7 @@ methodmap WEATHERMANAGER {
     SetZoneActive(g_WeatherZone, false);
     CreateTimer(GetRandomFloat(45.0, 135.0), ResetTornado);
     for (int i = 0; i < sizeof(MapLighting); i++) if (!MapLighting[i].isBroken)FastFire2.Execute(MapLighting[i].light, "TurnOn");
+    for (int i = 0; i < MaxClients; i++) { if (IsValidClient(i)) SetEntityGravity(i, 1.0); }
     FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerp", "%f", _, _, WDATA.defFogStartDist);
     FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerp", "%f", _, _, WDATA.defFogEndDist);
     FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition");
@@ -1005,15 +1006,15 @@ methodmap WEATHERMANAGER {
       float dy = tornadoPos[1] - entPos[1];
       float distance2D = SquareRoot(dx*dx + dy*dy);
       if (IsValidClient(i)) PrintToChat(i, "Your distance to the tornado is %f", distance2D);
-      float str = 1.0 - ((distance2D / 1250.0) * (distance2D / 1250.0));
-      if (distance2D <= 1250.0) {
+      float str = 1.0 - ((distance2D / 2150.0) * (distance2D / 2150.0));
+      if (distance2D <= 1700.0) {
         float v[3]; GetEntPropVector(i, Prop_Data, "m_vecVelocity", v);
-        v[2] = (2000.0 * str);
+        v[2] = (3000.0 * str);
         TeleportEntity(i, NULL_VECTOR, NULL_VECTOR, v);
         char classname[32]; GetEntityClassname(i, classname, sizeof(classname));
         if (StrEqual(classname, "tank_boss")) { AttackEntity(i, 10000000.0, DMG_GENERIC); FastFire2.Execute("FB.FakeTankSpawner", "ForceSpawn"); }
       }
-      SetEntityGravity(i, distance2D <= 1250.0 ? str : 1.0);
+      SetEntityGravity(i, distance2D <= 2150.0 ? str : 1.0);
     }
   }
   public void TryFormTornado() {
