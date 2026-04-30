@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.5.3";
+char HSE_VER[8] = "2.5.4";
 
 // Used to make lasers
 enum struct LaserData {
@@ -480,6 +480,9 @@ enum struct MAPLIGHTING {
   char zap[32];
   void Explode() {
     if (this.isBroken) return;
+    float dest[3]; GetEntPropVector(FindEntityByTargetname(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
+    dest[2] = dest[2] - 8.0;
+    TeleportEntity(FindEntityByTargetname(this.explosion, "env_explosion"), dest, _, _);
     this.isBroken = true;
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.0);
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.1);
@@ -1034,9 +1037,9 @@ char LightingPatterns[][25] =  {
 public Action SurgePower(Handle timer) {
   if (WeatherManager.isPowerSurging()) {
     int target = GetRandomInt(0, 12);
-    if (MapLighting[target].isBroken)target = GetRandomInt(0, 12);
+    if (MapLighting[target].isBroken) target = GetRandomInt(0, 12);
     if (!MapLighting[target].isBroken) {
-      if (GetRandomInt(0, 7) == 5)MapLighting[target].Explode();
+      if (GetRandomInt(0, 7) == 5) MapLighting[target].Explode();
       FastFire2.Execute(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
       FastFire2.Execute(MapLighting[target].light, "TurnOn");
       FastFire2.Execute(MapLighting[target].beam, "LightOn");

@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.1.5";
+char SUDO_VER[8] = "1.1.6";
 void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[SUDO @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
@@ -259,13 +259,10 @@ void sudo(int task) {
       return;
     }
     case 18: {
-      if(!WaveSystem().IsActive()) {
-        CPrintToChatAll("{fartsyred} PLEASE DO NOT ATTEMPT TO USE OPERATOR 18 WITHOUT A WAVE.");
-        return;
-      }
+      if(!WaveSystem().IsActive()) { CPrintToChatAll("{fartsyred} PLEASE DO NOT ATTEMPT TO USE OPERATOR 18 WITHOUT A WAVE."); return; }
+      SetupAttackZone(9000000.0, DMG_BLAST, g_HatchExplode, _, _, 1.0, 4.0);
       FastFire2.Execute("bots_win", "RoundWin", "", 1.0);
       FastFire2.Execute("hatch_magnet_pit", "Enable", "", 1.0);
-      FastFire2.Execute("hatch_explo_kill_players", "Enable", "", 1.0);
       FastFire2.Execute("cap_hatch_destroy_animated_prop", "Enable", "", 1.0);
       FastFire2.Execute("cap_hatch_destroy_delete_prop", "Kill", "", 1.0);
       FastFire2.Execute("end_pit_destroy_particle", "Start", "", 1.0);
