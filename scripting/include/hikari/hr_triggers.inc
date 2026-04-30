@@ -85,8 +85,6 @@ public void InitAllZones() {
   for (int i = 0; i < sizeof(g_Lights)-1; i++) { g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
   for (int i = 0; i < sizeof(g_Special); i++) { g_Special[i].onlyPlayers = true; }
   g_Special[0].statuseffect = TFCond_OnFire;
-  g_Special[1].statuseffect = TFCond_CritOnKill;
-  g_Special[2].statuseffect = TFCond_HalloweenHellHeal;
   g_Special[3].statuseffect = TFCond_HalloweenGiant;
   g_Special[4].statuseffect = TFCond_MarkedForDeath;
 }
