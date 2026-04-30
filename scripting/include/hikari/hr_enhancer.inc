@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.5.3";
+char HSE_VER[8] = "2.6.0";
 
 // Used to make lasers
 enum struct LaserData {
@@ -167,15 +167,12 @@ methodmap AUDIOMANAGER {
     //g_indexBGM = bgm == 0 ? GetRandomInt(1, 4) : bgm;
     if (IsValidClient(client)) PrintToChat(client, "Your BGM was changed. %i = %i > 0 ? %i : %i == 0 ? %i : %i, playing at sndlvl %i volume %f", AudioState[client].indexBGM, AudioState[client].VIPBGM, AudioState[client].VIPBGM, bgm, g_indexBGM, bgm, GetSNDLVL(client, true, BGMArray[AudioState[client].indexBGM].SNDLVL), GetVolume(client, true, 1.0));
     AudioState[client].indexBGM = AudioState[client].VIPBGM > 0 ? AudioState[client].VIPBGM : bgm == 0 ? g_indexBGM : bgm;
-    PrintToServer("Set %i for %N", AudioState[client].indexBGM, client);
+    LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] Set %i for %N", HSE_VER, AudioState[client].indexBGM, client);
     if (instant) { AudioState[client].timeSeconds = 0.0; }
-    PrintToServer("%f", GetEngineTime());
     AudioState[client].shouldTick = true;
     AudioState[client].hasTimeOffset = BGMArray[AudioState[client].indexBGM].introSeconds > 0 ? true : false;
     AudioState[client].stopBGM = !StrEqual(AudioState[client].cachedPath, BGMArray[AudioState[client].indexBGM].realPath) && !this.isClientInEventMode(client) ? true : false;
-    PrintToServer(!StrEqual(AudioState[client].cachedPath, BGMArray[AudioState[client].indexBGM].realPath) && !this.isClientInEventMode(client) ? "true" : "false");
     AudioState[client].bgmPlaying = true;
-    PrintToServer("Setting %N's BGM to %i", client, bgm);
   }
 
   /* Sets the VIP's chosen song for all clients */
@@ -201,7 +198,7 @@ methodmap AUDIOMANAGER {
       AudioState[client].savedLoops = AudioState[client].loops;
       AudioState[client].eventMode = true;
       CSEClientEx(client, BGMArray[curBGM].realPath, -2, g_chanBGM, BGMArray[curBGM].SNDLVL, true, 1, 0.05, 100); // Set old bgm to low volume
-      PrintToServer("[AudioState] Entering event mode with song %s", BGMArray[bgm].songName);
+      LightLogger(LOGLVL_WARN, "[Enhancer @ v%s] Entering event mode with song %s", HSE_VER, BGMArray[bgm].songName);
       this.setBGM(client, bgm, true);
     }
     else {
@@ -214,7 +211,7 @@ methodmap AUDIOMANAGER {
       int new_bgm = AudioState[client].indexBGM;
       CSEClientEx(client, BGMArray[new_bgm].realPath, -2, g_chanBGM, BGMArray[new_bgm].SNDLVL, true, 1, 1.0, 100);
       AudioState[client].eventMode = false;
-      PrintToServer("[AudioState] Exiting event mode with song %s", BGMArray[new_bgm].songName);
+      LightLogger(LOGLVL_WARN, "[Enhancer @ v%s] Exiting event mode with song %s", HSE_VER, BGMArray[new_bgm].songName);
     }
   }
 
@@ -250,11 +247,11 @@ methodmap AUDIOMANAGER {
     }
     AudioState[client].indexBGM = (!this.isClientInEventMode(client) && AudioState[client].VIPBGM > 0) ? AudioState[client].VIPBGM : (AudioState[client].indexBGM == 0 ? g_indexBGM : AudioState[client].indexBGM);
     if (this.engineSecondsAdjusted(client) > AudioState[client].timeSeconds + AudioState[client].loopSeconds) {
-      PrintToServer("Playing %i for %N", AudioState[client].indexBGM, client);
+      LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] Playing %i for %N", HSE_VER, AudioState[client].indexBGM, client);
       AudioState[client].timeSeconds = GetEngineTime();
       AudioState[client].loops++;
       if (AudioState[client].stopBGM) {
-        PrintToServer("Stopping %s", AudioState[client].cachedPath);
+        LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] Stopping %i for %N", HSE_VER,  AudioState[client].cachedPath);
         StopSound(client, g_chanBGM, AudioState[client].cachedPath);
         AudioState[client].loops = 0;
       }
@@ -322,13 +319,54 @@ methodmap AUDIOMANAGER {
   /* This should be obvious by now */
   public void SetVolumeRealSFX(int client, float vol) { AudioState[client].volume_real_sfx = vol; PrintToChat(client, "Set your volume to %f%%", AudioState[client].volume_real_sfx * 100); }
 
-  public void OnStartup(int event, const char[] path = "") {
+  public void OnStartup(int event, const char[] path) {
+    char finalPath[PLATFORM_MAX_PATH]; strcopy(finalPath, sizeof(finalPath), path);
     switch (event) {
+      // Create Configs
       case 0: {
-        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Startup commenced!", HSE_VER);
-        char finalPath[PLATFORM_MAX_PATH];
-        Format(finalPath, sizeof(finalPath), "%s/Files", path);
-        CreateDirectory(finalPath);
+        FormatEx(finalPath, sizeof(finalPath), "%s/Files", finalPath); if (!DirExists(finalPath)) CreateDirectory(finalPath, 711);
+        char MusicPath[PLATFORM_MAX_PATH];
+        FormatEx(MusicPath, sizeof(MusicPath), "%s/Music.json", finalPath);
+        if (!FileExists(MusicPath)) { 
+          Handle file = OpenFile(MusicPath, "w");
+          if (file == null) { LightLogger(LOGLVL_ERROR, "Failed to open config file: %s", MusicPath); CloseHandle(file); return; }
+          WriteFileLine(file, "{");
+          WriteFileLine(file, "  \"Music\": {");
+          for (int i = 0; i < sizeof(BGMArray); i++) {
+            WriteFileLine(file, "    \"%d\": {", i);
+            WriteFileLine(file, "      \"path\": \"\",");
+            WriteFileLine(file, "      \"name\": \"Example Song %d\",", i);
+            WriteFileLine(file, "      \"duration\": 120.0,");
+            WriteFileLine(file, "      \"intro\": 0.0,");
+            WriteFileLine(file, "      \"volume\": 80");
+            WriteFileLine(file, i < sizeof(BGMArray) - 1 ? "    }," : "    }");
+          }
+          WriteFileLine(file, "  }");
+          WriteFileLine(file, "}");
+          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Generated Default Config: %s", HSE_VER, MusicPath);
+          CloseHandle(file);
+        }
+        this.OnStartup(1, MusicPath);
+        char SFXPath[PLATFORM_MAX_PATH];
+        FormatEx(SFXPath, sizeof(SFXPath), "%s/SFX.json", finalPath);
+        if (!FileExists(SFXPath)) {
+          Handle file = OpenFile(SFXPath, "w");
+          if (file == null) { LightLogger(LOGLVL_ERROR, "Failed to create config file: %s", SFXPath); CloseHandle(file); return; }
+          WriteFileLine(file, "{");
+          WriteFileLine(file, "  \"SFX\": {");
+          for (int i = 0; i < sizeof(SFXArray); i++) {
+            WriteFileLine(file, "    \"%d\": {", i);
+            WriteFileLine(file, "      \"path\": \"\",");
+            WriteFileLine(file, "      \"name\": \"Example Sound %d\",", i);
+            WriteFileLine(file, "      \"volume\": 80");
+            WriteFileLine(file, i < sizeof(SFXArray) - 1 ? "    }," : "    }");
+          }
+          WriteFileLine(file, "  }");
+          WriteFileLine(file, "}");
+          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Generated Default Config: %s", HSE_VER, SFXPath);
+          CloseHandle(file);
+        }
+        this.OnStartup(1, SFXPath);
         RegAdminCmd("sm_music", Command_Music, ADMFLAG_RESERVATION, "Set music to be played for the next wave");
         RegConsoleCmd("sm_song", Command_GetCurrentSong, "Get current song name");
         RegConsoleCmd("sm_sounds", Command_Sounds, "Toggle sounds on or off via menu");
@@ -337,8 +375,78 @@ methodmap AUDIOMANAGER {
         RegConsoleCmd("sm_setvolumereal", Command_SetVolumeReal, "Set the real volume for sfx/music. Ex: sm_setvolumereal sfx 100, sm_setvolumereal music 100");
         cvarSNDDefault = CreateConVar("hr_sound", "3", "Default sound for new users, 3 = Everything, 2 = Sounds Only, 1 = Music Only, 0 = Nothing");
       }
+      // Load Configs
+      case 1: {
+        // Setup json loader
+        Handle jsHandle = json_load_file(finalPath); if (jsHandle == INVALID_HANDLE) { CloseHandle(jsHandle); SetFailState("Failed to load json %s", finalPath); }
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Loading Config %s...", HSE_VER, finalPath);
+
+        // Attempt to locate headers
+        bool isMusic = (StrContains(finalPath, "Music") != -1);
+        char header[32]; strcopy(header, 32, isMusic ? "Music" : "SFX");
+        Handle jsHeader = json_object_get(jsHandle, header);
+        if (jsHeader == INVALID_HANDLE) { CloseHandle(jsHandle); CloseHandle(jsHeader); SetFailState("Failed to locate header, missing json root object \"%s\" in file %s", header, finalPath); }
+        Handle jsIter = json_object_iter(jsHeader); char index[32]; int idx;
+        while (jsIter != INVALID_HANDLE)
+        {
+          json_object_iter_key(jsIter, index, sizeof(index)); idx = StringToInt(index);
+          Handle _jsKey = json_object_iter_value(jsIter);
+          // It's Music
+          if (isMusic) {
+            json_object_get_string(_jsKey, "path", BGMArray[idx].realPath, sizeof(BGMArray[idx].realPath));
+            json_object_get_string(_jsKey, "name", BGMArray[idx].songName, sizeof(BGMArray[idx].songName));
+            BGMArray[idx].introSeconds = json_object_get_float(_jsKey, "intro");
+            BGMArray[idx].loopSeconds = json_object_get_float(_jsKey, "duration");
+            BGMArray[idx].SNDLVL = json_object_get_int(_jsKey, "volume");
+            if (!StrEqual(BGMArray[idx].realPath, "")) {
+              char fsPath[PLATFORM_MAX_PATH];
+              Format(fsPath, sizeof(fsPath), "sound/%s", BGMArray[idx].realPath);
+              if (!FileExists(fsPath, true)) SetFailState("File does not exist: %s (field %d)", fsPath, idx);
+            }
+          }
+          else {
+            json_object_get_string(_jsKey, "path", SFXArray[idx].realPath, sizeof(SFXArray[idx].realPath));
+            SFXArray[idx].SNDLVL = json_object_get_int(_jsKey, "volume");
+            if (!StrEqual(SFXArray[idx].realPath, "")) {
+              char fsPath[PLATFORM_MAX_PATH];
+              Format(fsPath, sizeof(fsPath), "sound/%s", SFXArray[idx].realPath);
+              if (!FileExists(fsPath, true)) SetFailState("File does not exist: %s (field %d)", fsPath, idx);
+            }
+          }
+          jsIter = json_object_iter_next(jsHeader, jsIter);
+        }
+        CloseHandle(jsIter); CloseHandle(jsHeader); CloseHandle(jsHandle);
+        int bgmIndex;
+        for (int i = 0; i < sizeof(BGMArray); i++) {
+          if (!StrEqual(BGMArray[i].realPath, "")) {
+            bgmIndex++;
+            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] Precaching BGM: %s (%s), Duration %f seconds, Start Loop Point %f seconds, Volume %i @ %i", HSE_VER, BGMArray[i].songName, BGMArray[i].realPath, BGMArray[i].loopSeconds, BGMArray[i].introSeconds, BGMArray[i].SNDLVL, i);
+            PrecacheSound(BGMArray[i].realPath, true);
+          }
+        }
+        int sfxIndex;
+        for (int i = 0; i < sizeof(SFXArray); i++) {
+          if (!StrEqual(SFXArray[i].realPath, "")) {
+            sfxIndex++;
+            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] Precaching SFX: %s @ %i", HSE_VER, SFXArray[i].realPath, i);
+            PrecacheSound(SFXArray[i].realPath, true);
+          }
+        }
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Done! BGM Count: %i, SFX Count: %i, Total: %i files loaded to RAM.", HSE_VER, bgmIndex, sfxIndex, bgmIndex + sfxIndex);
+      }
     }
   }
+
+  public void LoadConfig(const char[] path) {
+    char curPath[PLATFORM_MAX_PATH]; FormatEx(curPath, sizeof(curPath), "%s/Files", path); if (!DirExists(curPath)) return;
+    //FormatEx(curPath, sizeof(curPath), type == 0 ? "%s/Files/Music.json" : "%s/Files/SFX.json", path);
+  }
+    /*
+      case 1: {
+        
+      }
+    }
+  }*/
 }
 AUDIOMANAGER AudioManager;
 
@@ -480,6 +588,9 @@ enum struct MAPLIGHTING {
   char zap[32];
   void Explode() {
     if (this.isBroken) return;
+    float dest[3]; GetEntPropVector(FindEntityByTargetname(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
+    dest[2] = dest[2] - 8.0;
+    TeleportEntity(FindEntityByTargetname(this.explosion, "env_explosion"), dest, _, _);
     this.isBroken = true;
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.0);
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.1);
@@ -948,15 +1059,82 @@ methodmap WEATHERMANAGER {
     }
   }
   public void OnStartup(int event, const char[] path) {
-    switch (event){
+    char finalPath[PLATFORM_MAX_PATH]; strcopy(finalPath, sizeof(finalPath), path);
+    switch (event) {
+      // Create Configs
       case 0: {
-        char finalPath[PLATFORM_MAX_PATH];
-        Format(finalPath, sizeof(finalPath), "%s/Weather", path);
-        CreateDirectory(finalPath);
+        FormatEx(finalPath, sizeof(finalPath), "%s/Weather", finalPath); if (!DirExists(finalPath)) CreateDirectory(finalPath, 711);
+        FormatEx(finalPath, sizeof(finalPath), "%s/WeatherManager.json", finalPath);
+        if (!FileExists(finalPath)) { 
+          Handle file = OpenFile(finalPath, "w");
+          if (file == null) { LightLogger(LOGLVL_ERROR, "Failed to create config file: %s", finalPath); CloseHandle(file); return; }
+          WriteFileLine(file, "{");
+          WriteFileLine(file, "  \"WeatherManager\": {");
+          WriteFileLine(file, "    \"defFogStartDist\": 300.0,");
+          WriteFileLine(file, "    \"defFogEndDist\": 3000.0,");
+          WriteFileLine(file, "    \"defFogDensity\": 0.55,");
+          WriteFileLine(file, "    \"fogChangeRate\": 0.001,");
+          WriteFileLine(file, "    \"fogChangeRateRGB\": 0.25,");
+          WriteFileLine(file, "    \"skyHeight\": 1200.0,");
+          char out[40];
+          for (int i = 0; i < sizeof(MapLighting); i++) {
+            Format(out, sizeof(out), "    \"MapLighting%iArcs\": \" \",", i); WriteFileLine(file, out);
+            Format(out, sizeof(out), "    \"MapLighting%iBeam\": \" \",", i); WriteFileLine(file, out);
+            Format(out, sizeof(out), "    \"MapLighting%iBuzz\": \" \",", i); WriteFileLine(file, out);
+            Format(out, sizeof(out), "    \"MapLighting%iDamage\": 7000,", i); WriteFileLine(file, out);
+            Format(out, sizeof(out), "    \"MapLighting%iLight\": \" \",", i); WriteFileLine(file, out);
+            Format(out, sizeof(out), "    \"MapLighting%iStatusSprite\": \" \",", i); WriteFileLine(file, out);
+            Format(out, sizeof(out), "    \"MapLighting%iStatusEffect\": \"TFCond_MVMBotRadiowave\",", i); WriteFileLine(file, out);
+            Format(out, sizeof(out), i != sizeof(MapLighting) - 1 ? "    \"MapLighting%iZap\": \" \"," : "    \"MapLighting%iZap\": \" \"", i); WriteFileLine(file, out);
+          }
+          WriteFileLine(file, "  }");
+          WriteFileLine(file, "}");
+          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Generated Default Config: %s", HSE_VER, finalPath);
+          CloseHandle(file);
+        }
         RegConsoleCmd("sm_fogsetdensity", Command_SetFogDensity, "[TESTING] Set fog density");
         RegConsoleCmd("sm_fogstartendupdate", Command_SetFogSEU, "[TESTING] Set fog start end with optional flag");
         cvarSirenEnabledDefault = CreateConVar("hr_sirenenabled", "1", "Enables the tornado siren for clients to hear it by default (they can still opt in/out of it via !sounds). 1/0");
         cvarSirenMutesMusicDefault = CreateConVar("hr_sirenmutemusic", "1", "Allows the tornado siren to mute music for clients by default (they can still opt in/out of it via !sounds). 1/0");
+        this.OnStartup(1, finalPath);
+      }
+      // Load Configs
+      case 1 : {
+        // Setup json loader
+        Handle jsHandle = json_load_file(finalPath); if (jsHandle == INVALID_HANDLE) { CloseHandle(jsHandle); SetFailState("Failed to load json %s", finalPath); }
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Loading Config %s...", HSE_VER, finalPath);
+      
+        // Attempt to locate headers
+        Handle jsHeader = json_object_get(jsHandle, "WeatherManager");
+        if (jsHeader == INVALID_HANDLE) { CloseHandle(jsHandle); CloseHandle(jsHeader); SetFailState("Failed to locate header, missing json root object \"WeatherManager\" in file %s", finalPath); }
+        Handle jsIter = json_object_iter(jsHeader);
+        while (jsIter != INVALID_HANDLE) {
+          this.setDefFogStartDist(json_object_get_float(jsHeader, "defFogStartDist"));
+          this.setDefFogEndDist(json_object_get_float(jsHeader, "defFogEndDist"));
+          this.setDefFogDensity(json_object_get_float(jsHeader, "defFogDensity"));
+          this.setFogChangeRate(json_object_get_float(jsHeader, "fogChangeRate"));
+          this.setFogChangeRateRGB(json_object_get_float(jsHeader, "fogChangeRateRGB"));
+          this.setSkyHeight(json_object_get_float(jsHeader, "skyHeight"));
+          for (int i = 0; i < sizeof(MapLighting); i++) {
+            char key[40];
+            Format(key, sizeof(key), "MapLighting%iArcs", i); json_object_get_string(jsHeader, key, MapLighting[i].arcs, sizeof(MapLighting[i].arcs));
+            Format(key, sizeof(key), "MapLighting%iBeam", i); json_object_get_string(jsHeader, key, MapLighting[i].beam, sizeof(MapLighting[i].beam));
+            Format(key, sizeof(key), "MapLighting%iBuzz", i); json_object_get_string(jsHeader, key, MapLighting[i].buzz, sizeof(MapLighting[i].buzz));
+            Format(key, sizeof(key), "MapLighting%iDamage", i); g_Lights[i].dmg = json_object_get_float(jsHeader, key);
+            Format(key, sizeof(key), "MapLighting%iLight", i); json_object_get_string(jsHeader, key, MapLighting[i].light, sizeof(MapLighting[i].light));
+            Format(key, sizeof(key), "MapLighting%iStatusSprite", i); json_object_get_string(jsHeader, key, MapLighting[i].status, sizeof(MapLighting[i].status));
+            //Format(key, sizeof(key), "MapLighting%iStatusEffect", i); //json_object_get_string(jsHeader, key, g_Lights[i].statuseffect, sizeof(g_Lights[i].statuseffect));
+            Format(key, sizeof(key), "MapLighting%iZap", i); json_object_get_string(jsHeader, key, MapLighting[i].zap, sizeof(MapLighting[i].zap));
+            if (StrContains(MapLighting[i].arcs, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Arcs can not be null!", i);
+            if (StrContains(MapLighting[i].beam, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Beam can not be null!", i);
+            if (StrContains(MapLighting[i].buzz, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Buzz can not be null!", i);
+            if (StrContains(MapLighting[i].light, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Light can not be null!", i);
+            if (StrContains(MapLighting[i].status, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Status can not be null!", i);
+            if (StrContains(MapLighting[i].zap, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Zap can not be null!, i");
+          }
+          jsIter = json_object_iter_next(jsHeader, jsIter);
+        }
+        CloseHandle(jsIter); CloseHandle(jsHeader); CloseHandle(jsHandle);
       }
     }
   }
@@ -1034,9 +1212,9 @@ char LightingPatterns[][25] =  {
 public Action SurgePower(Handle timer) {
   if (WeatherManager.isPowerSurging()) {
     int target = GetRandomInt(0, 12);
-    if (MapLighting[target].isBroken)target = GetRandomInt(0, 12);
+    if (MapLighting[target].isBroken) target = GetRandomInt(0, 12);
     if (!MapLighting[target].isBroken) {
-      if (GetRandomInt(0, 7) == 5)MapLighting[target].Explode();
+      if (GetRandomInt(0, 7) == 5) MapLighting[target].Explode();
       FastFire2.Execute(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
       FastFire2.Execute(MapLighting[target].light, "TurnOn");
       FastFire2.Execute(MapLighting[target].beam, "LightOn");

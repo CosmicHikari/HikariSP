@@ -1,6 +1,6 @@
  //ASS_CONFIGSYSTEM - Contains the config loaders and all the plugin core data entries.
 #include <smjansson> // Needed for JSON parsing
-char HRCFG_VERSION[8] = "1.0.3";
+char HRCFG_VERSION[8] = "2.0.0";
 
 //Default values per wave
 enum struct DEFAULTS {
@@ -104,15 +104,17 @@ enum struct COREDATA {
   int VIPIndex;
   int waveFlags;
   void init_pre() {
-    char basePath[PLATFORM_MAX_PATH]; char subFolder [PLATFORM_MAX_PATH];
-    BuildPath(Path_SM, basePath, sizeof(basePath), "configs/HikarisRequiem");
-    CreateDirectory(basePath);
+    char basePath[PLATFORM_MAX_PATH]; char plgName[64]; GetPluginFilename(INVALID_HANDLE, plgName, sizeof(plgName)); ReplaceString(plgName, sizeof(plgName), ".smx", "", false);
+    Format(basePath, sizeof(basePath), "configs/%s/", plgName); BuildPath(Path_SM, basePath, sizeof(basePath), basePath); if(!DirExists(basePath)) CreateDirectory(basePath, 711);
+    char subFolder[PLATFORM_MAX_PATH];
     WeatherManager.OnStartup(0, basePath);
     AudioManager.OnStartup(0, basePath);
     OnBulkfireStartup(basePath);
     OnSudoStartup();
     Format(subFolder, sizeof(subFolder), "%s/Core", basePath);
-    CreateDirectory(subFolder);
+    CreateDirectory(subFolder, 711);
+    Format(subFolder, sizeof(subFolder), "%s/Files", basePath);
+    CreateDirectory(subFolder, 711);
     LightLogger(LOGLVL_DEBUG, "[ConfigSystem @ v%s] HikarisRequiem folder structure created!", HRCFG_VERSION);
   }
   void init_post() {
@@ -123,7 +125,6 @@ enum struct COREDATA {
     strcopy(this.configWaveNull, sizeof(this.configWaveNull), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults_WaveNull.ini");
     WaveSystem().SetActive(false);
     WaveSystem().SetWave(0);
-    AudioManager.OnStartup(1);
     BossHandler.OnStartup();
     ass[0].name = "[10] Bath Salts";
     ass[1].name = "[20] Summon Goobbue or Kirby";
@@ -349,39 +350,6 @@ void RegisterMiscCommands() {
 }
 
 void RegisterAndPrecacheAllFiles() {
-  LightLogger(0, "Loading EVERYTHING to RAM...");
-  int bgmIndex;
-  int sfxIndex;
-  char _path_BGM[PLATFORM_MAX_PATH];
-  char _path_SFX[PLATFORM_MAX_PATH];
-  char _path_WM[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, _path_BGM, sizeof(_path_BGM), "configs/HikarisRequiem/Files/Music.json");
-  BuildPath(Path_SM, _path_SFX, sizeof(_path_SFX), "configs/HikarisRequiem/Files/SFX.json");
-  BuildPath(Path_SM, _path_WM, sizeof(_path_WM), "configs/HikarisRequiem/Weather/WeatherManager.json");
-  if (!FileExists(_path_BGM)) { GenerateDefaultConfig(0, _path_BGM); }
-  if (!FileExists(_path_SFX)) { GenerateDefaultConfig(1, _path_SFX); }
-  if (!FileExists(_path_WM)) { GenerateDefaultConfig(2, _path_WM); }
-  LightLogger(LOGLVL_DEBUG, "Loading BGMs...");
-  LoadConfig(0);
-  LightLogger(LOGLVL_DEBUG, "Loading SFX...");
-  LoadConfig(1);
-  for (int i = 0; i < sizeof(BGMArray); i++) {
-    if (!StrEqual(BGMArray[i].realPath, "")) {
-      bgmIndex++;
-      LightLogger(LOGLVL_DEBUG, "Precaching BGM: %s (%s), Duration %f seconds, Start Loop Point %f seconds, Volume %i @ %i", BGMArray[i].songName, BGMArray[i].realPath, BGMArray[i].loopSeconds, BGMArray[i].introSeconds, BGMArray[i].SNDLVL, i);
-      PrecacheSound(BGMArray[i].realPath, true);
-    }
-  }
-  for (int i = 0; i < sizeof(SFXArray); i++) {
-    if (!StrEqual(SFXArray[i].realPath, "")) {
-      sfxIndex++;
-      LightLogger(LOGLVL_DEBUG, "Precaching SFX: %s @ %i", SFXArray[i].realPath, i);
-      PrecacheSound(SFXArray[i].realPath, true);
-    }
-  }
-  LightLogger(LOGLVL_INFO, "Done! BGM Count: %i, SFX Count: %i, Total: %i files loaded to RAM.", bgmIndex, sfxIndex, bgmIndex + sfxIndex);
-  LightLogger(LOGLVL_DEBUG, "Loading WeatherManager...");
-  LoadConfig(2);
   LightLogger(LOGLVL_DEBUG, "Setting up Lasers...");
   //LoadConfig(3); -- Not implemented yet!!!
   char LsrName[16];
@@ -563,6 +531,7 @@ void RegisterAndPrecacheAllFiles() {
   strcopy(WBLaserColors[1].cRGB, 16, "255 200 0");
   strcopy(WBLaserColors[2].cRGB, 16, "0 200 255");
   InitAllZones();
+  SetVarDefaults();
 }
 //Wave Setup
 char WaveSetup[][] = {
@@ -593,154 +562,6 @@ char[] OVERRIDE_AND_GET_COREDATA() {
       return core.configDefault;
     }
   }
-}
-
-// Generates an example config, for version 9 specifically
-public bool GenerateDefaultConfig(const int type, const char[] path)
-{
-  PrintToServer("Generated %i at %s", type, path);
-  Handle file = OpenFile(path, "w");
-  if (file == null)
-  {
-    LogError("Failed to create config file: %s", path);
-    return false;
-  }
-  WriteFileLine(file, "{"); // Begin JSON
-  switch (type) {
-    // BGM
-    case 0: {
-      WriteFileLine(file, "  \"Music\": {");
-      for (int i = 0; i < sizeof(BGMArray); i++)
-      {
-        WriteFileLine(file, "    \"%d\": {", i);
-        WriteFileLine(file, "      \"path\": \"\",");
-        WriteFileLine(file, "      \"name\": \"Example Song %d\",", i);
-        WriteFileLine(file, "      \"duration\": 120.0,");
-        WriteFileLine(file, "      \"intro\": 0.0,");
-        WriteFileLine(file, "      \"volume\": 80");
-        WriteFileLine(file, i < sizeof(BGMArray) - 1 ? "    }," : "    }");
-      }
-      WriteFileLine(file, "  }");
-    }
-    // SFX
-    case 1: {
-      WriteFileLine(file, "  \"SFX\": {");
-      for (int i = 0; i < sizeof(SFXArray); i++)
-      {
-        WriteFileLine(file, "    \"%d\": {", i);
-        WriteFileLine(file, "      \"path\": \"\",");
-        WriteFileLine(file, "      \"name\": \"Example Sound %d\",", i);
-        WriteFileLine(file, "      \"volume\": 80");
-        WriteFileLine(file, i < sizeof(SFXArray) - 1 ? "    }," : "    }");
-      }
-      WriteFileLine(file, "  }");
-    }
-    // Weather
-    case 2: {
-      WriteFileLine(file, "  \"WeatherManager\": {");
-      WriteFileLine(file, "    \"defFogStartDist\": 300.0,");
-      WriteFileLine(file, "    \"defFogEndDist\": 3000.0,");
-      WriteFileLine(file, "    \"defFogDensity\": 0.55,");
-      WriteFileLine(file, "    \"fogChangeRate\": 0.001,");
-      WriteFileLine(file, "    \"fogChangeRateRGB\": 0.25,");
-      WriteFileLine(file, "    \"skyHeight\": 1200.0,");
-      char out[40];
-      for (int i = 0; i < sizeof(MapLighting); i++) {
-        Format(out, sizeof(out), "    \"MapLighting%iArcs\": \" \",", i); WriteFileLine(file, out);
-        Format(out, sizeof(out), "    \"MapLighting%iBeam\": \" \",", i); WriteFileLine(file, out);
-        Format(out, sizeof(out), "    \"MapLighting%iBuzz\": \" \",", i); WriteFileLine(file, out);
-        Format(out, sizeof(out), "    \"MapLighting%iExplosion\": \" \",", i); WriteFileLine(file, out);
-        Format(out, sizeof(out), "    \"MapLighting%iLight\": \" \",", i); WriteFileLine(file, out);
-        Format(out, sizeof(out), "    \"MapLighting%iStatus\": \" \",", i); WriteFileLine(file, out);
-        Format(out, sizeof(out), "    \"MapLighting%iStun\": \" \",", i); WriteFileLine(file, out);
-        Format(out, sizeof(out), i != sizeof(MapLighting) - 1 ? "    \"MapLighting%iZap\": \" \"," : "    \"MapLighting%iZap\": \" \"", i); WriteFileLine(file, out);
-      }
-      WriteFileLine(file, "  }");
-    }
-  }
-  WriteFileLine(file, "}"); // End JSON
-  CloseHandle(file);
-  LogMessage("Generated example config: %s", path);
-  return true;
-}
-
-// Loads various config files
-void LoadConfig(int type)
-{
-  // Attempt to load json config file
-  char path[PLATFORM_MAX_PATH];
-  BuildPath(Path_SM, path, sizeof(path), type == 0 ? "configs/HikarisRequiem/Files/Music.json" : type == 1 ? "configs/HikarisRequiem/Files/SFX.json" : type == 2 ? "configs/HikarisRequiem/Weather/WeatherManager.json" : "configs/HikarisRequiem/Lasers/WB.json");
-  Handle jsHandle = json_load_file(path);
-  if (jsHandle == INVALID_HANDLE) SetFailState("Failed to load json %s", path);
-
-  // Attempt to locate headers
-  char header[32];
-  strcopy(header, 32, type == 0 ? "Music" : type == 1 ? "SFX" : "WeatherManager");
-  Handle jsHeader = json_object_get(jsHandle, header);
-  if (jsHeader == INVALID_HANDLE) { CloseHandle(jsHandle); SetFailState("Failed to locate header, missing json root object \"%s\" in file %s", header, path); }
-
-  // Iterate json file
-  Handle jsIter = json_object_iter(jsHeader);
-  while (jsIter != INVALID_HANDLE)
-  {
-    char index[32];
-    json_object_iter_key(jsIter, index, sizeof(index));
-    int idx = StringToInt(index);
-    Handle _jsKey = json_object_iter_value(jsIter);
-    // Process values
-    if (type == 0) {  // BGM
-      json_object_get_string(_jsKey, "path", BGMArray[idx].realPath, sizeof(BGMArray[idx].realPath));
-      json_object_get_string(_jsKey, "name", BGMArray[idx].songName, sizeof(BGMArray[idx].songName));
-      BGMArray[idx].introSeconds = json_object_get_float(_jsKey, "intro");
-      BGMArray[idx].loopSeconds = json_object_get_float(_jsKey, "duration");
-      BGMArray[idx].SNDLVL = json_object_get_int(_jsKey, "volume");
-      if (!StrEqual(BGMArray[idx].realPath, "")) {
-        char fsPath[PLATFORM_MAX_PATH];
-        Format(fsPath, sizeof(fsPath), "sound/%s", BGMArray[idx].realPath);
-        if (!FileExists(fsPath, true)) SetFailState("File does not exist: %s (field %d)", fsPath, idx);
-      }
-    }
-    else if (type == 1) {  // SFX
-      json_object_get_string(_jsKey, "path", SFXArray[idx].realPath, sizeof(SFXArray[idx].realPath));
-      SFXArray[idx].SNDLVL = json_object_get_int(_jsKey, "volume");
-      if (!StrEqual(SFXArray[idx].realPath, "")) {
-        char fsPath[PLATFORM_MAX_PATH];
-        Format(fsPath, sizeof(fsPath), "sound/%s", SFXArray[idx].realPath);
-        if (!FileExists(fsPath, true)) SetFailState("File does not exist: %s (field %d)", fsPath, idx);
-      }
-    }
-    else if (type == 2) {  // Weather
-      WeatherManager.setDefFogStartDist(json_object_get_float(jsHeader, "defFogStartDist"));
-      WeatherManager.setDefFogEndDist(json_object_get_float(jsHeader, "defFogEndDist"));
-      WeatherManager.setDefFogDensity(json_object_get_float(jsHeader, "defFogDensity"));
-      WeatherManager.setFogChangeRate(json_object_get_float(jsHeader, "fogChangeRate"));
-      WeatherManager.setFogChangeRateRGB(json_object_get_float(jsHeader, "fogChangeRateRGB"));
-      WeatherManager.setSkyHeight(json_object_get_float(jsHeader, "skyHeight"));
-      for (int i = 0; i < sizeof(MapLighting); i++) {
-        char key[40];
-        Format(key, sizeof(key), "MapLighting%iArcs", i); json_object_get_string(jsHeader, key, MapLighting[i].arcs, sizeof(MapLighting[i].arcs));
-        Format(key, sizeof(key), "MapLighting%iBeam", i); json_object_get_string(jsHeader, key, MapLighting[i].beam, sizeof(MapLighting[i].beam));
-        Format(key, sizeof(key), "MapLighting%iBuzz", i); json_object_get_string(jsHeader, key, MapLighting[i].buzz, sizeof(MapLighting[i].buzz));
-        Format(key, sizeof(key), "MapLighting%iExplosion", i); json_object_get_string(jsHeader, key, MapLighting[i].explosion, sizeof(MapLighting[i].explosion));
-        Format(key, sizeof(key), "MapLighting%iLight", i); json_object_get_string(jsHeader, key, MapLighting[i].light, sizeof(MapLighting[i].light));
-        Format(key, sizeof(key), "MapLighting%iStatus", i); json_object_get_string(jsHeader, key, MapLighting[i].status, sizeof(MapLighting[i].status));
-        Format(key, sizeof(key), "MapLighting%iStun", i); json_object_get_string(jsHeader, key, MapLighting[i].stun, sizeof(MapLighting[i].stun));
-        Format(key, sizeof(key), "MapLighting%iZap", i); json_object_get_string(jsHeader, key, MapLighting[i].zap, sizeof(MapLighting[i].zap));
-        if (StrContains(MapLighting[i].arcs, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Arcs can not be null!", i);
-        if (StrContains(MapLighting[i].beam, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Beam can not be null!", i);
-        if (StrContains(MapLighting[i].buzz, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Buzz can not be null!", i);
-        if (StrContains(MapLighting[i].explosion, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Explosion can not be null!", i);
-        if (StrContains(MapLighting[i].light, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Light can not be null!", i);
-        if (StrContains(MapLighting[i].status, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Status can not be null!", i);
-        if (StrContains(MapLighting[i].stun, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Stun can not be null!, i");
-        if (StrContains(MapLighting[i].zap, " ", false) != -1) ThrowError("WeatherManager MapLighting %i Zap can not be null!, i");
-      }
-      break;
-    }
-    else { SetFailState("Iterator %i not implemented.", type); } // Unimplemented
-    jsIter = json_object_iter_next(jsHeader, jsIter);
-  }
-  SetVarDefaults();
 }
 
 // Extra stuff that hasn't been moved to config files yet

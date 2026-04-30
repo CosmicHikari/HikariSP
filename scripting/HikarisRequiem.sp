@@ -6,7 +6,7 @@
  *   FIVE..... TIPS AND TRICKS MAY BE ADDED TO THE TIMER, SEE PerformAdverts(Handle timer);
  *        IF IT'S WAR THAT YOU WANT, THEN I'M READY TO PLAY. GLHF!
  */
-public char PLUGIN_VERSION[8] = "10.0.0b";
+public char PLUGIN_VERSION[8] = "10.0.0c";
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>

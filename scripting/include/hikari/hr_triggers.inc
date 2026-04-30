@@ -1,7 +1,8 @@
-char TR_VER[7] = "1.2.2";
+char TR_VER[7] = "1.3.1";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
+  bool hasStatusEffect;
   bool onlyPlayers;
   bool shouldTick;
   float start[3];
@@ -10,15 +11,32 @@ enum struct Zone {
   int dmgType;
   int ticks;
   int tickrate;
+  TFCond statuseffect;
   bool canTick() { return this.shouldTick && (++this.ticks % this.tickrate == 0); }
   bool isTriggeredByEntityAt(const float pos[3]) { return (pos[0] >= this.start[0] && pos[0] <= this.end[0] && pos[1] >= this.start[1] && pos[1] <= this.end[1] && pos[2] >= this.start[2] && pos[2] <= this.end[2]); }
   bool isInvalid() { return (this.start[0] == 0.0 && this.end[0] == 0.0 || this.start[1] == 0.0 && this.end[1] == 0.0 || this.start[2] == 0.0 && this.end[2] == 0.0); }
-  // Damage players if this trigger does damage.
-  void TickDamage() {
-    if (this.dmg > 0 && this.canTick()) {
-      for (int i = 0; i <= (this.onlyPlayers ? MaxClients : GetMaxEntities()); i++) if (!IsEntityInvalidForTrigger(i)) {
-        float pos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
-        if (this.isTriggeredByEntityAt(pos)) AttackEntity(i, this.dmg, this.dmgType);
+  void Tick() {
+    if (this.canTick()) {
+      // Tick Damage
+      if (this.dmg > 0) {
+        for (int i = 0; i <= (this.onlyPlayers ? MaxClients : GetMaxEntities()); i++) if (!IsEntityInvalidForTrigger(i)) {
+          float pos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
+          if (this.isTriggeredByEntityAt(pos)) AttackEntity(i, this.dmg, this.dmgType);
+        }
+      }
+      // Tick Status Effects
+      if (this.hasStatusEffect) {
+        float cPos[3];
+        for (int i = 0; i < MaxClients; i++) {
+          if (!IsValidClient(i)) continue;
+          GetClientAbsOrigin(i, cPos);
+          if (!TF2_IsPlayerInCondition(i, this.statuseffect) && this.isTriggeredByEntityAt(cPos)) {
+            switch(this.statuseffect) {
+              case TFCond_MVMBotRadiowave: { if (GetClientTeam(i) == 3) TF2_AddCondition(i, TFCond_MVMBotRadiowave); }
+              default: { if (this.statuseffect != TFCond_MVMBotRadiowave) TF2_AddCondition(i, this.statuseffect); }
+            }
+          }
+        }
       }
     }
   }
@@ -32,6 +50,7 @@ Zone g_HatchFire;
 Zone g_Special[5];
 Zone g_CustomZone;
 Zone g_CustomZoneArray[7];
+Zone g_Lights[13];
 
 public void InitAllZones() {
   LightLogger(LOGLVL_INFO, "[Triggers @ v%s] Starting up triggers!", TR_VER);
@@ -48,9 +67,22 @@ public void InitAllZones() {
   SetZoneExtents(g_BombPickup, -3860.0, -2275.0, -4.0, -3540.0, -1970.0, -120.0);
   SetZoneExtents(g_HatchExplode, -1024.0, 1169.0, 204.0, 1920.0, 1825.0, -372.0);
   SetZoneExtents(g_HatchFire, -1376.0, 1536.0, -112.0, -1520.0, 1680.0, -124.0);
+  SetZoneExtents(g_Lights[0], -564.0, 992.0, 0.0, -694.0, 1120.0, -224.0);
+  SetZoneExtents(g_Lights[1], -564.0, 1575.0, 69.0, -694.0, 1704.0, -224.0);
+  SetZoneExtents(g_Lights[2], -564.0, 2304.0, 69.0, -694.0, 2427.0, -204.0);
+  SetZoneExtents(g_Lights[3], 367.0, 2625.0, -20.0, 494.0, 2756.0, -192.0);
+  SetZoneExtents(g_Lights[4], 1108.0, 2680.0, 10.0, 1238.0, 2554.0, -192.0);
+  SetZoneExtents(g_Lights[5], 1108.0, 2068.0, 10.0, 1238.0, 1940.0, -192.0);
+  SetZoneExtents(g_Lights[6], 1008.0, 1458.0, 10.0, 880.0, 1586.0, -192.0);
+  SetZoneExtents(g_Lights[7], 1038.0, 648.0, -148.0, 900.0, 772.0, -300.0);
+  SetZoneExtents(g_Lights[8], 367.0, 1710.0, -224.0, 492.0, 1838.0, -384.0);
+  SetZoneExtents(g_Lights[9], 1704.0, 1832.0, -200.0, 1830.0, 1960.0, -330.0);
+  SetZoneExtents(g_Lights[10], 2230.0, 1512.0, -243.0, 2356.0, 1384.0, -384.0);
+  SetZoneExtents(g_Lights[11], 2252.0, 967.0, -240.0, 2380.0, 840.0, -376.0);
   g_FrontRottenburg.tickrate = 77;
   g_HatchExplode.tickrate = 77;
   g_HatchFire.tickrate = 32;
+  for (int i = 0; i < sizeof(g_Lights)-1; i++) { g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
 }
 
 // Used to check if client is an invalid trigger candidate
@@ -71,11 +103,12 @@ public bool IsClientIndoors(int client) {
 
 // Tick every trigger
 public void TickAllTriggers() {
-  g_FrontRottenburg.TickDamage();
-  g_HatchExplode.TickDamage();
-  g_HatchFire.TickDamage();
-  g_CustomZone.TickDamage();
-  for (int i = 0; i < sizeof(g_CustomZoneArray); i++) g_CustomZoneArray[i].TickDamage();
+  g_FrontRottenburg.Tick();
+  g_HatchExplode.Tick();
+  g_HatchFire.Tick();
+  g_CustomZone.Tick();
+  for (int i = 0; i < sizeof(g_CustomZoneArray); i++) g_CustomZoneArray[i].Tick();
+  for (int i = 0; i < sizeof(g_Lights); i++) g_Lights[i].Tick();
   if (g_IndoorZones[0].canTick()) { for (int i = 1; i <= MaxClients; i++) { if (IsClientInvalidForTrigger(i)) continue; g_IsPlayerIndoors[i] = IsClientIndoors(i); }} // Check if clients are indoors
 }
 
