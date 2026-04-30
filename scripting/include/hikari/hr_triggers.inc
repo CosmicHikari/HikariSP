@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.5.0";
+char TR_VER[7] = "1.5.1";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -90,7 +90,7 @@ public void InitAllZones() {
 }
 
 // Used to check if client is an invalid trigger candidate
-bool IsClientInvalidForTrigger(int player) { return (!IsClientConnected(player) || !IsPlayerAlive(player) || !IsClientInGame(player)); }
+bool IsClientInvalidForTrigger(int player) { return (IsClientInGame(player) ? !IsPlayerAlive(player) : true); }
 
 // Used to check if entity is an invalid trigger candidate
 bool IsEntityInvalidForTrigger(int ent) { return (IsValidEntity(ent)) ? (!HasEntProp(ent, Prop_Send, "m_vecOrigin")) : true; }
@@ -100,6 +100,7 @@ public bool g_IsPlayerIndoors[MAXPLAYERS+1] = { true }
 
 // Check if client is indoors
 public bool IsClientIndoors(int client) {
+  if (IsClientInvalidForTrigger(client)) return false;
   bool inside = false; float dest[3]; GetClientAbsOrigin(client, dest); // set up vars and client origin
   for (int i = 0; i < sizeof(g_IndoorZones); i++) { if (g_IndoorZones[i].isInvalid()) continue; if (g_IndoorZones[i].isTriggeredByEntityAt(dest)) inside = true; } // Check if client is in any of the zones
   return inside; // return the result
