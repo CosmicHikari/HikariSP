@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.5.2";
+char TR_VER[7] = "1.5.3";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -65,7 +65,7 @@ public void InitAllZones() {
   SetZoneExtents(g_Special[2], 420.0, 1332.0, -392.0, 470.0, 1290.0, -325.0)
   SetZoneExtents(g_Special[3], 400.0, -1145.0, -16.0, 450.0, -1092.0, -380.0);// Adds tf cond halloween giant for 60s
   SetZoneExtents(g_Special[4], 1950.0, 1272.0, -316.0, 1890.0, 1332.0, -390.0);
-  SetZoneExtents(g_BombPickup, -3860.0, -2275.0, -4.0, -3540.0, -1970.0, -120.0);
+  SetZoneExtents(g_BombPickup, -3860.0, 1970.0, 24.0, -3524.0, 2280.0, -128.0);
   SetZoneExtents(g_HatchExplode, -1024.0, 1169.0, 204.0, 1920.0, 1825.0, -372.0);
   SetZoneExtents(g_HatchFire, -1376.0, 1536.0, -112.0, -1520.0, 1680.0, -124.0);
   SetZoneExtents(g_Lights[0], -564.0, 992.0, 0.0, -694.0, 1120.0, -224.0);
@@ -83,6 +83,8 @@ public void InitAllZones() {
   g_FrontRottenburg.tickrate = 77;
   g_HatchExplode.tickrate = 77;
   g_HatchFire.tickrate = 32;
+  g_BombPickup.tickrate = 32;
+  g_BombPickup.onlyPlayers = true;
   for (int i = 0; i < sizeof(g_Lights)-1; i++) { g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
   for (int i = 0; i < sizeof(g_Special); i++) { g_Special[i].onlyPlayers = true; }
   g_Special[0].statuseffect = TFCond_OnFire;
@@ -115,6 +117,7 @@ public void TickAllTriggers() {
   g_HatchFire.Tick();
   g_CustomZone.Tick();
   g_WeatherZone.Tick();
+  g_BombPickup.Tick();
   for (int i = 0; i < sizeof(g_CustomZoneArray); i++) g_CustomZoneArray[i].Tick();
   for (int i = 0; i < sizeof(g_Lights); i++) g_Lights[i].Tick();
   if (g_IndoorZones[0].canTick()) { for (int i = 1; i <= MaxClients; i++) { if (IsClientInvalidForTrigger(i)) continue; g_IsPlayerIndoors[i] = IsClientIndoors(i); }} // Check if clients are indoors
@@ -140,12 +143,12 @@ void AttackEntity(int ent, float damage, int type) { SDKHooks_TakeDamage(ent, 0,
 // @param onlyPlayers - Only affect players?
 // @param tickrate - The rate this trigger attacks. Lower values = faster
 // @param startTime - The time to wait before starting, in seconds
-// @param stopTime - The time to wait before stopping, in seconds
+// @param stopTime - The time to wait before stopping, in seconds Use a value higher than 9999.0 to make this remain active until manually set inactive.
 void SetupAttackZone(float damage, int type, Zone zone, bool onlyPlayers = false, int tickrate = 33, float startTime = 0.0, float stopTime = 1.0) {
   bool delayed = startTime > 0.0;
   zone.dmg = damage; zone.dmgType = type; zone.onlyPlayers = onlyPlayers; zone.tickrate = tickrate < 1 ? 1 : tickrate; zone.shouldTick = !delayed;
   if (delayed) { CreateTimer(startTime, START_ATTACKING, zone); }
-  CreateTimer(stopTime, STOP_ATTACKING, zone);
+  if (stopTime < 9999.0) CreateTimer(stopTime, STOP_ATTACKING, zone);
 }
 public Action START_ATTACKING(Handle timer, Zone zone) { SetZoneActive(zone, true); return Plugin_Stop; }
 public Action STOP_ATTACKING(Handle timer, Zone zone) { SetZoneActive(zone, false); return Plugin_Stop; }
