@@ -1,6 +1,10 @@
-// ASS Utilities - Advanced server features
+// Hikari's Utilities - Advanced server features
 
-//Gets the server time as an int array, 0 = hour, 1 = minute, 2 = AM/PM(0/1 respectively)
+// Restart the server if it's been 5 minutes since last client disconnect
+bool _serverActive = false;
+public Action ServerIdleThread(Handle timer) { if (!_serverActive) ServerCommand("_restart"); return Plugin_Stop; }
+
+// Gets the server time as an int array, 0 = hour, 1 = minute, 2 = AM/PM(0/1 respectively)
 void GetServerTime(int retVal[3]) {
   char buffer[8];
   FormatTime(buffer, sizeof(buffer), "%I", GetTime());
@@ -14,7 +18,7 @@ void GetServerTime(int retVal[3]) {
   retVal[2] = ampm;
 }
 
-//Gets the server stats and display it in the server
+// Gets the server stats and display it in the server
 public Action StatsTracker(Handle timer) {
   int time[3];
   GetServerTime(time);
@@ -38,16 +42,10 @@ public Action StatsTracker(Handle timer) {
   return Plugin_Stop;
 }
 
-public void OnMetricsFetch(Database db, DBResultSet results, const char[] error, any data)
-{
-  if (results == null)
-  {
-    LogError("Stat fetch failed: %s", error);
-    return;
-  }
-  
-  while (results.FetchRow())
-  {
+// When we fetch results from the database
+public void OnMetricsFetch(Database db, DBResultSet results, const char[] error, any data) {
+  if (results == null) { LogError("Stat fetch failed: %s", error); return; }
+  while (results.FetchRow()) {
     char name[32];
     int value;
     results.FetchString(0, name, sizeof(name));

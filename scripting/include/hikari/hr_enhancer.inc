@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.6.4";
+char HSE_VER[8] = "2.6.5";
 
 // Used to make lasers
 enum struct LaserData {
@@ -578,9 +578,10 @@ enum struct MAPLIGHTING {
   char zap[32];
   void Explode() {
     if (this.isBroken) return;
-    float dest[3]; GetEntPropVector(FindEntityByTargetname(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
+    float dest[3]; GetEntPropVector(FastFire2.FindEntityByTargetname(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
     dest[2] = dest[2] - 8.0;
-    TeleportEntity(FindEntityByTargetname(this.explosion, "env_explosion"), dest, _, _);
+    TeleportEntity(FastFire2.FindEntityByTargetname("MapLighting.StreetLamp.Explosion", "env_explosion"), dest, _, _);
+    LightLogger(LOGLVL_WARN, "[Enhancer:584] MAPLIGHTING SHOULD NOT BE A CONSTANT HERE."); // In favor of configs
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.0);
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.1);
     FastFire2.Execute(this.beam, "LightOff", "", 0.0);
@@ -885,7 +886,7 @@ methodmap WEATHERMANAGER {
     FastFire2.Execute("Weather.FogSky", "Enable", "", 2.0);
     for (int i = 0; i < sizeof(MapLighting); i++) { MapLighting[i].Repair(); SetZoneActive(g_Lights[i], false); }
     WDATA.sirenPos = {-2305.0, 2095.0, 1102.0};
-    int siren = FindEntityByTargetname("WeatherSiren", "info_target");
+    int siren = FastFire2.FindEntityByTargetname("WeatherSiren", "info_target");
     if (!IsValidEntity(siren)) {
       siren = CreateEntityByName("info_target");
       if (!IsValidEdict(siren)) SetFailState("Could not inject Siren Entity, aborting!!!");
@@ -932,17 +933,17 @@ methodmap WEATHERMANAGER {
     if (WDATA.fogDensity != WDATA.fogTarget || WDATA.reset) {
       char targetAlpha[4];
       char targetDensity[24];
-      WDATA.fogDensity = (WDATA.fogDensity < WDATA.fogTarget) ? FloatMin(Maths().Adjust(WDATA.fogDensity, WDATA.fogChangeRate), WDATA.fogTarget) : FloatMax(Maths().Adjust(WDATA.fogDensity, -WDATA.fogChangeRate), WDATA.fogTarget);
-      IntToString(RoundFloat(FloatMin(255.0 * (WDATA.fogDensity * 1.20), 255.0)), targetAlpha, sizeof(targetAlpha));
+      WDATA.fogDensity = (WDATA.fogDensity < WDATA.fogTarget) ? Maths().FloatMin(Maths().Adjust(WDATA.fogDensity, WDATA.fogChangeRate), WDATA.fogTarget) : Maths().FloatMax(Maths().Adjust(WDATA.fogDensity, -WDATA.fogChangeRate), WDATA.fogTarget);
+      IntToString(RoundFloat(Maths().FloatMin(255.0 * (WDATA.fogDensity * 1.20), 255.0)), targetAlpha, sizeof(targetAlpha));
       FloatToString(WDATA.fogDensity, targetDensity, sizeof(targetDensity));
       FastFire2.Execute("Weather.FogOutdoor", "SetMaxDensity", targetDensity);
       FastFire2.Execute("Weather.FogSky", "Alpha", targetAlpha);
     }
     if (WDATA.fogColorR != WDATA.fogColorRTarget || WDATA.fogColorG != WDATA.fogColorGTarget || WDATA.fogColorB != WDATA.fogColorBTarget || WDATA.reset) {
       char target[24];
-      WDATA.fogColorR = (WDATA.fogColorR < WDATA.fogColorRTarget) ? FloatMin(WDATA.fogColorR += WDATA.fogChangeRateRGB, WDATA.fogColorRTarget) : FloatMax(WDATA.fogColorR -= WDATA.fogChangeRateRGB, WDATA.fogColorRTarget);
-      WDATA.fogColorG = (WDATA.fogColorG < WDATA.fogColorGTarget) ? FloatMin(WDATA.fogColorG += WDATA.fogChangeRateRGB, WDATA.fogColorGTarget) : FloatMax(WDATA.fogColorG -= WDATA.fogChangeRateRGB, WDATA.fogColorGTarget);
-      WDATA.fogColorB = (WDATA.fogColorB < WDATA.fogColorBTarget) ? FloatMin(WDATA.fogColorB += WDATA.fogChangeRateRGB, WDATA.fogColorBTarget) : FloatMax(WDATA.fogColorB -= WDATA.fogChangeRateRGB, WDATA.fogColorBTarget);
+      WDATA.fogColorR = (WDATA.fogColorR < WDATA.fogColorRTarget) ? Maths().FloatMin(WDATA.fogColorR += WDATA.fogChangeRateRGB, WDATA.fogColorRTarget) : Maths().FloatMax(WDATA.fogColorR -= WDATA.fogChangeRateRGB, WDATA.fogColorRTarget);
+      WDATA.fogColorG = (WDATA.fogColorG < WDATA.fogColorGTarget) ? Maths().FloatMin(WDATA.fogColorG += WDATA.fogChangeRateRGB, WDATA.fogColorGTarget) : Maths().FloatMax(WDATA.fogColorG -= WDATA.fogChangeRateRGB, WDATA.fogColorGTarget);
+      WDATA.fogColorB = (WDATA.fogColorB < WDATA.fogColorBTarget) ? Maths().FloatMin(WDATA.fogColorB += WDATA.fogChangeRateRGB, WDATA.fogColorBTarget) : Maths().FloatMax(WDATA.fogColorB -= WDATA.fogChangeRateRGB, WDATA.fogColorBTarget);
       Format(target, sizeof(target), "%i %i %i", RoundFloat(WDATA.fogColorR), RoundFloat(WDATA.fogColorG), RoundFloat(WDATA.fogColorB));
       FastFire2.Execute("Weather.FogIndoor", "SetColor", target);
       FastFire2.Execute("Weather.FogIndoor", "SetColorSecondary", target);
@@ -973,7 +974,7 @@ methodmap WEATHERMANAGER {
         WDATA.sirenExploded = true;
       }
       if (WDATA.sirenPitch != WDATA.sirenPitchTarget && !WDATA.sirenExploded) {
-        WDATA.sirenPitch = (WDATA.sirenPitch < WDATA.sirenPitchTarget) ? FloatMin(WDATA.sirenPitch += WDATA.sirenPitchRate, WDATA.sirenPitchTarget) : FloatMax(WDATA.sirenPitch -= WDATA.sirenPitchRate, WDATA.sirenPitchTarget);
+        WDATA.sirenPitch = (WDATA.sirenPitch < WDATA.sirenPitchTarget) ? Maths().FloatMin(WDATA.sirenPitch += WDATA.sirenPitchRate, WDATA.sirenPitchTarget) : Maths().FloatMax(WDATA.sirenPitch -= WDATA.sirenPitchRate, WDATA.sirenPitchTarget);
         int siren = EntRefToEntIndex(sirenRef);
         for (int i = 0; i < MaxClients; i++) if (IsValidClient(i) && g_SirenEnabled[i]) {
           CSEClientEx(i, SFXArray[119].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
@@ -998,7 +999,7 @@ methodmap WEATHERMANAGER {
     float tornadoPos[3];
     bool found = false;
     int tornado = -1;
-    while ((tornado = FindEntityByTargetname("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
+    while ((tornado = FastFire2.FindEntityByTargetname("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
     if (!found) { PrintToServer("No tornado found."); return; }
     for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
       float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
@@ -1168,9 +1169,7 @@ public Action ResetTornado(Handle timer) {
 public Action RestorePower(Handle timer, int surge) {
   g_PowerOutage = false;
   WeatherManager.setPowerSurging((surge == 1) ? true : false);
-  if (surge == 1) {
-    CreateTimer(1.0, SurgePower);
-  }
+  if (surge == 1) { CreateTimer(1.0, SurgePower); }
   for (int i = 0; i < sizeof(MapLighting); i++) MapLighting[i].RestorePower();
   FastFire2.Execute("MapLighting.Indoor*", "TurnOn");
   FastFire2.Execute("MapLighting.Indoor*", "LightOn");
@@ -1206,8 +1205,12 @@ public Action SurgePower(Handle timer) {
   if (WeatherManager.isPowerSurging()) {
     int target = GetRandomInt(0, 12);
     if (MapLighting[target].isBroken) target = GetRandomInt(0, 12);
+    PrintToChatAll("Targeting a %s", MapLighting[target].light);
+    MapLighting[target].isBroken ? PrintToChatAll("Yes it's broken") : PrintToChatAll("It is not broken");
     if (!MapLighting[target].isBroken) {
-      if (GetRandomInt(0, 7) == 5) { MapLighting[target].Explode(); SetZoneActive(g_Lights[target], true); }
+      int rnd = GetRandomInt(0, 7);
+      PrintToChatAll("%i", rnd);
+      if (rnd == 5) { MapLighting[target].Explode(); SetupAttackZone(9000.0, DMG_SHOCK, g_Lights[target], false, 20, 0.1, 9999999.0); }
       FastFire2.Execute(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
       FastFire2.Execute(MapLighting[target].light, "TurnOn");
       FastFire2.Execute(MapLighting[target].beam, "LightOn");

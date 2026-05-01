@@ -1,4 +1,4 @@
- //Bomb states (note to self, any additions made to this array for custom things like shop purchases or boss events should be at the END of the array, prioritize actual bombs first so as not to break anything in the event we add more bombs.. and remember to adjust bombstate[x].explode(false) in the .sp file)
+ // Bomb states (note to self, any additions made to this array for custom things like shop purchases or boss events should be at the END of the array, prioritize actual bombs first so as not to break anything in the event we add more bombs.. and remember to adjust bombstate[x].explode(false) in the .sp file)
 int g_BombIndex;
 bool isGoobbue;
 enum struct BOMBREGISTRY {
@@ -93,6 +93,8 @@ methodmap BOMBCONTROLLER {
   }
   public void OnBombReady() {
     FastFire2.Execute("BombSpawner", "ForceSpawn");
+    FastFire2.Execute("BombTrain", "TeleportToPathTrack", "BombTrain0x00");
+    FastFire2.Execute("BombPush", "Enable", _, 0.5);
   }
 }
 BOMBCONTROLLER Bombs;
@@ -214,6 +216,16 @@ public Action SharkTimer(Handle timer) {
     FastFire2.Execute("SentSharkTorpedo", "ForceSpawn");
     CreateTimer(GetRandomFloat(2.0, 5.0), SharkTimer);
     CustomSoundEmitter(SFXArray[GetRandomInt(43, 50)].realPath, 65, false, 0, 1.0, 100);
+  }
+  return Plugin_Stop;
+}
+
+//BombStatus (Add points to Bomb Status occasionally)
+public Action BombStatusAddTimer(Handle timer) {
+  if (WaveSystem().IsActive() && (g_BombIndex < BombRegistry[0].stateMax)) {
+    BombRegistry[0].isReady = false;
+    g_BombIndex++;
+    CreateTimer(GetRandomFloat(10.0, 45.0), BombStatusAddTimer);
   }
   return Plugin_Stop;
 }

@@ -1,4 +1,4 @@
-char WaveSystem_Version[8] = "1.2.2";
+char WaveSystem_Version[8] = "1.3.0";
 const int WaveTypes_NORMAL = 0;
 const int WaveTypes_TACOBELL = 1;
 const int WaveTypes_WAVENULL = 2;
@@ -36,7 +36,6 @@ methodmap WAVESYSTEM {
     return WSData.type == WaveTypes_WAVENULL;
   }
   public void init() {
-    _serverActive = true;
     this.update();
     AudioManager.Reset(true);
     core.tacobell = false;
@@ -186,7 +185,7 @@ methodmap WAVESYSTEM {
      else if (AudioManager.isClientInEventMode(i) && !(pos[0] >= 4708.0 && pos[0] <= 7000.0 && pos[1] >= -3712.0 && pos[1] <= 1408.0 && pos[2] >= -1270.0 && pos[2] <= 256.0)) AudioManager.setEventMode(i, AudioManager.GetDefaultBGM(), 0);
     }
   }
-  //Update internal gamemode identifier, reload configs if needed.
+  // Update internal gamemode identifier, reload configs if needed.
   public void update() {
     char logdata[192], popfile[128];
     int ent = FindEntityByClassname(-1, "tf_objective_resource");
@@ -209,7 +208,7 @@ methodmap WAVESYSTEM {
 WAVESYSTEM WS;
 WAVESYSTEM WaveSystem() { return WS; }
 
-//Wave failsafe system - To be implemented better by making an enum struct and doing failSafe[x].execute(); in FartsysAss.sp
+// Wave failsafe system - To be implemented better by making an enum struct and doing failSafe[x].execute(); in FartsysAss.sp
 void PerformWaveFailsafe(int x){
   switch(x) {
     case 0:{
@@ -221,7 +220,7 @@ void PerformWaveFailsafe(int x){
   }
 }
 
-//Get current wave
+// Get current wave
 public int GetCurWave() {
   int ent = FindEntityByClassname(-1, "tf_objective_resource");
   if (ent != -1) return GetEntData(ent, FindSendPropInfo("CTFObjectiveResource", "m_nMannVsMachineWaveCount"));
@@ -229,7 +228,7 @@ public int GetCurWave() {
   return -1;
 }
 
-//Adverts for wave information
+// Adverts for wave information
 public Action PerformWaveAdverts(Handle timer) {
   if (WaveSystem().IsActive()) {
     char buffer[16];
@@ -252,6 +251,76 @@ public Action PerformWaveAdverts(Handle timer) {
       }
     }
     CreateTimer(2.5, PerformWaveAdverts);
+  }
+  return Plugin_Stop;
+}
+public Action TimedAOEs(Handle timer){
+  if (WaveSystem().IsActive()){
+    for (int i = 0; i < GetRandomInt(1, 10); i++){
+      CreateTimer(i/10.0, TimedOperator, 201);
+    }
+    CreateTimer(GetRandomFloat(10.0, 45.0), TimedAOEs);
+  }
+  return Plugin_Stop;
+}
+
+// Place random AOE barrage
+void GroupedAOE() {
+  int ent = FindEntityByClassname(-1, "tf_objective_resource");
+  int bombBotLevel = GetEntData(ent, FindSendPropInfo("CTFObjectiveResource", "m_nFlagCarrierUpgradeLevel"));
+  switch(GetRandomInt(0, bombBotLevel+1)){
+    case 0:{
+
+    }
+    case 1:{
+
+    }
+    case 2:{
+
+    }
+    case 3:{
+
+    }
+    case 4:{
+
+    }
+  }
+}
+
+// Dispatch a circle AOE
+public Action DispatchCircleAOE(float pos[3]) {
+  int ent = FastFire2.FindEntityByTargetname("CircleTemplate", "point_template");
+  if (ent != -1) {
+    float v[3];
+    float rot[3];
+    TeleportEntity(ent, pos, rot, v);
+    FastFire2.Execute("CircleTemplate", "ForceSpawn");
+  }
+  return Plugin_Stop;
+}
+
+// RobotLaunchTimer (Randomly fling robots)
+public Action RobotLaunchTimer(Handle timer) {
+  if (WaveSystem().IsActive()) {
+  FastFire2.Execute("FB.RobotLauncher", "Enable", "", 0.0);
+  FastFire2.Execute("FB.RobotLauncher", "Disable", "", 7.5);
+  CreateTimer(GetRandomFloat(5.0, 30.0), RobotLaunchTimer); }
+  return Plugin_Stop;
+}
+
+// Adverts for tips/tricks
+public Action PerformAdverts(Handle timer) {
+  if (!WaveSystem().IsActive()) {
+    CreateTimer(180.0, PerformAdverts);
+    CPrintToChatAll(AdvMessage[GetRandomInt(0, 7)]); }
+  return Plugin_Stop;
+}
+
+// Feature admin timer
+public Action SelectAdminTimer(Handle timer) {
+  if (!WaveSystem().IsActive()) {
+    sudo(1002);
+    CreateTimer(GetRandomFloat(40.0, 120.0), SelectAdminTimer);
   }
   return Plugin_Stop;
 }

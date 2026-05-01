@@ -21,7 +21,7 @@ public Action Event_Cvar(Event event, const char[] name, bool dontBroadcast) {
   return Plugin_Handled;
 }
 
-//Sync client stats when they leave
+// On Client Disconnected
 public void OnClientDisconnect(int client) {
   AudioManager.OnClientDisconnect(client);
   int steamID = GetSteamAccountID(client);
@@ -31,7 +31,33 @@ public void OnClientDisconnect(int client) {
   GetClientInfo(client, "name", clientName, 128);
   Format(query, sizeof(query), "INSERT INTO ass_activity (name, steamid, date, seconds) VALUES ('%s', %d, CURRENT_DATE, %d) ON DUPLICATE KEY UPDATE name = '%s', seconds = seconds + VALUES(seconds);", clientName, steamID, GetClientMapTime(client), clientName);
   Ass_Database.Query(Database_FastQuery, query);
-  if (GetClientCount(false) == 0) { CreateTimer(600.0, TimedOperator, 99999); }
+  if (GetClientCount(false) == 0) { _serverActive = false; CreateTimer(300.0, ServerIdleThread); }
+}
+
+// On Client Connected
+public void OnClientPostAdminCheck(int client) {
+  int steamID = GetSteamAccountID(client);
+  if (!steamID || steamID <= 10000) return;
+  else {
+    _serverActive = true;
+    if (!Ass_Database) {
+      PrintToServer("No database detected, setting soundPreference for %N to default.", client);
+      soundPreference[client] = GetConVarInt(cvarSNDDefault);
+      g_SirenEnabled[client] = GetConVarBool(cvarSirenEnabledDefault);
+      g_SirenMutesMusic[client] = GetConVarBool(cvarSirenMutesMusicDefault);
+    }
+    if (!core.tickingClientHealth) {
+      CreateTimer(1.0, TickClientHealth);
+      core.tickingClientHealth = true;
+    }
+    if (!IsFakeClient(client)) AudioManager.OnClientConnected(client);
+    char query[1024];
+    Format(query, sizeof(query), "INSERT INTO ass_activity (name, steamid, date, damagedealtsession, killssession, deathssession, bombsresetsession, sacrificessession) VALUES ('%N', %d, CURRENT_DATE, 0, 0, 0, 0, 0) ON DUPLICATE KEY UPDATE name = '%N', date = CURRENT_DATE, damagedealtsession = 0, killssession = 0, deathssession = 0, bombsresetsession = 0, sacrificessession = 0;", client, steamID, client);
+    Ass_Database.Query(Database_FastQuery, query);
+    char queryID[256];
+    Format(queryID, sizeof(queryID), "SELECT soundprefs from ass_activity WHERE steamid = '%d';", steamID);
+    Ass_Database.Query(SQL_SNDPrefs, queryID, client);
+  }
 }
 
 //Check who spawned and log their class
@@ -134,31 +160,6 @@ public Action SacrificeClient(int client, int attacker, bool wasBombReset) {
     Ass_Database.Query(Database_FastQuery, query);
   }
   return Plugin_Handled;
-}
-
-//Queue music for new clients, also track their stats.
-public void OnClientPostAdminCheck(int client) {
-  int steamID = GetSteamAccountID(client);
-  if (!steamID || steamID <= 10000) return;
-  else {
-    if (!Ass_Database) {
-      PrintToServer("No database detected, setting soundPreference for %N to default.", client);
-      soundPreference[client] = GetConVarInt(cvarSNDDefault);
-      g_SirenEnabled[client] = GetConVarBool(cvarSirenEnabledDefault);
-      g_SirenMutesMusic[client] = GetConVarBool(cvarSirenMutesMusicDefault);
-    }
-    if (!core.tickingClientHealth) {
-      CreateTimer(1.0, TickClientHealth);
-      core.tickingClientHealth = true;
-    }
-    if (!IsFakeClient(client)) AudioManager.OnClientConnected(client);
-    char query[1024];
-    Format(query, sizeof(query), "INSERT INTO ass_activity (name, steamid, date, damagedealtsession, killssession, deathssession, bombsresetsession, sacrificessession) VALUES ('%N', %d, CURRENT_DATE, 0, 0, 0, 0, 0) ON DUPLICATE KEY UPDATE name = '%N', date = CURRENT_DATE, damagedealtsession = 0, killssession = 0, deathssession = 0, bombsresetsession = 0, sacrificessession = 0;", client, steamID, client);
-    Ass_Database.Query(Database_FastQuery, query);
-    char queryID[256];
-    Format(queryID, sizeof(queryID), "SELECT soundprefs from ass_activity WHERE steamid = '%d';", steamID);
-    Ass_Database.Query(SQL_SNDPrefs, queryID, client);
-  }
 }
 
 // Send a death message for a client

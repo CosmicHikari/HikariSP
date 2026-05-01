@@ -1,5 +1,5 @@
 // Hikari's Boss Handler
-char HRBOSS_VER[8] = "1.1.3";
+char HRBOSS_VER[8] = "1.2.0";
 
 bool canCrusaderNuke = false;
 bool crusader = false;
@@ -229,8 +229,8 @@ enum struct BOSSHANDLER {
         vel[0] = 0.0;
         vel[1] = 0.0;
         vel[2] = 0.0;
-        int BossEnt = FindEntityByTargetname("FB.BruteJusticeTrain", "func_tracktrain");
-        int BossTP = FindEntityByTargetname("FB.OnslaughterBase", "base_boss");
+        int BossEnt = FastFire2.FindEntityByTargetname("FB.BruteJusticeTrain", "func_tracktrain");
+        int BossTP = FastFire2.FindEntityByTargetname("FB.OnslaughterBase", "base_boss");
         if (!IsValidEntity(BossTP)) { sudo(13); this.OnKilled(); }
         GetEntPropVector(BossEnt, Prop_Send, "m_vecOrigin", pos);
         GetEntPropVector(BossEnt, Prop_Data, "m_angRotation", ang);
@@ -241,12 +241,12 @@ enum struct BOSSHANDLER {
       }
       case 1: {  }
       case 2: {
-        this.iBossEnt = FindEntityByTargetname("FB.MetalBase", "base_boss");
+        this.iBossEnt = FastFire2.FindEntityByTargetname("FB.MetalBase", "base_boss");
         if (!IsValidEntity(this.iBossEnt))this.iBossPhase = 4;
         else {
           this.iBossEntHealth = GetEntProp(this.iBossEnt, Prop_Data, "m_iHealth");
           this.iBossEntMaxHealth = GetEntProp(this.iBossEnt, Prop_Data, "m_iMaxHealth");
-          this.iBossEntTarget = FindEntityByTargetname("FB.MetalFace.Train", "func_tracktrain");
+          this.iBossEntTarget = FastFire2.FindEntityByTargetname("FB.MetalFace.Train", "func_tracktrain");
           GetEntPropVector(this.iBossEntTarget, Prop_Send, "m_vecOrigin", this.fPos);
           GetEntPropVector(this.iBossEntTarget, Prop_Data, "m_angRotation", this.fAng);
           float vel[3];
@@ -403,14 +403,14 @@ enum struct BOSSHANDLER {
     float sPos[3]; //Sign/Arrow's Target Position
     float rPos[3];
     float fVelocity[3]; //Velocity for teleporting entities, used for angles as well so we don't need two vectors.
-    if (!IsValidEntity(FindEntityByTargetname("FB.TankBuster", "trigger_hurt"))) return;
+    if (!IsValidEntity(FastFire2.FindEntityByTargetname("FB.TankBuster", "trigger_hurt"))) return;
     else {
-      int iAirParticle = FindEntityByTargetname("FB.TankBuster.AirParticle", "func_brush");
-      int iBuster = FindEntityByTargetname("FB.TankBuster", "trigger_hurt");
-      int iExploParticle = FindEntityByTargetname("FB.TankBuster.ExplodeParticle", "info_particle_system");
-      int iParticle = FindEntityByTargetname("FB.TankBuster.GroundParticle", "info_particle_system");
-      int iSign = FindEntityByTargetname("FB.TankBuster.Sign", "func_rotating");
-      int iSpin = FindEntityByTargetname("FB.TankBuster.Spinner", "func_rotating");
+      int iAirParticle = FastFire2.FindEntityByTargetname("FB.TankBuster.AirParticle", "func_brush");
+      int iBuster = FastFire2.FindEntityByTargetname("FB.TankBuster", "trigger_hurt");
+      int iExploParticle = FastFire2.FindEntityByTargetname("FB.TankBuster.ExplodeParticle", "info_particle_system");
+      int iParticle = FastFire2.FindEntityByTargetname("FB.TankBuster.GroundParticle", "info_particle_system");
+      int iSign = FastFire2.FindEntityByTargetname("FB.TankBuster.Sign", "func_rotating");
+      int iSpin = FastFire2.FindEntityByTargetname("FB.TankBuster.Spinner", "func_rotating");
       GetClientAbsOrigin(this.bustTarget, cPos);
       rPos[0] = cPos[0];
       rPos[1] = cPos[1];
@@ -460,13 +460,13 @@ enum struct BOSSHANDLER {
     float rPos[3];
     float nPos[3];
     float fVelocity[3]; //Velocity for teleporting entities, used for angles as well so we don't need two vectors.
-    int iAirParticle = FindEntityByTargetname("FB.TankBuster.AirParticle", "func_brush");
-    int iBuster = FindEntityByTargetname("FB.TankBuster", "trigger_hurt");
-    int iExploParticle = FindEntityByTargetname("FB.TankBuster.ExplodeParticle", "info_particle_system");
-    int iParticle = FindEntityByTargetname("FB.TankBuster.GroundParticle", "info_particle_system");
-    int iSign = FindEntityByTargetname("FB.TankBuster.Sign", "func_rotating");
-    int iSpin = FindEntityByTargetname("FB.TankBuster.Spinner", "func_rotating");
-    int iNukeTemplate = FindEntityByTargetname("PL.NukeCart", "env_entity_maker");
+    int iAirParticle = FastFire2.FindEntityByTargetname("FB.TankBuster.AirParticle", "func_brush");
+    int iBuster = FastFire2.FindEntityByTargetname("FB.TankBuster", "trigger_hurt");
+    int iExploParticle = FastFire2.FindEntityByTargetname("FB.TankBuster.ExplodeParticle", "info_particle_system");
+    int iParticle = FastFire2.FindEntityByTargetname("FB.TankBuster.GroundParticle", "info_particle_system");
+    int iSign = FastFire2.FindEntityByTargetname("FB.TankBuster.Sign", "func_rotating");
+    int iSpin = FastFire2.FindEntityByTargetname("FB.TankBuster.Spinner", "func_rotating");
+    int iNukeTemplate = FastFire2.FindEntityByTargetname("PL.NukeCart", "env_entity_maker");
     GetClientAbsOrigin(this.bustNukeTarget, cPos);
     rPos[0] = cPos[0];
     rPos[1] = cPos[1];
@@ -495,12 +495,12 @@ enum struct BOSSHANDLER {
     this.tickBuster = false;
     float bossOrigin[3];
     float targetOrigin[3];
-    int targetEnt = FindEntityByTargetname("capturezone_blue", "func_capturezone");
+    int targetEnt = FastFire2.FindEntityByTargetname("capturezone_blue", "func_capturezone");
     GetEntPropVector(targetEnt, Prop_Send, "m_vecOrigin", targetOrigin);
     switch (this.bossID) {
       //Onslaughter Won
       case 0: {
-        int bossEnt = FindEntityByTargetname("FB.MetalBase", "base_boss");
+        int bossEnt = FastFire2.FindEntityByTargetname("FB.MetalBase", "base_boss");
         if (bossEnt == -1)return;
         GetEntPropVector(bossEnt, Prop_Send, "m_vecOrigin", bossOrigin);
         if (GetVectorDistance(bossOrigin, targetOrigin) < 2200) {
@@ -513,7 +513,7 @@ enum struct BOSSHANDLER {
       }
       //Metallizer Won
       case 2: {
-        int bossEnt = FindEntityByTargetname("FB.MetalBase", "base_boss");
+        int bossEnt = FastFire2.FindEntityByTargetname("FB.MetalBase", "base_boss");
         if (bossEnt == -1)return;
         GetEntPropVector(bossEnt, Prop_Send, "m_vecOrigin", bossOrigin);
         if (GetVectorDistance(bossOrigin, targetOrigin) < 2200) {
@@ -819,7 +819,7 @@ public Action OnBossSpawn_Post(Handle timer, int hp) {
 
 //Teleport all entities to the client every frame
 public Action StartTickBuster(Handle timer) {
-  if (ICanSummon(12) && !IsValidEntity(FindEntityByTargetname("FB.TankBuster", "trigger_hurt"))) FastFire2.Execute("TankBusterTemplate", "ForceSpawn")
+  if (ICanSummon(12) && !IsValidEntity(FastFire2.FindEntityByTargetname("FB.TankBuster", "trigger_hurt"))) FastFire2.Execute("TankBusterTemplate", "ForceSpawn")
   BossHandler.tickBuster = true;
   return Plugin_Stop;
 }
@@ -833,12 +833,12 @@ public Action ResetTickBuster(Handle time) {
     -1334.989990
   };
   float fVelocity[3];
-  int iAirParticle = FindEntityByTargetname("FB.TankBuster.AirParticle", "func_brush");
-  int iBuster = FindEntityByTargetname("FB.TankBuster", "trigger_hurt");
-  int iExploParticle = FindEntityByTargetname("FB.TankBuster.ExplodeParticle", "info_particle_system");
-  int iParticle = FindEntityByTargetname("FB.TankBuster.GroundParticle", "info_particle_system");
-  int iSign = FindEntityByTargetname("FB.TankBuster.Sign", "func_rotating");
-  int iSpin = FindEntityByTargetname("FB.TankBuster.Spinner", "func_rotating");
+  int iAirParticle = FastFire2.FindEntityByTargetname("FB.TankBuster.AirParticle", "func_brush");
+  int iBuster = FastFire2.FindEntityByTargetname("FB.TankBuster", "trigger_hurt");
+  int iExploParticle = FastFire2.FindEntityByTargetname("FB.TankBuster.ExplodeParticle", "info_particle_system");
+  int iParticle = FastFire2.FindEntityByTargetname("FB.TankBuster.GroundParticle", "info_particle_system");
+  int iSign = FastFire2.FindEntityByTargetname("FB.TankBuster.Sign", "func_rotating");
+  int iSpin = FastFire2.FindEntityByTargetname("FB.TankBuster.Spinner", "func_rotating");
   TeleportEntity(iAirParticle, fAirPart, fVelocity, fVelocity);
   TeleportEntity(iParticle, fAirPart, fVelocity, fVelocity);
   TeleportEntity(iExploParticle, fAirPart, fVelocity, fVelocity);
