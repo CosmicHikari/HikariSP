@@ -1,5 +1,5 @@
 // Hikari's FastFire2 - Used for interacting with map logic
-char FF2_VER[7] = "2.1.2";
+char FF2_VER[7] = "2.2.0";
 int ff2Ref;
 
 // Used for any time we need to fo a LOT of things in quick succession... Or when we want to do something at random using arrayname[index].fireStr.
@@ -14,12 +14,20 @@ void OnBulkfireStartup(const char[] path) {
   CreateDirectory(finalPath);
 }
 
+// Check if <intent> entities can spawn
+bool ICanSummon(int intent) {
+  int count = 0;
+  int maxEntities = GetMaxEntities();
+  for (int i = 1; i <= maxEntities; i++) { if (IsValidEntity(i)) { count++; } }
+  return (count + intent) < maxEntities;
+}
+
 methodmap FASTFIRE2 {
   // Create Entities with optional name
   // @param classname - The entity class name to be created
   // @param targetname - The name of the created entity
   public int CreateCustomEntity(char[] classname, char[] targetname) {
-    int cce = FindEntityByTargetname(targetname, classname);
+    int cce = this.FindEntityByTargetname(targetname, classname);
     if (!IsValidEntity(cce) && ICanSummon(1)) {
       cce = CreateEntityByName(classname);
       if (!IsValidEdict(cce)) { LogError("[FastFire2] Could not create %s, aborting!", classname); return -2; }
@@ -28,6 +36,12 @@ methodmap FASTFIRE2 {
       ActivateEntity(cce);
     }
     return cce;
+  }
+  // Finds an entity by its target name
+  public int FindEntityByTargetname(char[] targetname, char[] classname) {
+    char namebuf[128]; int index = -1; namebuf[0] = '\0';
+    while(strcmp(namebuf, targetname) != 0 && (index = FindEntityByClassname(index, classname)) != -1) { GetEntPropString(index, Prop_Data, "m_iName", namebuf, sizeof(namebuf)); }
+    return(index);
   }
   // Hikari's ent_fire interface
   // @param target The target entity - if it contains OnUser1, this will become the entire io string. Example: `FastFire2("OnUser1 Operator,Command,sm_example,0.69,1");`
@@ -59,7 +73,7 @@ FASTFIRE2 FastFire2;
 // Startup event - Inject entity IO logic
 public void OnMapStart() {
   LogMessage("[FastFire2] OnMapStart Received: Injecting FastFire2! (v%s)", FF2_VER);
-  int ff2 = FindEntityByTargetname("FastFire2", "info_target"); 
+  int ff2 = FastFire2.FindEntityByTargetname("FastFire2", "info_target"); 
   if (!IsValidEntity(ff2)) {
     ff2 = FastFire2.CreateCustomEntity("info_target", "FastFire2");
     if (!IsValidEntity(ff2)) { SetFailState("Could not inject FastFire2, aborting!!!"); } // If the entity still doesn't exist, abort loading.

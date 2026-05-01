@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.6.0";
+char HSE_VER[8] = "2.6.5";
 
 // Used to make lasers
 enum struct LaserData {
@@ -324,12 +324,13 @@ methodmap AUDIOMANAGER {
     switch (event) {
       // Create Configs
       case 0: {
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager is starting up...", HSE_VER);
         FormatEx(finalPath, sizeof(finalPath), "%s/Files", finalPath); if (!DirExists(finalPath)) CreateDirectory(finalPath, 711);
         char MusicPath[PLATFORM_MAX_PATH];
         FormatEx(MusicPath, sizeof(MusicPath), "%s/Music.json", finalPath);
         if (!FileExists(MusicPath)) { 
           Handle file = OpenFile(MusicPath, "w");
-          if (file == null) { LightLogger(LOGLVL_ERROR, "Failed to open config file: %s", MusicPath); CloseHandle(file); return; }
+          if (file == null) { LightLogger(LOGLVL_ERROR, "[Enhancer @ v%s] AudioManager failed to open config file: %s", HSE_VER, MusicPath); CloseHandle(file); return; }
           WriteFileLine(file, "{");
           WriteFileLine(file, "  \"Music\": {");
           for (int i = 0; i < sizeof(BGMArray); i++) {
@@ -343,15 +344,15 @@ methodmap AUDIOMANAGER {
           }
           WriteFileLine(file, "  }");
           WriteFileLine(file, "}");
-          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Generated Default Config: %s", HSE_VER, MusicPath);
           CloseHandle(file);
+          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager generated Default Config: %s", HSE_VER, MusicPath);
         }
         this.OnStartup(1, MusicPath);
         char SFXPath[PLATFORM_MAX_PATH];
         FormatEx(SFXPath, sizeof(SFXPath), "%s/SFX.json", finalPath);
         if (!FileExists(SFXPath)) {
           Handle file = OpenFile(SFXPath, "w");
-          if (file == null) { LightLogger(LOGLVL_ERROR, "Failed to create config file: %s", SFXPath); CloseHandle(file); return; }
+          if (file == null) { LightLogger(LOGLVL_ERROR, "[Enhancer @ v%s] AudioManager failed to open config file: %s", HSE_VER, SFXPath); CloseHandle(file); return; }
           WriteFileLine(file, "{");
           WriteFileLine(file, "  \"SFX\": {");
           for (int i = 0; i < sizeof(SFXArray); i++) {
@@ -363,8 +364,8 @@ methodmap AUDIOMANAGER {
           }
           WriteFileLine(file, "  }");
           WriteFileLine(file, "}");
-          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Generated Default Config: %s", HSE_VER, SFXPath);
           CloseHandle(file);
+          LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager generated Default Config: %s", HSE_VER, SFXPath);
         }
         this.OnStartup(1, SFXPath);
         RegAdminCmd("sm_music", Command_Music, ADMFLAG_RESERVATION, "Set music to be played for the next wave");
@@ -379,7 +380,7 @@ methodmap AUDIOMANAGER {
       case 1: {
         // Setup json loader
         Handle jsHandle = json_load_file(finalPath); if (jsHandle == INVALID_HANDLE) { CloseHandle(jsHandle); SetFailState("Failed to load json %s", finalPath); }
-        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Loading Config %s...", HSE_VER, finalPath);
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager is Loading Config %s...", HSE_VER, finalPath);
 
         // Attempt to locate headers
         bool isMusic = (StrContains(finalPath, "Music") != -1);
@@ -420,7 +421,7 @@ methodmap AUDIOMANAGER {
         for (int i = 0; i < sizeof(BGMArray); i++) {
           if (!StrEqual(BGMArray[i].realPath, "")) {
             bgmIndex++;
-            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] Precaching BGM: %s (%s), Duration %f seconds, Start Loop Point %f seconds, Volume %i @ %i", HSE_VER, BGMArray[i].songName, BGMArray[i].realPath, BGMArray[i].loopSeconds, BGMArray[i].introSeconds, BGMArray[i].SNDLVL, i);
+            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] AudioManager is Precaching BGM: %s (%s), Duration %f seconds, Start Loop Point %f seconds, Volume %i @ %i", HSE_VER, BGMArray[i].songName, BGMArray[i].realPath, BGMArray[i].loopSeconds, BGMArray[i].introSeconds, BGMArray[i].SNDLVL, i);
             PrecacheSound(BGMArray[i].realPath, true);
           }
         }
@@ -428,25 +429,14 @@ methodmap AUDIOMANAGER {
         for (int i = 0; i < sizeof(SFXArray); i++) {
           if (!StrEqual(SFXArray[i].realPath, "")) {
             sfxIndex++;
-            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] Precaching SFX: %s @ %i", HSE_VER, SFXArray[i].realPath, i);
+            LightLogger(LOGLVL_DEBUG, "[Enhancer @ v%s] AudioManager is Precaching SFX: %s @ %i", HSE_VER, SFXArray[i].realPath, i);
             PrecacheSound(SFXArray[i].realPath, true);
           }
         }
-        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Done! BGM Count: %i, SFX Count: %i, Total: %i files loaded to RAM.", HSE_VER, bgmIndex, sfxIndex, bgmIndex + sfxIndex);
+        if (!StrEqual(BGMArray[1].realPath, "") && (!StrEqual(SFXArray[0].realPath, ""))) LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] AudioManager is Ready! BGM Count: %i, SFX Count: %i, Total: %i files precached.", HSE_VER, bgmIndex, sfxIndex, bgmIndex + sfxIndex);
       }
     }
   }
-
-  public void LoadConfig(const char[] path) {
-    char curPath[PLATFORM_MAX_PATH]; FormatEx(curPath, sizeof(curPath), "%s/Files", path); if (!DirExists(curPath)) return;
-    //FormatEx(curPath, sizeof(curPath), type == 0 ? "%s/Files/Music.json" : "%s/Files/SFX.json", path);
-  }
-    /*
-      case 1: {
-        
-      }
-    }
-  }*/
 }
 AUDIOMANAGER AudioManager;
 
@@ -588,10 +578,10 @@ enum struct MAPLIGHTING {
   char zap[32];
   void Explode() {
     if (this.isBroken) return;
-    float dest[3]; GetEntPropVector(FindEntityByTargetname(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
+    float dest[3]; GetEntPropVector(FastFire2.FindEntityByTargetname(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
     dest[2] = dest[2] - 8.0;
-    TeleportEntity(FindEntityByTargetname(this.explosion, "env_explosion"), dest, _, _);
-    this.isBroken = true;
+    TeleportEntity(FastFire2.FindEntityByTargetname("MapLighting.StreetLamp.Explosion", "env_explosion"), dest, _, _);
+    LightLogger(LOGLVL_WARN, "[Enhancer:584] MAPLIGHTING SHOULD NOT BE A CONSTANT HERE."); // In favor of configs
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.0);
     FastFire2.Execute(this.arcs, "StartSpark", "", 0.1);
     FastFire2.Execute(this.beam, "LightOff", "", 0.0);
@@ -601,6 +591,7 @@ enum struct MAPLIGHTING {
     FastFire2.Execute(this.status, "Color", "255 0 0", 0.0);
     FastFire2.Execute(this.stun, "Enable", "", 0.0);
     FastFire2.Execute(this.zap, "Enable", "", 0.0);
+    this.isBroken = true;
   }
   void Repair() {
     this.isBroken = false;
@@ -775,9 +766,10 @@ methodmap WEATHERMANAGER {
     WDATA.intensity = WaveSystem().IsActive() ? 7 : 0;
     if (WDATA.sirenExploded) { WDATA.sirenPitch = 0.0; WDATA.sirenExploded = false; }
     WDATA.TornadoWarning = false;
-    StopAttackZone(g_WeatherZone);
+    SetZoneActive(g_WeatherZone, false);
     CreateTimer(GetRandomFloat(45.0, 135.0), ResetTornado);
     for (int i = 0; i < sizeof(MapLighting); i++) if (!MapLighting[i].isBroken)FastFire2.Execute(MapLighting[i].light, "TurnOn");
+    for (int i = 0; i < MaxClients; i++) { if (IsValidClient(i)) SetEntityGravity(i, 1.0); }
     FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerp", "%f", _, _, WDATA.defFogStartDist);
     FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerp", "%f", _, _, WDATA.defFogEndDist);
     FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition");
@@ -892,9 +884,9 @@ methodmap WEATHERMANAGER {
     FastFire2.Execute("Weather.Sky", "Enable");
     FastFire2.Execute("Weather.Sky", "Skin", "0");
     FastFire2.Execute("Weather.FogSky", "Enable", "", 2.0);
-    for (int i = 0; i < sizeof(MapLighting); i++)MapLighting[i].Repair();
+    for (int i = 0; i < sizeof(MapLighting); i++) { MapLighting[i].Repair(); SetZoneActive(g_Lights[i], false); }
     WDATA.sirenPos = {-2305.0, 2095.0, 1102.0};
-    int siren = FindEntityByTargetname("WeatherSiren", "info_target");
+    int siren = FastFire2.FindEntityByTargetname("WeatherSiren", "info_target");
     if (!IsValidEntity(siren)) {
       siren = CreateEntityByName("info_target");
       if (!IsValidEdict(siren)) SetFailState("Could not inject Siren Entity, aborting!!!");
@@ -941,17 +933,17 @@ methodmap WEATHERMANAGER {
     if (WDATA.fogDensity != WDATA.fogTarget || WDATA.reset) {
       char targetAlpha[4];
       char targetDensity[24];
-      WDATA.fogDensity = (WDATA.fogDensity < WDATA.fogTarget) ? FloatMin(Maths().Adjust(WDATA.fogDensity, WDATA.fogChangeRate), WDATA.fogTarget) : FloatMax(Maths().Adjust(WDATA.fogDensity, -WDATA.fogChangeRate), WDATA.fogTarget);
-      IntToString(RoundFloat(FloatMin(255.0 * (WDATA.fogDensity * 1.20), 255.0)), targetAlpha, sizeof(targetAlpha));
+      WDATA.fogDensity = (WDATA.fogDensity < WDATA.fogTarget) ? Maths().FloatMin(Maths().Adjust(WDATA.fogDensity, WDATA.fogChangeRate), WDATA.fogTarget) : Maths().FloatMax(Maths().Adjust(WDATA.fogDensity, -WDATA.fogChangeRate), WDATA.fogTarget);
+      IntToString(RoundFloat(Maths().FloatMin(255.0 * (WDATA.fogDensity * 1.20), 255.0)), targetAlpha, sizeof(targetAlpha));
       FloatToString(WDATA.fogDensity, targetDensity, sizeof(targetDensity));
       FastFire2.Execute("Weather.FogOutdoor", "SetMaxDensity", targetDensity);
       FastFire2.Execute("Weather.FogSky", "Alpha", targetAlpha);
     }
     if (WDATA.fogColorR != WDATA.fogColorRTarget || WDATA.fogColorG != WDATA.fogColorGTarget || WDATA.fogColorB != WDATA.fogColorBTarget || WDATA.reset) {
       char target[24];
-      WDATA.fogColorR = (WDATA.fogColorR < WDATA.fogColorRTarget) ? FloatMin(WDATA.fogColorR += WDATA.fogChangeRateRGB, WDATA.fogColorRTarget) : FloatMax(WDATA.fogColorR -= WDATA.fogChangeRateRGB, WDATA.fogColorRTarget);
-      WDATA.fogColorG = (WDATA.fogColorG < WDATA.fogColorGTarget) ? FloatMin(WDATA.fogColorG += WDATA.fogChangeRateRGB, WDATA.fogColorGTarget) : FloatMax(WDATA.fogColorG -= WDATA.fogChangeRateRGB, WDATA.fogColorGTarget);
-      WDATA.fogColorB = (WDATA.fogColorB < WDATA.fogColorBTarget) ? FloatMin(WDATA.fogColorB += WDATA.fogChangeRateRGB, WDATA.fogColorBTarget) : FloatMax(WDATA.fogColorB -= WDATA.fogChangeRateRGB, WDATA.fogColorBTarget);
+      WDATA.fogColorR = (WDATA.fogColorR < WDATA.fogColorRTarget) ? Maths().FloatMin(WDATA.fogColorR += WDATA.fogChangeRateRGB, WDATA.fogColorRTarget) : Maths().FloatMax(WDATA.fogColorR -= WDATA.fogChangeRateRGB, WDATA.fogColorRTarget);
+      WDATA.fogColorG = (WDATA.fogColorG < WDATA.fogColorGTarget) ? Maths().FloatMin(WDATA.fogColorG += WDATA.fogChangeRateRGB, WDATA.fogColorGTarget) : Maths().FloatMax(WDATA.fogColorG -= WDATA.fogChangeRateRGB, WDATA.fogColorGTarget);
+      WDATA.fogColorB = (WDATA.fogColorB < WDATA.fogColorBTarget) ? Maths().FloatMin(WDATA.fogColorB += WDATA.fogChangeRateRGB, WDATA.fogColorBTarget) : Maths().FloatMax(WDATA.fogColorB -= WDATA.fogChangeRateRGB, WDATA.fogColorBTarget);
       Format(target, sizeof(target), "%i %i %i", RoundFloat(WDATA.fogColorR), RoundFloat(WDATA.fogColorG), RoundFloat(WDATA.fogColorB));
       FastFire2.Execute("Weather.FogIndoor", "SetColor", target);
       FastFire2.Execute("Weather.FogIndoor", "SetColorSecondary", target);
@@ -982,7 +974,7 @@ methodmap WEATHERMANAGER {
         WDATA.sirenExploded = true;
       }
       if (WDATA.sirenPitch != WDATA.sirenPitchTarget && !WDATA.sirenExploded) {
-        WDATA.sirenPitch = (WDATA.sirenPitch < WDATA.sirenPitchTarget) ? FloatMin(WDATA.sirenPitch += WDATA.sirenPitchRate, WDATA.sirenPitchTarget) : FloatMax(WDATA.sirenPitch -= WDATA.sirenPitchRate, WDATA.sirenPitchTarget);
+        WDATA.sirenPitch = (WDATA.sirenPitch < WDATA.sirenPitchTarget) ? Maths().FloatMin(WDATA.sirenPitch += WDATA.sirenPitchRate, WDATA.sirenPitchTarget) : Maths().FloatMax(WDATA.sirenPitch -= WDATA.sirenPitchRate, WDATA.sirenPitchTarget);
         int siren = EntRefToEntIndex(sirenRef);
         for (int i = 0; i < MaxClients; i++) if (IsValidClient(i) && g_SirenEnabled[i]) {
           CSEClientEx(i, SFXArray[119].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
@@ -1007,7 +999,7 @@ methodmap WEATHERMANAGER {
     float tornadoPos[3];
     bool found = false;
     int tornado = -1;
-    while ((tornado = FindEntityByTargetname("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
+    while ((tornado = FastFire2.FindEntityByTargetname("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
     if (!found) { PrintToServer("No tornado found."); return; }
     for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
       float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
@@ -1015,15 +1007,15 @@ methodmap WEATHERMANAGER {
       float dy = tornadoPos[1] - entPos[1];
       float distance2D = SquareRoot(dx*dx + dy*dy);
       if (IsValidClient(i)) PrintToChat(i, "Your distance to the tornado is %f", distance2D);
-      float str = 1.0 - ((distance2D / 1250.0) * (distance2D / 1250.0));
-      if (distance2D <= 1250.0) {
+      float str = 1.0 - ((distance2D / 2150.0) * (distance2D / 2150.0));
+      if (distance2D <= 1700.0) {
         float v[3]; GetEntPropVector(i, Prop_Data, "m_vecVelocity", v);
-        v[2] = (2000.0 * str);
+        v[2] = (3000.0 * str);
         TeleportEntity(i, NULL_VECTOR, NULL_VECTOR, v);
         char classname[32]; GetEntityClassname(i, classname, sizeof(classname));
         if (StrEqual(classname, "tank_boss")) { AttackEntity(i, 10000000.0, DMG_GENERIC); FastFire2.Execute("FB.FakeTankSpawner", "ForceSpawn"); }
       }
-      SetEntityGravity(i, distance2D <= 1250.0 ? str : 1.0);
+      SetEntityGravity(i, distance2D <= 2150.0 ? str : 1.0);
     }
   }
   public void TryFormTornado() {
@@ -1063,6 +1055,7 @@ methodmap WEATHERMANAGER {
     switch (event) {
       // Create Configs
       case 0: {
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] WeatherManager is starting up...", HSE_VER);
         FormatEx(finalPath, sizeof(finalPath), "%s/Weather", finalPath); if (!DirExists(finalPath)) CreateDirectory(finalPath, 711);
         FormatEx(finalPath, sizeof(finalPath), "%s/WeatherManager.json", finalPath);
         if (!FileExists(finalPath)) { 
@@ -1102,7 +1095,7 @@ methodmap WEATHERMANAGER {
       case 1 : {
         // Setup json loader
         Handle jsHandle = json_load_file(finalPath); if (jsHandle == INVALID_HANDLE) { CloseHandle(jsHandle); SetFailState("Failed to load json %s", finalPath); }
-        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] Loading Config %s...", HSE_VER, finalPath);
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] WeatherManager is Loading Config %s...", HSE_VER, finalPath);
       
         // Attempt to locate headers
         Handle jsHeader = json_object_get(jsHandle, "WeatherManager");
@@ -1135,6 +1128,7 @@ methodmap WEATHERMANAGER {
           jsIter = json_object_iter_next(jsHeader, jsIter);
         }
         CloseHandle(jsIter); CloseHandle(jsHeader); CloseHandle(jsHandle);
+        LightLogger(LOGLVL_INFO, "[Enhancer @ v%s] WeatherManager is Ready!", HSE_VER);
       }
     }
   }
@@ -1175,9 +1169,7 @@ public Action ResetTornado(Handle timer) {
 public Action RestorePower(Handle timer, int surge) {
   g_PowerOutage = false;
   WeatherManager.setPowerSurging((surge == 1) ? true : false);
-  if (surge == 1) {
-    CreateTimer(1.0, SurgePower);
-  }
+  if (surge == 1) { CreateTimer(1.0, SurgePower); }
   for (int i = 0; i < sizeof(MapLighting); i++) MapLighting[i].RestorePower();
   FastFire2.Execute("MapLighting.Indoor*", "TurnOn");
   FastFire2.Execute("MapLighting.Indoor*", "LightOn");
@@ -1213,8 +1205,12 @@ public Action SurgePower(Handle timer) {
   if (WeatherManager.isPowerSurging()) {
     int target = GetRandomInt(0, 12);
     if (MapLighting[target].isBroken) target = GetRandomInt(0, 12);
+    PrintToChatAll("Targeting a %s", MapLighting[target].light);
+    MapLighting[target].isBroken ? PrintToChatAll("Yes it's broken") : PrintToChatAll("It is not broken");
     if (!MapLighting[target].isBroken) {
-      if (GetRandomInt(0, 7) == 5) MapLighting[target].Explode();
+      int rnd = GetRandomInt(0, 7);
+      PrintToChatAll("%i", rnd);
+      if (rnd == 5) { MapLighting[target].Explode(); SetupAttackZone(9000.0, DMG_SHOCK, g_Lights[target], false, 20, 0.1, 9999999.0); }
       FastFire2.Execute(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
       FastFire2.Execute(MapLighting[target].light, "TurnOn");
       FastFire2.Execute(MapLighting[target].beam, "LightOn");

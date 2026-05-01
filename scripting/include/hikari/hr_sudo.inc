@@ -1,5 +1,5 @@
-char SUDO_VER[8] = "1.2.0";
-void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[SUDO @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
+char SUDO_VER[8] = "1.2.1";
+void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[Sudo @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
   LightLogger(LOGLVL_DEBUG, "Calling sudo with %i", task);
@@ -56,7 +56,7 @@ void sudo(int task) {
     case 2550: { FastFire2.Execute("SpLaser00", "TurnOn"); }
     case 3000: {
     float flStart[3] = {-1500.0, 1375.0, -50.0};
-    int ent = FindEntityByTargetname("phys_model", "generic_actor") == -1 ? CreateEntityByName("generic_actor") : -1;
+    int ent = FastFire2.FindEntityByTargetname("phys_model", "generic_actor") == -1 ? CreateEntityByName("generic_actor") : -1;
     if (ent != -1) {
       DispatchKeyValue(ent, "targetname", "phys_model");
       DispatchKeyValue(ent, "model", "models/player/heavy.mdl");
@@ -65,13 +65,13 @@ void sudo(int task) {
       DispatchSpawn(ent);
       ActivateEntity(ent);
       TeleportEntity(ent, flStart, NULL_VECTOR, NULL_VECTOR);
-      int ent2 = FindEntityByTargetname("Spec.Burrito", "prop_dynamic");
+      int ent2 = FastFire2.FindEntityByTargetname("Spec.Burrito", "prop_dynamic");
       TeleportEntity(ent2, flStart, NULL_VECTOR, NULL_VECTOR);
       FastFire2.Execute("Spec.Burrito", "SetParent", "phys_model");
     }
  }
  case 3001: {
-  int ent = FindEntityByTargetname("phys_model", "generic_actor");
+  int ent = FastFire2.FindEntityByTargetname("phys_model", "generic_actor");
   if (ent == -1) { ThrowError("Entity not found!!!"); return; }
   SetEntityMoveType(ent, MOVETYPE_FLY);
   SetEntPropFloat(ent, Prop_Data, "m_flGravity", 0.0);
@@ -1137,8 +1137,9 @@ public Action TimedOperator(Handle timer, int job) {
       }
     }
     case 201:{
+      int attemptSpawn = 0;
       int i = GetRandomInt(0, sizeof(CircleAOEpos)-1);
-      if (!CircleAOEenabled[i]){
+      if (!CircleAOEenabled[i]) {
         if (attemptSpawn >= sizeof(CircleAOEpos)) return Plugin_Stop;
         attemptSpawn++;
         sudo(200);
@@ -1235,13 +1236,6 @@ public Action TimedOperator(Handle timer, int job) {
       ServerCommand("sv_cheats 0");
       EmitSoundToAll("fartsy/music/tcmusic/humanhypothesis.wav");
       return Plugin_Stop;
-    }
-    case 51000:{
-
-    }
-    case 99999:{
-      LightLogger(LOGLVL_INFO, "Server empty for 600s, restarting!");
-      ServerCommand("_restart");
     }
   }
   return Plugin_Stop;

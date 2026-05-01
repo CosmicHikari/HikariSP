@@ -1,34 +1,15 @@
-//ASS_HELPER - Contains the config loaders and all the plugin core data entries as well as some stocks required for base functionality.
-//Idle system
-bool _serverActive = false;
-public void OnClientDisconnect_Post() {
-  if (GetClientCount(false) == 0) {
-    _serverActive = false;
-    CreateTimer(300.0, ServerIdleThread);
-  }
-  return;
-}
-public Action ServerIdleThread(Handle timer) {
-  if (!_serverActive) ServerCommand("_restart");
-  return Plugin_Stop;
-}
-int attemptSpawn = 0;
+// Helper - Contains Methods such as checking if clients are valid, getting their max health, converting chars to bools, and doing math stuffs.
 
-public int GetHealerOfClient(int client){
-  for (int i = 1; i <= MaxClients; ++i){
+// Get the client's current healer
+public int GetHealerOfClient(int client) {
+  for (int i = 1; i <= MaxClients; ++i) {
     if(!IsValidClient(i) || GetClientTeam(i) == 3) continue;
     if (TF2_GetPlayerClass(i) == TFClass_Medic){
       int medigun = GetPlayerWeaponSlot(i, TFWeaponSlot_Secondary);
-      if (!IsValidEdict(medigun) || !IsValidEntity(medigun)){
-        PrintToServer("medigun returned null");
-        return -1;
-      }
-      char s[32];
-      GetEdictClassname(medigun, s, sizeof(s));
+      if (!IsValidEdict(medigun) || !IsValidEntity(medigun)) { PrintToServer("medigun returned null"); return -1; }
+      char s[32]; GetEdictClassname(medigun, s, sizeof(s));
       if (!strcmp(s, "tf_weapon_medigun", false)) {
-        if (GetEntProp(medigun, Prop_Send, "m_bHealing") && WaveSystem().IsActive()) {
-          if(GetEntPropEnt(medigun, Prop_Send, "m_hHealingTarget") == client) return i;
-        }
+        if (GetEntProp(medigun, Prop_Send, "m_bHealing") && WaveSystem().IsActive()) { if(GetEntPropEnt(medigun, Prop_Send, "m_hHealingTarget") == client) return i; }
       }
     }
   }
@@ -36,40 +17,20 @@ public int GetHealerOfClient(int client){
 }
 
 //Check if the client is valid
-stock bool IsValidClient(int client) {
-  if (0 < client) return (client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client)); else return false;
-}
+stock bool IsValidClient(int client) { if (0 < client) return (client <= MaxClients && IsClientInGame(client) && !IsFakeClient(client)); else return false; }
 
 //Calculate time spent on server in seconds
 int GetClientMapTime(int client) {
   float clientTime = GetClientTime(client), gameTime = GetGameTime();
-  if (clientTime > gameTime) {
-    return RoundToZero(gameTime);
-  }
+  if (clientTime > gameTime) { return RoundToZero(gameTime); }
   return RoundToZero(clientTime);
-}
-//Find an entity by its target name
-int FindEntityByTargetname(char[] targetname, char[] classname)
-{
-  char namebuf[32];
-  int index = -1;
-  namebuf[0] = '\0';
-
-  while(strcmp(namebuf, targetname) != 0 && (index = FindEntityByClassname(index, classname)) != -1){
-    GetEntPropString(index, Prop_Data, "m_iName", namebuf, sizeof(namebuf));
-  }
-  return(index);
 }
 
 //Get a client's health
-stock int TF2_GetPlayerMaxHealth(int client) {
-  return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client);
-}
+stock int TF2_GetPlayerMaxHealth(int client) { return GetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", _, client); }
 
 //Converts chars to bool by checking if it's a bool statement
-public bool CharToBool(const char[] str){
-  return (StrContains(str, "true") > 0 ? true : false);
-}
+public bool CharToBool(const char[] str) { return (StrContains(str, "true") != -1 ? true : false); }
 
 //Track and update client health
 public Action TickClientHealth(Handle timer) {
@@ -93,113 +54,70 @@ public Action TickClientHealth(Handle timer) {
   CreateTimer(1.0, TickClientHealth);
   return Plugin_Stop;
 }
-public Action TimedAOEs(Handle timer){
-  if (WaveSystem().IsActive()){
-    for (int i = 0; i < GetRandomInt(1, 10); i++){
-      CreateTimer(i/10.0, TimedOperator, 201);
-    }
-    CreateTimer(GetRandomFloat(10.0, 45.0), TimedAOEs);
-  }
-  return Plugin_Stop;
-}
-//Place random AOE barrage
-void GroupedAOE() {
-  int ent = FindEntityByClassname(-1, "tf_objective_resource");
-  int bombBotLevel = GetEntData(ent, FindSendPropInfo("CTFObjectiveResource", "m_nFlagCarrierUpgradeLevel"));
-  switch(GetRandomInt(0, bombBotLevel+1)){
-    case 0:{
-
-    }
-    case 1:{
-
-    }
-    case 2:{
-
-    }
-    case 3:{
-
-    }
-    case 4:{
-
-    }
-  }
-}
-
-// Returns the lesser of two floats
-stock float FloatMin(float a, float b) {
-  return a <= b ? a : b;
-}
-
-// Returns the greater of two floats
-stock float FloatMax(float a, float b) {
-  return a >= b ? a : b;
-}
 
 //Jump waves.
-public Action JumpToWave(int wave_number) {
+public void JumpToWave(int wave_number) {
   int flags = GetCommandFlags("tf_mvm_jump_to_wave");
   SetCommandFlags("tf_mvm_jump_to_wave", flags & ~FCVAR_CHEAT);
   ServerCommand("tf_mvm_jump_to_wave %d", wave_number);
   FakeClientCommand(0, "");
   SetCommandFlags("tf_mvm_jump_to_wave", flags | FCVAR_CHEAT);
-  return Plugin_Handled;
 }
-//Dispatch a circle AOE
-public Action DispatchCircleAOE(float pos[3]) {
-  int ent = FindEntityByTargetname("CircleTemplate", "point_template");
-  if (ent != -1) {
-    float v[3];
-    float rot[3];
-    TeleportEntity(ent, pos, rot, v);
-    FastFire2.Execute("CircleTemplate", "ForceSpawn");
+
+/* Sends hud text to players
+* @param channel The channel to use (1 - 4)
+* @param text The text to display
+* @param posX X pos L-R (0 to 1)
+* @param posY Y pos U-D (0 to 1)
+* @param holdTime Time to display the text
+* @param color1[4] Target Color rgba
+* @param color2[4] Initial Color rgba
+* @param effect 0/1 Fade In / Out, 2 = Scan Out
+* @param fxTime Time it takes for the effect to run
+* @param fadeIn Time it takes for the text to fade in
+* @param fadeOut Time it takes for the text to fade out
+*/
+void SendHudTextAll(int channel, const char[] text, float posX, float posY, float holdTime, int color1[4], int color2[4], int effect, float fxTime, float fadeIn, float fadeOut){
+  for (int i = 1; i <= MaxClients; i++) {
+    if (IsClientInGame(i)) {
+      SetHudTextParamsEx(posX, posY, holdTime, color1, color2, effect, fxTime, fadeIn, fadeOut);
+      ShowHudText(i, channel, text);
+    }
   }
-  return Plugin_Stop;
 }
 
-//RobotLaunchTimer (Randomly fling robots)
-public Action RobotLaunchTimer(Handle timer) {
-  if (!WaveSystem().IsActive()) return Plugin_Stop;
-  FastFire2.Execute("FB.RobotLauncher", "Enable", "", 0.0);
-  FastFire2.Execute("FB.RobotLauncher", "Disable", "", 7.5);
-  CreateTimer(GetRandomFloat(5.0, 30.0), RobotLaunchTimer);
-  return Plugin_Stop;
-}
-//Track SacPoints and update entities every 0.1 seconds
-public Action SacrificePointsUpdater(Handle timer) {
-  if (!WaveSystem().IsActive()) return Plugin_Stop;
-  CreateTimer(0.1, SacrificePointsUpdater);
-  if (ass_sacPoints > ass_sacPointsMax) ass_sacPoints = ass_sacPointsMax;
-  return Plugin_Stop;
-}
-
-//BombStatus (Add points to Bomb Status occasionally)
-public Action BombStatusAddTimer(Handle timer) {
-  if (WaveSystem().IsActive() && (g_BombIndex < BombRegistry[0].stateMax)) {
-    BombRegistry[0].isReady = false;
-    g_BombIndex++;
-    CreateTimer(GetRandomFloat(10.0, 45.0), BombStatusAddTimer);
+// Gets weapon damage bonus
+float GetTotalWeaponDamageBonus() {
+  float totalDamageBonus = 0.0;
+  for (int client = 1; client <= MaxClients; client++) {
+    if (!IsClientInGame(client) || !IsPlayerAlive(client)) continue;
+    for (int slot = 0; slot <= 3; slot++) {
+      int weaponEnt = GetPlayerWeaponSlot(client, slot);
+      if (weaponEnt == -1) continue;
+      Address attr = TF2Attrib_GetByName(weaponEnt, "damage bonus");
+      if (attr <= view_as<Address>(0)) continue;
+      float dmgValue = TF2Attrib_GetValue(attr);
+      totalDamageBonus += dmgValue;
+      PrintToServer("Got damage bonus value %f from %N", dmgValue, client);
+    }
   }
-  return Plugin_Stop;
+  PrintToServer("Final value %f", totalDamageBonus);
+  return totalDamageBonus;
 }
 
-//Adverts for tips/tricks
-public Action PerformAdverts(Handle timer) {
-  if (!WaveSystem().IsActive()) {
-    CreateTimer(180.0, PerformAdverts);
-    CPrintToChatAll(AdvMessage[GetRandomInt(0, 7)]);
-  }
-  return Plugin_Stop;
-}
+methodmap MATHS {
+  // Adjust input by rate. Rate can be either positive (add) or negative (subtract)
+  public float Adjust(float input, float rate) { return (input + rate); }
+  // Returns the lesser of two floats
+  public float FloatMin(float a, float b) { return a <= b ? a : b; }
 
-//Feature admin timer
-public Action SelectAdminTimer(Handle timer) {
-  if (!WaveSystem().IsActive()) {
-    sudo(1002);
-    CreateTimer(GetRandomFloat(40.0, 120.0), SelectAdminTimer);
-  }
-  return Plugin_Stop;
+  // Returns the greater of two floats
+  public float FloatMax(float a, float b) { return a >= b ? a : b; }
 }
+MATHS MathFunc;
+MATHS Maths() {return MathFunc;}
 
+// These timers will be moved to their respective files as soon as we can.
 //Brute Justice Timer
 public Action OnslaughterATK(Handle timer) {
   if (BossHandler.isAlive) {
@@ -277,33 +195,12 @@ public Action SephATK(Handle timer) {
 
 //Boss Health Timer
 public Action BossHPTimer(Handle timer) {
-  int BossEntProxy = (core.waveFlags == 1 ? FindEntityByTargetname("OnslaughterTank", "tank_boss") : core.waveFlags == 2 ? FindEntityByTargetname("SephirothTank", "tank_boss") : -1);
-  int BossEnt = (core.waveFlags == 1 ? FindEntityByTargetname("FB.OnslaughterBase", "base_boss") : core.waveFlags == 2 ? FindEntityByTargetname("FB.SephirothDMGRelay", "func_physbox") : -1);
+  int BossEntProxy = (core.waveFlags == 1 ? FastFire2.FindEntityByTargetname("OnslaughterTank", "tank_boss") : core.waveFlags == 2 ? FastFire2.FindEntityByTargetname("SephirothTank", "tank_boss") : -1);
+  int BossEnt = (core.waveFlags == 1 ? FastFire2.FindEntityByTargetname("FB.OnslaughterBase", "base_boss") : core.waveFlags == 2 ? FastFire2.FindEntityByTargetname("FB.SephirothDMGRelay", "func_physbox") : -1);
   if (BossEnt != -1 || BossEntProxy != -1) {
     SetEntProp(BossEntProxy, Prop_Data, "m_iHealth", GetEntProp(BossEnt, Prop_Data, "m_iHealth"));
     CPrintToChatAll((core.waveFlags == 1 ? "{blue}Onslaughter's HP: %i (%i)" : core.waveFlags == 2 ? "{blue}Sephiroth's HP: %i (%i)" : "{blue}Error: Boss not found... core.waveFlags was neither 1 nor 2"), GetEntProp(BossEnt, Prop_Data, "m_iHealth"), GetEntProp(BossEntProxy, Prop_Data, "m_iHealth"));
     CreateTimer(5.0, BossHPTimer);
-  }
-  return Plugin_Stop;
-}
-
-//Shark Timer
-public Action SharkTimer(Handle timer) {
-  if (Bombs.getCurBomb().canSENTShark) {
-    PrintToChatAll("TODO: DISABLE SHARK BOMB WHEN IT DEPLOYS. ENABLE IT WHEN BOMB IS READY.");
-    FastFire2.Execute("SentSharkTorpedo", "ForceSpawn");
-    CreateTimer(GetRandomFloat(2.0, 5.0), SharkTimer);
-    CustomSoundEmitter(SFXArray[GetRandomInt(43, 50)].realPath, 65, false, 0, 1.0, 100);
-  }
-  return Plugin_Stop;
-}
-
-//SpecTimer
-public Action SpecTimer(Handle timer) {
-  if (WaveSystem().IsActive()) {
-    FastFire2.Execute("Spec*","Disable");
-    FastFire2.Execute(SpecEnt[GetRandomInt(0, 5)], "Enable", "", 0.1);
-    CreateTimer(GetRandomFloat(10.0, 30.0), SpecTimer);
   }
   return Plugin_Stop;
 }
@@ -342,71 +239,3 @@ public Action HWBossesRefire(Handle timer) {
   if (WaveSystem().IsActive()) CreateTimer(GetRandomFloat(core.HWNMin, core.HWNMax), HWBosses);
   return Plugin_Stop;
 }
-
-//SacPoints (Add points to Sacrifice Points occasionally)
-public Action SacrificePointsTimer(Handle timer) {
-  if (WaveSystem().IsActive() && (ass_sacPoints < ass_sacPointsMax)) {
-    ass_sacPoints++;
-    CreateTimer(GetRandomFloat(5.0, 30.0), SacrificePointsTimer);
-  }
-  return Plugin_Stop;
-}
-
-/* Sends hud text to players
-* @param channel The channel to use (1 - 4)
-* @param text The text to display
-* @param posX X pos L-R (0 to 1)
-* @param posY Y pos U-D (0 to 1)
-* @param holdTime Time to display the text
-* @param color1[4] Target Color rgba
-* @param color2[4] Initial Color rgba
-* @param effect 0/1 Fade In / Out, 2 = Scan Out
-* @param fxTime Time it takes for the effect to run
-* @param fadeIn Time it takes for the text to fade in
-* @param fadeOut Time it takes for the text to fade out
-*/
-void SendHudTextAll(int channel, const char[] text, float posX, float posY, float holdTime, int color1[4], int color2[4], int effect, float fxTime, float fadeIn, float fadeOut){
-  for (int i = 1; i <= MaxClients; i++) {
-    if (IsClientInGame(i)) {
-      SetHudTextParamsEx(posX, posY, holdTime, color1, color2, effect, fxTime, fadeIn, fadeOut);
-      ShowHudText(i, channel, text);
-    }
-  }
-}
-
-float GetTotalWeaponDamageBonus()
-{
-  float totalDamageBonus = 0.0;
-  for (int client = 1; client <= MaxClients; client++)
-  {
-    if (!IsClientInGame(client) || !IsPlayerAlive(client)) continue;
-    for (int slot = 0; slot <= 3; slot++)
-    {
-      int weaponEnt = GetPlayerWeaponSlot(client, slot);
-      if (weaponEnt == -1) continue;
-      Address attr = TF2Attrib_GetByName(weaponEnt, "damage bonus");
-      if (attr <= view_as<Address>(0)) continue;
-      float dmgValue = TF2Attrib_GetValue(attr);
-      totalDamageBonus += dmgValue;
-      PrintToServer("Got damage bonus value %f from %N", dmgValue, client);
-    }
-  }
-  PrintToServer("Final value %f", totalDamageBonus);
-  return totalDamageBonus;
-}
-
-// Check if <intent> entities can spawn
-bool ICanSummon(int intent) {
-  int count = 0;
-  int maxEntities = GetMaxEntities();
-  for (int i = 1; i <= maxEntities; i++) { if (IsValidEntity(i)) { count++; } }
-  return (count + intent) < maxEntities;
-}
-
-methodmap MATHS {
-  public float Adjust(float input, float rate) {
-    return (input + rate);
-  }
-}
-MATHS MathFunc;
-MATHS Maths() {return MathFunc;}

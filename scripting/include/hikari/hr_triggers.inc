@@ -1,10 +1,11 @@
-char TR_VER[7] = "1.3.1";
+char TR_VER[7] = "1.5.3";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
   bool hasStatusEffect;
   bool onlyPlayers;
   bool shouldTick;
+  bool onlyOnce;
   float start[3];
   float end[3];
   float dmg;
@@ -17,25 +18,25 @@ enum struct Zone {
   bool isInvalid() { return (this.start[0] == 0.0 && this.end[0] == 0.0 || this.start[1] == 0.0 && this.end[1] == 0.0 || this.start[2] == 0.0 && this.end[2] == 0.0); }
   void Tick() {
     if (this.canTick()) {
-      // Tick Damage
-      if (this.dmg > 0) {
-        for (int i = 0; i <= (this.onlyPlayers ? MaxClients : GetMaxEntities()); i++) if (!IsEntityInvalidForTrigger(i)) {
-          float pos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
-          if (this.isTriggeredByEntityAt(pos)) AttackEntity(i, this.dmg, this.dmgType);
-        }
-      }
-      // Tick Status Effects
-      if (this.hasStatusEffect) {
-        float cPos[3];
-        for (int i = 0; i < MaxClients; i++) {
+      float pos[3];
+      for (int i = 0; i < (this.onlyPlayers ? MaxClients : GetMaxEntities()); i++) {
+        if (i < MaxClients) {
           if (!IsValidClient(i)) continue;
-          GetClientAbsOrigin(i, cPos);
-          if (!TF2_IsPlayerInCondition(i, this.statuseffect) && this.isTriggeredByEntityAt(cPos)) {
+          GetClientAbsOrigin(i, pos);
+          PrintToChatAll("%N triggered the trigger at %f %f %f", i, pos[0], pos[1], pos[2]);
+          // Tick status effects
+          if (this.hasStatusEffect && !TF2_IsPlayerInCondition(i, this.statuseffect) && this.isTriggeredByEntityAt(pos)) {
             switch(this.statuseffect) {
               case TFCond_MVMBotRadiowave: { if (GetClientTeam(i) == 3) TF2_AddCondition(i, TFCond_MVMBotRadiowave); }
               default: { if (this.statuseffect != TFCond_MVMBotRadiowave) TF2_AddCondition(i, this.statuseffect); }
             }
           }
+        }
+        // Tick other entities
+        if (i >= MaxClients && !IsEntityInvalidForTrigger(i)) GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
+        if (!IsEntityInvalidForTrigger(i) && this.isTriggeredByEntityAt(pos)) {
+          if (this.dmg > 0) { AttackEntity(i, this.dmg, this.dmgType); }
+          if (this.onlyOnce) { SetZoneActive(this, false); }
         }
       }
     }
@@ -47,7 +48,7 @@ Zone g_FrontRottenburg;
 Zone g_BombPickup;
 Zone g_HatchExplode;
 Zone g_HatchFire;
-Zone g_Special[5];
+Zone g_Special[6];
 Zone g_CustomZone;
 Zone g_CustomZoneArray[7];
 Zone g_Lights[13];
@@ -64,7 +65,7 @@ public void InitAllZones() {
   SetZoneExtents(g_Special[2], 420.0, 1332.0, -392.0, 470.0, 1290.0, -325.0)
   SetZoneExtents(g_Special[3], 400.0, -1145.0, -16.0, 450.0, -1092.0, -380.0);// Adds tf cond halloween giant for 60s
   SetZoneExtents(g_Special[4], 1950.0, 1272.0, -316.0, 1890.0, 1332.0, -390.0);
-  SetZoneExtents(g_BombPickup, -3860.0, -2275.0, -4.0, -3540.0, -1970.0, -120.0);
+  SetZoneExtents(g_BombPickup, -3860.0, 1970.0, 24.0, -3524.0, 2280.0, -128.0);
   SetZoneExtents(g_HatchExplode, -1024.0, 1169.0, 204.0, 1920.0, 1825.0, -372.0);
   SetZoneExtents(g_HatchFire, -1376.0, 1536.0, -112.0, -1520.0, 1680.0, -124.0);
   SetZoneExtents(g_Lights[0], -564.0, 992.0, 0.0, -694.0, 1120.0, -224.0);
@@ -82,11 +83,18 @@ public void InitAllZones() {
   g_FrontRottenburg.tickrate = 77;
   g_HatchExplode.tickrate = 77;
   g_HatchFire.tickrate = 32;
+  g_BombPickup.tickrate = 32;
+  g_BombPickup.onlyPlayers = true;
   for (int i = 0; i < sizeof(g_Lights)-1; i++) { g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
+  for (int i = 0; i < sizeof(g_Special); i++) { g_Special[i].onlyPlayers = true; }
+  g_Special[0].statuseffect = TFCond_OnFire;
+  g_Special[3].statuseffect = TFCond_HalloweenGiant;
+  g_Special[4].statuseffect = TFCond_MarkedForDeath;
+  g_WeatherZone.tickrate = 70;
 }
 
 // Used to check if client is an invalid trigger candidate
-bool IsClientInvalidForTrigger(int player) { return (!IsClientConnected(player) || !IsPlayerAlive(player) || !IsClientInGame(player)); }
+bool IsClientInvalidForTrigger(int player) { return (IsClientInGame(player) ? !IsPlayerAlive(player) : true); }
 
 // Used to check if entity is an invalid trigger candidate
 bool IsEntityInvalidForTrigger(int ent) { return (IsValidEntity(ent)) ? (!HasEntProp(ent, Prop_Send, "m_vecOrigin")) : true; }
@@ -96,6 +104,7 @@ public bool g_IsPlayerIndoors[MAXPLAYERS+1] = { true }
 
 // Check if client is indoors
 public bool IsClientIndoors(int client) {
+  if (IsClientInvalidForTrigger(client)) return false;
   bool inside = false; float dest[3]; GetClientAbsOrigin(client, dest); // set up vars and client origin
   for (int i = 0; i < sizeof(g_IndoorZones); i++) { if (g_IndoorZones[i].isInvalid()) continue; if (g_IndoorZones[i].isTriggeredByEntityAt(dest)) inside = true; } // Check if client is in any of the zones
   return inside; // return the result
@@ -107,9 +116,21 @@ public void TickAllTriggers() {
   g_HatchExplode.Tick();
   g_HatchFire.Tick();
   g_CustomZone.Tick();
+  g_WeatherZone.Tick();
+  g_BombPickup.Tick();
   for (int i = 0; i < sizeof(g_CustomZoneArray); i++) g_CustomZoneArray[i].Tick();
   for (int i = 0; i < sizeof(g_Lights); i++) g_Lights[i].Tick();
   if (g_IndoorZones[0].canTick()) { for (int i = 1; i <= MaxClients; i++) { if (IsClientInvalidForTrigger(i)) continue; g_IsPlayerIndoors[i] = IsClientIndoors(i); }} // Check if clients are indoors
+
+  // Manually tick special entities that should disable after providing their effect.
+  for (int i = 0; i < sizeof(g_Special); i++) {
+    if (!g_Special[i].canTick()) continue;
+    for (int c = 1; c <= MaxClients; i++) {
+      if (IsClientInvalidForTrigger(c)) continue;
+      float dest[3]; GetClientAbsOrigin(c, dest);
+      if (g_Special[i].isTriggeredByEntityAt(dest) && TF2_IsPlayerInCondition(c, g_Special[i].statuseffect)) SetZoneActive(g_Special[i], false);
+    }
+  }
 }
 
 // Damages <ent> for <damage> with <type>
@@ -122,21 +143,21 @@ void AttackEntity(int ent, float damage, int type) { SDKHooks_TakeDamage(ent, 0,
 // @param onlyPlayers - Only affect players?
 // @param tickrate - The rate this trigger attacks. Lower values = faster
 // @param startTime - The time to wait before starting, in seconds
-// @param stopTime - The time to wait before stopping, in seconds
-void SetupAttackZone(float damage, int type, const Zone zone, bool onlyPlayers = false, int tickrate = 33, float startTime = 0.0, float stopTime = 1.0) {
+// @param stopTime - The time to wait before stopping, in seconds Use a value higher than 9999.0 to make this remain active until manually set inactive.
+void SetupAttackZone(float damage, int type, Zone zone, bool onlyPlayers = false, int tickrate = 33, float startTime = 0.0, float stopTime = 1.0) {
   bool delayed = startTime > 0.0;
   zone.dmg = damage; zone.dmgType = type; zone.onlyPlayers = onlyPlayers; zone.tickrate = tickrate < 1 ? 1 : tickrate; zone.shouldTick = !delayed;
   if (delayed) { CreateTimer(startTime, START_ATTACKING, zone); }
-  CreateTimer(stopTime, STOP_ATTACKING, zone);
+  if (stopTime < 9999.0) CreateTimer(stopTime, STOP_ATTACKING, zone);
 }
-public Action START_ATTACKING(Handle timer, const Zone zone) { zone.shouldTick = true; return Plugin_Stop; }
-public Action STOP_ATTACKING(Handle timer, const Zone zone) { zone.shouldTick = false; return Plugin_Stop; }
+public Action START_ATTACKING(Handle timer, Zone zone) { SetZoneActive(zone, true); return Plugin_Stop; }
+public Action STOP_ATTACKING(Handle timer, Zone zone) { SetZoneActive(zone, false); return Plugin_Stop; }
 
 // Resets an attack zone to its default values
-void RemoveAttackZone(const Zone zone) { zone.dmg = 0.0; zone.dmgType = 0; zone.onlyPlayers = false; StopAttackZone(zone); }
+void RemoveAttackZone(Zone zone) { zone.dmg = 0.0; zone.dmgType = 0; zone.onlyPlayers = false; SetZoneActive(zone, false); }
 
-// Stops a zone from ticking manually
-void StopAttackZone(const Zone zone) { zone.shouldTick = false; }
+// Sets whether a zone is enabled or disabled
+void SetZoneActive(Zone zone, bool active) { zone.shouldTick = active; }
 
 // Set a zone's extents
 // @param zone - The zone to affect
@@ -146,4 +167,4 @@ void StopAttackZone(const Zone zone) { zone.shouldTick = false; }
 // @param ex - End X
 // @param ey - End Y
 // @param ez - End Z
-void SetZoneExtents(const Zone zone, float sx, float sy, float sz, float ex, float ey, float ez) { zone.start[0] = sx; zone.start[1] = sy; zone.start[2] = sz; zone.end[0] = ex; zone.end[1] = ey; zone.end[2] = ez; LightLogger(LOGLVL_INFO, "[Triggers @ v%s] Set new zone extents %f %f %f to %f %f %f.", TR_VER, zone.start[0], zone.start[1], zone.start[2], zone.end[0], zone.end[1], zone.end[2]); }
+void SetZoneExtents(Zone zone, float sx, float sy, float sz, float ex, float ey, float ez) { zone.start[0] = sx; zone.start[1] = sy; zone.start[2] = sz; zone.end[0] = ex; zone.end[1] = ey; zone.end[2] = ez; LightLogger(LOGLVL_DEBUG, "[Triggers @ v%s] Set new zone extents %f %f %f to %f %f %f.", TR_VER, zone.start[0], zone.start[1], zone.start[2], zone.end[0], zone.end[1], zone.end[2]); }
