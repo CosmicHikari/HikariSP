@@ -1,6 +1,6 @@
  //ASS_CONFIGSYSTEM - Contains the config loaders and all the plugin core data entries.
 #include <smjansson> // Needed for JSON parsing
-char HRCFG_VERSION[8] = "2.0.2";
+char HRCFG_VERSION[8] = "2.1.0";
 
 //Default values per wave
 enum struct DEFAULTS {
@@ -110,7 +110,7 @@ enum struct COREDATA {
     AudioManager.OnStartup(0, basePath);
     WeatherManager.OnStartup(0, basePath);
     BossHandler.OnStartup();
-    OnBulkfireStartup(basePath);
+    OnPhotonStartup(basePath);
     OnSudoStartup();
     Format(subFolder, sizeof(subFolder), "%s/Core", basePath);
     CreateDirectory(subFolder, 711);

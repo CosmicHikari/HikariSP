@@ -41,7 +41,7 @@ methodmap WAVESYSTEM {
     core.tacobell = false;
     ServerCommand("fb_startmoney 50000");
     CPrintToChatAll("{darkviolet}[{yellow}INFO{darkviolet}] {red}%s {white} (Core v%s, System v%s). Prepare yourself for the unpredictable... [{limegreen}by TTV/ProfessorFartsalot{white}]", "mvm_rottenburg_fartsys_ass-r22", PLUGIN_VERSION, WaveSystem_Version);
-    FastFire2.Execute("rain", "Alpha", "0", 0.0);
+    Photon.Fire("rain", "Alpha", "0", 0.0);
     PrintToChatAll("WaveSystem type %i", this.GetType());
     if (this.IsWaveNull()) {
       PrintToChatAll("UH OH");
@@ -65,7 +65,7 @@ methodmap WAVESYSTEM {
     CreateTimer(1.0, RobotLaunchTimer); // Activate robot launch timer
     CreateTimer(1.0, SacrificePointsTimer); // Activate sacrifice points add timer
     CreateTimer(1.0, SacrificePointsUpdater); // Activate sacrifice points updater
-    for (int i = 0; i < sizeof(WaveSetup) - 4; i++) FastFire2.Execute(WaveSetup[i]);
+    for (int i = 0; i < sizeof(WaveSetup) - 4; i++) Photon.Fire(WaveSetup[i]);
     sudo(1002);
     sudo(1007);
     switch (WSData.type) {
@@ -95,43 +95,43 @@ methodmap WAVESYSTEM {
       }
       case 3, 10, 17: {
         core.HWNMax = 360.0;
-        for (int i = 8; i < sizeof(WaveSetup) - 3; i++) FastFire2.Execute(WaveSetup[i]);
+        for (int i = 8; i < sizeof(WaveSetup) - 3; i++) Photon.Fire(WaveSetup[i]);
         float f = GetRandomFloat(60.0, 180.0);
         CreateTimer(f, TimedOperator, 70);
       }
       case 4, 11, 18: {
         core.HWNMax = 360.0;
-        for (int i = 8; i < sizeof(WaveSetup) - 2; i++) FastFire2.Execute(WaveSetup[i]);
+        for (int i = 8; i < sizeof(WaveSetup) - 2; i++) Photon.Fire(WaveSetup[i]);
       }
       case 5, 12, 19: {
         Get_Boss_Handler().bossID = 0;
         Get_Boss_Handler().shouldTick = true;
         core.HWNMax = 260.0;
         core.HWNMin = 140.0;
-        for (int i = 8; i < sizeof(WaveSetup) - 2; i++) FastFire2.Execute(WaveSetup[i]);
-        FastFire2.Execute("w5_engie_hints", "Trigger", "", 3.0);
+        for (int i = 8; i < sizeof(WaveSetup) - 2; i++) Photon.Fire(WaveSetup[i]);
+        Photon.Fire("w5_engie_hints", "Trigger", "", 3.0);
         char onsHP[32];
         Format(onsHP, 32, "%i", GetBossHealthModifier(640000));
-        FastFire2.Execute("FB.OnslaughterBase", "SetHealth", onsHP, 0.0);
-        FastFire2.Execute("FB.OnslaughterBase", "SetHealth", onsHP, 1.0);
+        Photon.Fire("FB.OnslaughterBase", "SetHealth", onsHP, 0.0);
+        Photon.Fire("FB.OnslaughterBase", "SetHealth", onsHP, 1.0);
         float f = GetRandomFloat(60.0, 180.0);
         CreateTimer(f, TimedOperator, 70);
       }
       case 6, 13, 20: {
         core.HWNMax = 260.0;
         core.HWNMin = 140.0;
-        for (int i = 8; i < sizeof(WaveSetup) - 1; i++) FastFire2.Execute(WaveSetup[i]);
+        for (int i = 8; i < sizeof(WaveSetup) - 1; i++) Photon.Fire(WaveSetup[i]);
       }
       case 7, 14, 21: {
         core.HWNMax = 240.0;
         core.HWNMin = 120.0;
-        for (int i = 8; i < sizeof(WaveSetup); i++) FastFire2.Execute(WaveSetup[i]);
-        FastFire2.Execute("w5_engie_hints", "Trigger", "", 3.0);
+        for (int i = 8; i < sizeof(WaveSetup); i++) Photon.Fire(WaveSetup[i]);
+        Photon.Fire("w5_engie_hints", "Trigger", "", 3.0);
       }
       case 8, 15: {
         core.HWNMax = 240.0;
         core.HWNMin = 120.0;
-        for (int i = 8; i < sizeof(WaveSetup); i++) FastFire2.Execute(WaveSetup[i]);
+        for (int i = 8; i < sizeof(WaveSetup); i++) Photon.Fire(WaveSetup[i]);
       }
     }
     if (core.canHWBoss) {
@@ -152,10 +152,10 @@ methodmap WAVESYSTEM {
         CPrintToChatAll("{fartsyred} [WARNING]: YOU HAVE CHOSEN TO LAUNCH WAVE NULL.");
         CPrintToChatAll("{fartsyred} [WARNING]: SHOULD YOU FAIL THIS WAVE, YOU *WILL* BE RESTARTING FROM THE VERY BEGINNING WITH NO UPGRADES.");
         CPrintToChatAll("{fartsyred} [WARNING]: THE FATE OF THIS SERVER IS IN YOUR HANDS. DO. NOT. FAIL.");
-        FastFire2.Execute("Weather.Sky", "Skin", "3");
+        Photon.Fire("Weather.Sky", "Skin", "3");
         WeatherManager.setFogDensity(0.1);
         PrintToChatAll("playing sound\\fartsy\\music\\wavenull_intro.mp3, waves should be timed so that the music changes right at the end of this intro.");
-        FastFire2.Execute("weather.sky", "Skin", "2");
+        Photon.Fire("weather.sky", "Skin", "2");
         sudo(1001);
         EmitSoundToAll("sound/fartsy/music/wavenull_intro.mp3");
         WeatherManager.setFogColorRTarget(95.0);
@@ -171,7 +171,7 @@ methodmap WAVESYSTEM {
     for (int i = 1; i <= MaxClients; i++) if (IsValidClient(i)) if(IsPlayerAlive(i) && GetClientTeam(i) == 2) alive++;
     if (alive == 0) {
       CPrintToChatAll("{red}You've all died! Are you happy?");
-      FastFire2.Execute("bots_win", "RoundWin");
+      Photon.Fire("bots_win", "RoundWin");
     }
   }
   // Check if player is in WB Realm.
@@ -289,12 +289,12 @@ void GroupedAOE() {
 
 // Dispatch a circle AOE
 public Action DispatchCircleAOE(float pos[3]) {
-  int ent = FastFire2.FindEntityByTargetname("CircleTemplate", "point_template");
+  int ent = Photon.Find("CircleTemplate", "point_template");
   if (ent != -1) {
     float v[3];
     float rot[3];
     TeleportEntity(ent, pos, rot, v);
-    FastFire2.Execute("CircleTemplate", "ForceSpawn");
+    Photon.Fire("CircleTemplate", "ForceSpawn");
   }
   return Plugin_Stop;
 }
@@ -302,8 +302,8 @@ public Action DispatchCircleAOE(float pos[3]) {
 // RobotLaunchTimer (Randomly fling robots)
 public Action RobotLaunchTimer(Handle timer) {
   if (WaveSystem().IsActive()) {
-  FastFire2.Execute("FB.RobotLauncher", "Enable", "", 0.0);
-  FastFire2.Execute("FB.RobotLauncher", "Disable", "", 7.5);
+  Photon.Fire("FB.RobotLauncher", "Enable", "", 0.0);
+  Photon.Fire("FB.RobotLauncher", "Disable", "", 7.5);
   CreateTimer(GetRandomFloat(5.0, 30.0), RobotLaunchTimer); }
   return Plugin_Stop;
 }
