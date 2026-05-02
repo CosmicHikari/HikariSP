@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.6.5";
+char HSE_VER[8] = "2.7.0";
 
 // Used to make lasers
 enum struct LaserData {
@@ -578,44 +578,44 @@ enum struct MAPLIGHTING {
   char zap[32];
   void Explode() {
     if (this.isBroken) return;
-    float dest[3]; GetEntPropVector(FastFire2.FindEntityByTargetname(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
+    float dest[3]; GetEntPropVector(Photon.Find(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
     dest[2] = dest[2] - 8.0;
-    TeleportEntity(FastFire2.FindEntityByTargetname("MapLighting.StreetLamp.Explosion", "env_explosion"), dest, _, _);
+    TeleportEntity(Photon.Find("MapLighting.StreetLamp.Explosion", "env_explosion"), dest, _, _);
     LightLogger(LOGLVL_WARN, "[Enhancer:584] MAPLIGHTING SHOULD NOT BE A CONSTANT HERE."); // In favor of configs
-    FastFire2.Execute(this.arcs, "StartSpark", "", 0.0);
-    FastFire2.Execute(this.arcs, "StartSpark", "", 0.1);
-    FastFire2.Execute(this.beam, "LightOff", "", 0.0);
-    FastFire2.Execute(this.buzz, "PlaySound", "", 0.0);
-    FastFire2.Execute(this.explosion, "Explode", "", 0.0);
-    FastFire2.Execute(this.light, "TurnOff", "", 0.0);
-    FastFire2.Execute(this.status, "Color", "255 0 0", 0.0);
-    FastFire2.Execute(this.stun, "Enable", "", 0.0);
-    FastFire2.Execute(this.zap, "Enable", "", 0.0);
+    Photon.Fire(this.arcs, "StartSpark", "", 0.0);
+    Photon.Fire(this.arcs, "StartSpark", "", 0.1);
+    Photon.Fire(this.beam, "LightOff", "", 0.0);
+    Photon.Fire(this.buzz, "PlaySound", "", 0.0);
+    Photon.Fire(this.explosion, "Explode", "", 0.0);
+    Photon.Fire(this.light, "TurnOff", "", 0.0);
+    Photon.Fire(this.status, "Color", "255 0 0", 0.0);
+    Photon.Fire(this.stun, "Enable", "", 0.0);
+    Photon.Fire(this.zap, "Enable", "", 0.0);
     this.isBroken = true;
   }
   void Repair() {
     this.isBroken = false;
-    FastFire2.Execute(this.arcs, "StopSpark", "", 0.0);
-    FastFire2.Execute(this.buzz, "StopSound", "", 0.25);
-    FastFire2.Execute(this.status, "Color", "0 255 0", 0.0);
-    FastFire2.Execute(this.stun, "Disable", "", 0.0);
-    FastFire2.Execute(this.zap, "Disable", "", 0.0);
+    Photon.Fire(this.arcs, "StopSpark", "", 0.0);
+    Photon.Fire(this.buzz, "StopSound", "", 0.25);
+    Photon.Fire(this.status, "Color", "0 255 0", 0.0);
+    Photon.Fire(this.stun, "Disable", "", 0.0);
+    Photon.Fire(this.zap, "Disable", "", 0.0);
     if (!g_PowerOutage) {
-      FastFire2.Execute(this.light, "SetPattern", "", 0.0);
-      FastFire2.Execute(this.light, "TurnOff", "", 0.0);
-      FastFire2.Execute(this.light, "TurnOn", "", 0.1);
-      FastFire2.Execute(this.light, "SetPattern", "", 0.1);
-      FastFire2.Execute(this.beam, "LightOff", "", 0.1);
-      FastFire2.Execute(this.beam, "LightOn", "", 0.2);
+      Photon.Fire(this.light, "SetPattern", "", 0.0);
+      Photon.Fire(this.light, "TurnOff", "", 0.0);
+      Photon.Fire(this.light, "TurnOn", "", 0.1);
+      Photon.Fire(this.light, "SetPattern", "", 0.1);
+      Photon.Fire(this.beam, "LightOff", "", 0.1);
+      Photon.Fire(this.beam, "LightOn", "", 0.2);
     }
   }
   void RestorePower() {
     if (!this.isBroken || strcmp(this.light, "MapLighting.StreetLamp0C.light") == 0) {
-      FastFire2.Execute(this.light, "TurnOn", "", 0.0);
-      FastFire2.Execute(this.beam, "LightOn", "", 0.0);
-      FastFire2.Execute(this.beam, "LightOn", "", 1.0);
-      FastFire2.Execute(this.beam, "LightOn", "", 3.0);
-      FastFire2.Execute(this.light, "SetPattern", "", 0.0);
+      Photon.Fire(this.light, "TurnOn", "", 0.0);
+      Photon.Fire(this.beam, "LightOn", "", 0.0);
+      Photon.Fire(this.beam, "LightOn", "", 1.0);
+      Photon.Fire(this.beam, "LightOn", "", 3.0);
+      Photon.Fire(this.light, "SetPattern", "", 0.0);
       this.hasCustomPattern = false;
     }
   }
@@ -625,32 +625,32 @@ MAPLIGHTING MapLighting[13];
 //Ghosties
 methodmap GHOSTHANDLER {
   public void SpawnRandom() {
-    FastFire2.Execute("GhostTemplate", "ForceSpawn");
+    Photon.Fire("GhostTemplate", "ForceSpawn");
     switch (GetRandomInt(0, 3)) {
-      case 0: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath00_0"); }
-      case 1: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath01_0"); }
-      case 2: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath02_0"); }
-      case 3: { FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPath03_0"); }
+      case 0: { Photon.Fire("gTrain", "TeleportToPathTrack", "gPath00_0"); }
+      case 1: { Photon.Fire("gTrain", "TeleportToPathTrack", "gPath01_0"); }
+      case 2: { Photon.Fire("gTrain", "TeleportToPathTrack", "gPath02_0"); }
+      case 3: { Photon.Fire("gTrain", "TeleportToPathTrack", "gPath03_0"); }
     }
   }
   public void Kill() {
-    FastFire2.Execute("gTelefect", "Start", "", 3.0);
-    FastFire2.Execute("gTelefect", "Stop", "", 6.0);
-    FastFire2.Execute("gTrain", "TeleportToPathTrack", "gPathHome", 3.0);
-    FastFire2.SetEntityLife("gTrain", 7.0);
-    FastFire2.SetEntityLife("gTrainTriggerStun", 7.0);
-    FastFire2.SetEntityLife("gGhost", 7.0);
-    FastFire2.SetEntityLife("gTelefect", 7.0);
-    FastFire2.SetEntityLife("gTrainSnd*", 7.0);
-    FastFire2.SetEntityLife("gPath0*", 7.0);
+    Photon.Fire("gTelefect", "Start", "", 3.0);
+    Photon.Fire("gTelefect", "Stop", "", 6.0);
+    Photon.Fire("gTrain", "TeleportToPathTrack", "gPathHome", 3.0);
+    Photon.SetEntityLife("gTrain", 7.0);
+    Photon.SetEntityLife("gTrainTriggerStun", 7.0);
+    Photon.SetEntityLife("gGhost", 7.0);
+    Photon.SetEntityLife("gTelefect", 7.0);
+    Photon.SetEntityLife("gTrainSnd*", 7.0);
+    Photon.SetEntityLife("gPath0*", 7.0);
   }
 }
 GHOSTHANDLER GhostHandler;
 
 // Weather Stuffs
 int sirenRef;
-BULKFIRE lightningStrike[16];
-BULKFIRE lightningFlash[17];
+PHOTON_BULK lightningStrike[16];
+PHOTON_BULK lightningFlash[17];
 enum struct WEATHERDATA {
   bool canTornado;
   bool hasTornado;
@@ -724,12 +724,12 @@ methodmap WEATHERMANAGER {
           float entPos[3]; GetEntPropVector(i, Prop_Data, "m_vecOrigin", entPos);
           if (GetVectorDistance(entPos, ePos) <= 300.0) AttackEntity(i, 10000000.0, DMG_ENERGYBEAM);
         }
-        FastFire2.SetEntityLife("LightningStrike", 1.0);
+        Photon.SetEntityLife("LightningStrike", 1.0);
       }
     }
     sudo(1003);
-    //FastFire2.Execute(lightningStrike[GetRandomInt(0, sizeof(lightningStrike) - 1)].fireStr);
-    //FastFire2.Execute("Weather.LightningHurt*", "Disable", "", 0.07);
+    //Photon.Fire(lightningStrike[GetRandomInt(0, sizeof(lightningStrike) - 1)].fireStr);
+    //Photon.Fire("Weather.LightningHurt*", "Disable", "", 0.07);
     CustomSoundEmitter(SFXArray[GetRandomInt(27, 34)].realPath, 65, false, 0, 1.0, 100);
     // Affect lights
     int i = GetRandomInt(WDATA.intensity, 15);
@@ -738,21 +738,21 @@ methodmap WEATHERMANAGER {
       case 2, 3, 5: {
         int index = GetRandomInt(0, 12);
         float f = GetRandomFloat(0.5, 3.0);
-        FastFire2.Execute(MapLighting[index].light, "TurnOff");
-        FastFire2.Execute(MapLighting[index].beam, "LightOff");
-        FastFire2.Execute(MapLighting[index].light, "TurnOn", "", f);
-        FastFire2.Execute(MapLighting[index].beam, "LightOn", "", f);
+        Photon.Fire(MapLighting[index].light, "TurnOff");
+        Photon.Fire(MapLighting[index].beam, "LightOff");
+        Photon.Fire(MapLighting[index].light, "TurnOn", "", f);
+        Photon.Fire(MapLighting[index].beam, "LightOn", "", f);
       }
       case 11, 15: {
         g_PowerOutage = true;
         if (!WDATA.hasTornado) CreateTimer(GetRandomFloat(5.0, 30.0), RestorePower, GetRandomInt(0, 3));
-        FastFire2.Execute("MapLighting.*", "LightOff");
-        FastFire2.Execute("MapLighting.*", "TurnOff");
-        FastFire2.Execute("MapLighting.*", "LightOff", "", 1.0);
-        FastFire2.Execute("MapLighting.*", "LightOff", "", 2.0);
-        FastFire2.Execute("MapLighting.*", "LightOff", "", 3.0);
-        FastFire2.Execute("MapLighting.*", "LightOff", "", 4.0);
-        FastFire2.Execute("MapLighting.*", "LightOff", "", 5.0);
+        Photon.Fire("MapLighting.*", "LightOff");
+        Photon.Fire("MapLighting.*", "TurnOff");
+        Photon.Fire("MapLighting.*", "LightOff", "", 1.0);
+        Photon.Fire("MapLighting.*", "LightOff", "", 2.0);
+        Photon.Fire("MapLighting.*", "LightOff", "", 3.0);
+        Photon.Fire("MapLighting.*", "LightOff", "", 4.0);
+        Photon.Fire("MapLighting.*", "LightOff", "", 5.0);
       }
     }
   }
@@ -768,21 +768,21 @@ methodmap WEATHERMANAGER {
     WDATA.TornadoWarning = false;
     SetZoneActive(g_WeatherZone, false);
     CreateTimer(GetRandomFloat(45.0, 135.0), ResetTornado);
-    for (int i = 0; i < sizeof(MapLighting); i++) if (!MapLighting[i].isBroken)FastFire2.Execute(MapLighting[i].light, "TurnOn");
+    for (int i = 0; i < sizeof(MapLighting); i++) if (!MapLighting[i].isBroken)Photon.Fire(MapLighting[i].light, "TurnOn");
     for (int i = 0; i < MaxClients; i++) { if (IsValidClient(i)) SetEntityGravity(i, 1.0); }
-    FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerp", "%f", _, _, WDATA.defFogStartDist);
-    FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerp", "%f", _, _, WDATA.defFogEndDist);
-    FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition");
-    FastFire2.Execute("tornadof1", "Stop");
-    FastFire2.Execute("tornadof1wind", "Disable");
-    FastFire2.Execute("tornadowindf1", "StopSound");
-    FastFire2.Execute("shaketriggerf1", "Disable");
-    FastFire2.Execute("tornadobutton", "Unlock", "", 30.0);
-    FastFire2.Execute("FB.FakeTankTank01", "Kill");
-    FastFire2.Execute("FB.FakeTankPhys01", "Kill");
-    FastFire2.Execute("Weather.EASScreen", "Disable");
-    FastFire2.Execute("Weather.Siren.ExplodeParticle", "Stop");
-    FastFire2.Execute("Weather.Siren", "StopSound", "", 5.0);
+    Photon.Fire("Weather.FogOutdoor", "SetStartDistLerp", "%f", _, _, WDATA.defFogStartDist);
+    Photon.Fire("Weather.FogOutdoor", "SetEndDistLerp", "%f", _, _, WDATA.defFogEndDist);
+    Photon.Fire("Weather.FogOutdoor", "StartFogTransition");
+    Photon.Fire("tornadof1", "Stop");
+    Photon.Fire("tornadof1wind", "Disable");
+    Photon.Fire("tornadowindf1", "StopSound");
+    Photon.Fire("shaketriggerf1", "Disable");
+    Photon.Fire("tornadobutton", "Unlock", "", 30.0);
+    Photon.Fire("FB.FakeTankTank01", "Kill");
+    Photon.Fire("FB.FakeTankPhys01", "Kill");
+    Photon.Fire("Weather.EASScreen", "Disable");
+    Photon.Fire("Weather.Siren.ExplodeParticle", "Stop");
+    Photon.Fire("Weather.Siren", "StopSound", "", 5.0);
     AudioManager.OnTornadoWarning(false);
   }
   // Emits storm sounds
@@ -844,13 +844,13 @@ methodmap WEATHERMANAGER {
           //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.83, 100); //Extra wind
         }
         case 14: {
-          FastFire2.Execute("rain", "Alpha", "255");
+          Photon.Fire("rain", "Alpha", "255");
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
           CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.9, 100); //Rain, wind, increased volume
           //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.92, 100); //Extra wind
         }
         case 15: {
-          FastFire2.Execute("rain", "Alpha", "255");
+          Photon.Fire("rain", "Alpha", "255");
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
           CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 1.0, 100); //Rain, wind, increased volume
           //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 1.0, 100); //Extra wind
@@ -864,8 +864,8 @@ methodmap WEATHERMANAGER {
       WDATA.TornadoWarning = true;
       WDATA.sirenPitchTarget = 100.0;
       WDATA.sirenPitchRate = 0.1;
-      FastFire2.Execute("Weather.EASScreen", "Enable");
-      FastFire2.Execute("Weather.EAS", "PlaySound");
+      Photon.Fire("Weather.EASScreen", "Enable");
+      Photon.Fire("Weather.EAS", "PlaySound");
       AudioManager.OnTornadoWarning(true);
     }
   }
@@ -880,13 +880,13 @@ methodmap WEATHERMANAGER {
     this.Dissipate();
     WDATA.reset = true;
     WDATA.tickWeather = false;
-    FastFire2.Execute("rain", "Alpha", "0");
-    FastFire2.Execute("Weather.Sky", "Enable");
-    FastFire2.Execute("Weather.Sky", "Skin", "0");
-    FastFire2.Execute("Weather.FogSky", "Enable", "", 2.0);
+    Photon.Fire("rain", "Alpha", "0");
+    Photon.Fire("Weather.Sky", "Enable");
+    Photon.Fire("Weather.Sky", "Skin", "0");
+    Photon.Fire("Weather.FogSky", "Enable", "", 2.0);
     for (int i = 0; i < sizeof(MapLighting); i++) { MapLighting[i].Repair(); SetZoneActive(g_Lights[i], false); }
     WDATA.sirenPos = {-2305.0, 2095.0, 1102.0};
-    int siren = FastFire2.FindEntityByTargetname("WeatherSiren", "info_target");
+    int siren = Photon.Find("WeatherSiren", "info_target");
     if (!IsValidEntity(siren)) {
       siren = CreateEntityByName("info_target");
       if (!IsValidEdict(siren)) SetFailState("Could not inject Siren Entity, aborting!!!");
@@ -898,9 +898,9 @@ methodmap WEATHERMANAGER {
     }
     sirenRef = EntIndexToEntRef(siren);
   }
-  public void SetFogStartQueued(int fsq) { FastFire2.Execute("Weather.FogOutdoor", "SetStartDistLerpTo", "%i", _, _, fsq); }
-  public void SetFogEndQueued(int feq) { FastFire2.Execute("Weather.FogOutdoor", "SetEndDistLerpTo","%i", _, _, feq); }
-  public void StartFogTransition() { FastFire2.Execute("Weather.FogOutdoor", "StartFogTransition"); }
+  public void SetFogStartQueued(int fsq) { Photon.Fire("Weather.FogOutdoor", "SetStartDistLerpTo", "%i", _, _, fsq); }
+  public void SetFogEndQueued(int feq) { Photon.Fire("Weather.FogOutdoor", "SetEndDistLerpTo","%i", _, _, feq); }
+  public void StartFogTransition() { Photon.Fire("Weather.FogOutdoor", "StartFogTransition"); }
   public void StartTornadoTimer(float t) {
     CreateTimer(t - 20.0, TimedOperator, 40);
     CreateTimer((t + GetRandomFloat(5.0, 25.0)), TimedOperator, 41);
@@ -919,7 +919,7 @@ methodmap WEATHERMANAGER {
       WDATA.fogTarget = 0.4 + (0.5 * (WDATA.intensity / 15));
       WDATA.iStormMin = RoundToNearest(float (1000 - (WDATA.intensity * ((1000 - 300) / 15))));
       WDATA.iStormMax = RoundToNearest(float (3000 - (WDATA.intensity * ((3000 - 700) / 15))));
-      FastFire2.Execute("rain", "Alpha", "%i", _, _, RoundToNearest(255 * (WDATA.intensity / 15.0)));
+      Photon.Fire("rain", "Alpha", "%i", _, _, RoundToNearest(255 * (WDATA.intensity / 15.0)));
       if (!WDATA.TornadoTimerActive && WDATA.intensity > 13 && this.CanFormTornado()) {
         WDATA.TornadoTimerActive = true;
         this.StartTornadoTimer(WaveSystem().GetWave() == 4 ? GetRandomFloat(30.0, 90.0) : GetRandomFloat(90.0, 210.0));
@@ -936,8 +936,8 @@ methodmap WEATHERMANAGER {
       WDATA.fogDensity = (WDATA.fogDensity < WDATA.fogTarget) ? Maths().FloatMin(Maths().Adjust(WDATA.fogDensity, WDATA.fogChangeRate), WDATA.fogTarget) : Maths().FloatMax(Maths().Adjust(WDATA.fogDensity, -WDATA.fogChangeRate), WDATA.fogTarget);
       IntToString(RoundFloat(Maths().FloatMin(255.0 * (WDATA.fogDensity * 1.20), 255.0)), targetAlpha, sizeof(targetAlpha));
       FloatToString(WDATA.fogDensity, targetDensity, sizeof(targetDensity));
-      FastFire2.Execute("Weather.FogOutdoor", "SetMaxDensity", targetDensity);
-      FastFire2.Execute("Weather.FogSky", "Alpha", targetAlpha);
+      Photon.Fire("Weather.FogOutdoor", "SetMaxDensity", targetDensity);
+      Photon.Fire("Weather.FogSky", "Alpha", targetAlpha);
     }
     if (WDATA.fogColorR != WDATA.fogColorRTarget || WDATA.fogColorG != WDATA.fogColorGTarget || WDATA.fogColorB != WDATA.fogColorBTarget || WDATA.reset) {
       char target[24];
@@ -945,11 +945,11 @@ methodmap WEATHERMANAGER {
       WDATA.fogColorG = (WDATA.fogColorG < WDATA.fogColorGTarget) ? Maths().FloatMin(WDATA.fogColorG += WDATA.fogChangeRateRGB, WDATA.fogColorGTarget) : Maths().FloatMax(WDATA.fogColorG -= WDATA.fogChangeRateRGB, WDATA.fogColorGTarget);
       WDATA.fogColorB = (WDATA.fogColorB < WDATA.fogColorBTarget) ? Maths().FloatMin(WDATA.fogColorB += WDATA.fogChangeRateRGB, WDATA.fogColorBTarget) : Maths().FloatMax(WDATA.fogColorB -= WDATA.fogChangeRateRGB, WDATA.fogColorBTarget);
       Format(target, sizeof(target), "%i %i %i", RoundFloat(WDATA.fogColorR), RoundFloat(WDATA.fogColorG), RoundFloat(WDATA.fogColorB));
-      FastFire2.Execute("Weather.FogIndoor", "SetColor", target);
-      FastFire2.Execute("Weather.FogIndoor", "SetColorSecondary", target);
-      FastFire2.Execute("Weather.FogOutdoor", "SetColor", target);
-      FastFire2.Execute("Weather.FogOutdoor", "SetColorSecondary", target);
-      FastFire2.Execute("Weather.FogSky", "Color", target);
+      Photon.Fire("Weather.FogIndoor", "SetColor", target);
+      Photon.Fire("Weather.FogIndoor", "SetColorSecondary", target);
+      Photon.Fire("Weather.FogOutdoor", "SetColor", target);
+      Photon.Fire("Weather.FogOutdoor", "SetColorSecondary", target);
+      Photon.Fire("Weather.FogSky", "Color", target);
       WDATA.reset = false;
     }
     if (WDATA.hasTornado && (WDATA.ticks % GetRandomInt(30, 60) == 0)) { this.TickTornado(); }
@@ -957,7 +957,7 @@ methodmap WEATHERMANAGER {
   public void TickSiren() {
     if (WDATA.TornadoWarning) {
       if (!WDATA.sirenExploded && (WDATA.sirenPitch > 165.0)) {
-        FastFire2.Execute("Weather.Siren.ExplodeParticle", "Start");
+        Photon.Fire("Weather.Siren.ExplodeParticle", "Start");
         CustomSoundEmitter(SFXArray[121].realPath, SFXArray[121].SNDLVL, false, 0, 1.0, 100);
         for (int i = 0; i < MaxClients; i++) if (IsValidClient(i) && g_SirenEnabled[i]) {
           StopSound(i, 10, SFXArray[119].realPath);
@@ -969,8 +969,8 @@ methodmap WEATHERMANAGER {
           StopSound(i, 6, SFXArray[119].realPath);
           StopSound(i, 6, SFXArray[120].realPath);
         }
-        FastFire2.Execute("Weather.Siren.ExplodeParticle", "Stop", "", 5.0);
-        FastFire2.Execute("Weather.Siren.ExplodeParticle", "Start", "", 5.1);
+        Photon.Fire("Weather.Siren.ExplodeParticle", "Stop", "", 5.0);
+        Photon.Fire("Weather.Siren.ExplodeParticle", "Start", "", 5.1);
         WDATA.sirenExploded = true;
       }
       if (WDATA.sirenPitch != WDATA.sirenPitchTarget && !WDATA.sirenExploded) {
@@ -999,7 +999,7 @@ methodmap WEATHERMANAGER {
     float tornadoPos[3];
     bool found = false;
     int tornado = -1;
-    while ((tornado = FastFire2.FindEntityByTargetname("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
+    while ((tornado = Photon.Find("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
     if (!found) { PrintToServer("No tornado found."); return; }
     for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
       float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
@@ -1013,13 +1013,13 @@ methodmap WEATHERMANAGER {
         v[2] = (3000.0 * str);
         TeleportEntity(i, NULL_VECTOR, NULL_VECTOR, v);
         char classname[32]; GetEntityClassname(i, classname, sizeof(classname));
-        if (StrEqual(classname, "tank_boss")) { AttackEntity(i, 10000000.0, DMG_GENERIC); FastFire2.Execute("FB.FakeTankSpawner", "ForceSpawn"); }
+        if (StrEqual(classname, "tank_boss")) { AttackEntity(i, 10000000.0, DMG_GENERIC); Photon.Fire("FB.FakeTankSpawner", "ForceSpawn"); }
       }
       SetEntityGravity(i, distance2D <= 2150.0 ? str : 1.0);
     }
   }
   public void TryFormTornado() {
-    if (this.CanFormTornado() && ICanSummon(7)) {
+    if (this.CanFormTornado() && Photon.CanCreate(7)) {
       WDATA.hasTornado = true;
       WDATA.mIntensity = 15;
       WDATA.intensity = 15;
@@ -1027,18 +1027,18 @@ methodmap WEATHERMANAGER {
       SetupAttackZone(9000000.0, DMG_FALL, g_WeatherZone, false, 32, _, f);
       CreateTimer(f, TimedOperator, 42);
       CreateTimer(1.5, TornadoShaker);
-      FastFire2.Execute("tornado", "ForceSpawn");
-      FastFire2.Execute("tornadobutton", "Lock");
-      FastFire2.Execute("tornadof1", "Start", "", 20.0);
-      FastFire2.Execute("shaketriggerf1", "Enable", "", 20.0);
-      FastFire2.Execute("tornadowindf1", "PlaySound", "", 20.0);
-      FastFire2.Execute("tornadof1wind", "Enable", "", 21.50);
-      FastFire2.SetEntityLife("tornadotrain", f);
-      FastFire2.SetEntityLife("TorTrack*", f);
-      FastFire2.SetEntityLife("tornadotrain", f);
-      FastFire2.SetEntityLife("tornadof1", f);
-      FastFire2.SetEntityLife("tornadoshake_f1", f);
-      FastFire2.SetEntityLife("tornadowindf1", f);  
+      Photon.Fire("tornado", "ForceSpawn");
+      Photon.Fire("tornadobutton", "Lock");
+      Photon.Fire("tornadof1", "Start", "", 20.0);
+      Photon.Fire("shaketriggerf1", "Enable", "", 20.0);
+      Photon.Fire("tornadowindf1", "PlaySound", "", 20.0);
+      Photon.Fire("tornadof1wind", "Enable", "", 21.50);
+      Photon.SetEntityLife("tornadotrain", f);
+      Photon.SetEntityLife("TorTrack*", f);
+      Photon.SetEntityLife("tornadotrain", f);
+      Photon.SetEntityLife("tornadof1", f);
+      Photon.SetEntityLife("tornadoshake_f1", f);
+      Photon.SetEntityLife("tornadowindf1", f);  
     }
   }
   public void updateIntensity() {
@@ -1171,8 +1171,8 @@ public Action RestorePower(Handle timer, int surge) {
   WeatherManager.setPowerSurging((surge == 1) ? true : false);
   if (surge == 1) { CreateTimer(1.0, SurgePower); }
   for (int i = 0; i < sizeof(MapLighting); i++) MapLighting[i].RestorePower();
-  FastFire2.Execute("MapLighting.Indoor*", "TurnOn");
-  FastFire2.Execute("MapLighting.Indoor*", "LightOn");
+  Photon.Fire("MapLighting.Indoor*", "TurnOn");
+  Photon.Fire("MapLighting.Indoor*", "LightOn");
   return Plugin_Stop;
 }
 
@@ -1211,9 +1211,9 @@ public Action SurgePower(Handle timer) {
       int rnd = GetRandomInt(0, 7);
       PrintToChatAll("%i", rnd);
       if (rnd == 5) { MapLighting[target].Explode(); SetupAttackZone(9000.0, DMG_SHOCK, g_Lights[target], false, 20, 0.1, 9999999.0); }
-      FastFire2.Execute(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
-      FastFire2.Execute(MapLighting[target].light, "TurnOn");
-      FastFire2.Execute(MapLighting[target].beam, "LightOn");
+      Photon.Fire(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
+      Photon.Fire(MapLighting[target].light, "TurnOn");
+      Photon.Fire(MapLighting[target].beam, "LightOn");
       CreateTimer(GetRandomFloat(7.5, 15.0), RestorePower, 0);
       CreateTimer(GetRandomFloat(0.1, 3.0), SurgePower);
       CreateTimer(GetRandomFloat(1.5, 2.0), SurgePowerFX);
@@ -1225,11 +1225,11 @@ public Action SurgePower(Handle timer) {
 public Action SurgePowerFX(Handle timer) {
   for (int i = 0; i < sizeof(MapLighting); i++) {
     if (WeatherManager.isPowerSurging() && !MapLighting[i].isBroken) {
-      FastFire2.Execute(MapLighting[i].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
-      FastFire2.Execute(MapLighting[i].beam, "LightOff");
-      FastFire2.Execute(MapLighting[i].beam, "LightOn", "", GetRandomFloat(0.1, 0.35));
-      FastFire2.Execute(MapLighting[i].beam, "LightOff", "", GetRandomFloat(0.4, 0.75));
-      FastFire2.Execute(MapLighting[i].beam, "LightOn", "", GetRandomFloat(1.0, 1.35));
+      Photon.Fire(MapLighting[i].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
+      Photon.Fire(MapLighting[i].beam, "LightOff");
+      Photon.Fire(MapLighting[i].beam, "LightOn", "", GetRandomFloat(0.1, 0.35));
+      Photon.Fire(MapLighting[i].beam, "LightOff", "", GetRandomFloat(0.4, 0.75));
+      Photon.Fire(MapLighting[i].beam, "LightOn", "", GetRandomFloat(1.0, 1.35));
     }
   }
   return Plugin_Stop;
@@ -1237,7 +1237,7 @@ public Action SurgePowerFX(Handle timer) {
 
 public Action TornadoShaker(Handle timer) {
   if (WeatherManager.hasTornado()) {
-    FastFire2.Execute("tornadoshake_f1", "StartShake");
+    Photon.Fire("tornadoshake_f1", "StartShake");
     CreateTimer(1.5, TornadoShaker);
   }
   return Plugin_Stop;

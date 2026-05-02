@@ -26,9 +26,9 @@ public Action StatsTracker(Handle timer) {
   Format(hour, sizeof(hour), "%i", time[0]);
   Format(minute, sizeof(minute), "%i", time[1]);
   Format(ampm, sizeof(ampm), "%i", time[2]);
-  FastFire2.Execute("FBMetric.TimeHH", "SetTextureIndex", hour);
-  FastFire2.Execute("FBMetric.TimeMM", "SetTextureIndex", minute);
-  FastFire2.Execute("FBMetric.TimeAMPM", "SetTextureIndex", ampm);
+  Photon.Fire("FBMetric.TimeHH", "SetTextureIndex", hour);
+  Photon.Fire("FBMetric.TimeMM", "SetTextureIndex", minute);
+  Photon.Fire("FBMetric.TimeAMPM", "SetTextureIndex", ampm);
   CreateTimer(15.0, StatsTracker);
   if (!Ass_Database) return Plugin_Stop;
   char query[512];
@@ -53,20 +53,20 @@ public void OnMetricsFetch(Database db, DBResultSet results, const char[] error,
     char val[32];
     if (StrEqual(name, "memory_used_gib")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2.Execute("FBMetric.RAMUtil", "SetTextureIndex", val);
+      Photon.Fire("FBMetric.RAMUtil", "SetTextureIndex", val);
     } else if (StrEqual(name, "memory_total_gib")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2.Execute("FBMetric.RAMTotal", "SetTextureIndex", val);
+      Photon.Fire("FBMetric.RAMTotal", "SetTextureIndex", val);
     } else if (StrEqual(name, "cpu_usage_percent")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2.Execute("FBMetric.CPUUtil", "SetTextureIndex", val);
+      Photon.Fire("FBMetric.CPUUtil", "SetTextureIndex", val);
     } else if (StrEqual(name, "cpu_frequency_x10")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2.Execute("FBMetric.CPUFreq", "SetTextureIndex", val);
+      Photon.Fire("FBMetric.CPUFreq", "SetTextureIndex", val);
     } else if (StrEqual(name, "cpu_temperature_c")) {
       Format(val, sizeof(val), "%i", value);
-      FastFire2.Execute("FBMetric.CPUTemp", "SetTextureIndex", val);
+      Photon.Fire("FBMetric.CPUTemp", "SetTextureIndex", val);
     }
   }
-  FastFire2.Execute("FBMetrics.*", "Enable", "");
+  Photon.Fire("FBMetrics.*", "Enable", "");
 }

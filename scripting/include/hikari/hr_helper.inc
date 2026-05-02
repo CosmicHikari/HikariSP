@@ -123,58 +123,58 @@ public Action OnslaughterATK(Handle timer) {
   if (BossHandler.isAlive) {
     if (core.waveFlags == 1) {
       CreateTimer(GetRandomFloat(5.0, 7.0), OnslaughterATK);
-      FastFire2.Execute("BruteJusticeDefaultATK", "FireMultiple", "3", 5.0);
+      Photon.Fire("BruteJusticeDefaultATK", "FireMultiple", "3", 5.0);
       switch (GetRandomInt(1, 10)) {
         case 1, 6: {
-          FastFire2.Execute("BruteJusticeLaserParticle", "Start");
+          Photon.Fire("BruteJusticeLaserParticle", "Start");
           CustomSoundEmitter(SFXArray[38].realPath, 65, false, 0, 1.0, 100);
-          FastFire2.Execute("BruteJusticeLaser", "TurnOn", "", 1.40);
-          FastFire2.Execute("BruteJusticeLaserHurtAOE", "Enable", "", 1.40);
-          FastFire2.Execute("BruteJusticeLaserParticle", "Stop", "", 3.00);
-          FastFire2.Execute("BruteJusticeLaser", "TurnOff", "", 3.25);
-          FastFire2.Execute("BruteJusticeLaserHurtAOE", "Disable", "", 3.25);
+          Photon.Fire("BruteJusticeLaser", "TurnOn", "", 1.40);
+          Photon.Fire("BruteJusticeLaserHurtAOE", "Enable", "", 1.40);
+          Photon.Fire("BruteJusticeLaserParticle", "Stop", "", 3.00);
+          Photon.Fire("BruteJusticeLaser", "TurnOff", "", 3.25);
+          Photon.Fire("BruteJusticeLaserHurtAOE", "Disable", "", 3.25);
         }
         case 2, 8: {
-          FastFire2.Execute("BruteJusticeJarateSpawner00", "ForceSpawn", "", 0.0);
-          FastFire2.Execute("BruteJusticeJarateSpawner01", "ForceSpawn", "", 2.5);
-          FastFire2.Execute("BruteJusticeJarateSpawner02", "ForceSpawn", "", 5.0);
-          FastFire2.Execute("BruteJusticeJarateSpawner00", "ForceSpawn", "", 9.0);
-          FastFire2.Execute("BruteJusticeJarateSpawner01", "ForceSpawn", "", 12.0);
-          FastFire2.Execute("BruteJusticeJarateSpawner02", "ForceSpawn", "", 15.0);
+          Photon.Fire("BruteJusticeJarateSpawner00", "ForceSpawn", "", 0.0);
+          Photon.Fire("BruteJusticeJarateSpawner01", "ForceSpawn", "", 2.5);
+          Photon.Fire("BruteJusticeJarateSpawner02", "ForceSpawn", "", 5.0);
+          Photon.Fire("BruteJusticeJarateSpawner00", "ForceSpawn", "", 9.0);
+          Photon.Fire("BruteJusticeJarateSpawner01", "ForceSpawn", "", 12.0);
+          Photon.Fire("BruteJusticeJarateSpawner02", "ForceSpawn", "", 15.0);
         }
         case 3, 7: {
-          FastFire2.Execute("BruteJusticeFlameParticle", "Start");
-          FastFire2.Execute("BruteJusticeFlamethrowerHurtAOE", "Enable");
+          Photon.Fire("BruteJusticeFlameParticle", "Start");
+          Photon.Fire("BruteJusticeFlamethrowerHurtAOE", "Enable");
           CustomSoundEmitter(SFXArray[39].realPath, 65, false, 0, 1.0, 100);
-          FastFire2.Execute("SND.BruteJusticeFlameATK", "PlaySound", "", 1.25);
-          FastFire2.Execute("BruteJusticeFlamethrowerHurtAOE", "Disable", "", 5.0);
-          FastFire2.Execute("BruteJusticeFlameParticle", "Stop", "", 5.0);
-          FastFire2.Execute("SND.BruteJusticeFlameATK", "FadeOut", ".25", 5.0);
+          Photon.Fire("SND.BruteJusticeFlameATK", "PlaySound", "", 1.25);
+          Photon.Fire("BruteJusticeFlamethrowerHurtAOE", "Disable", "", 5.0);
+          Photon.Fire("BruteJusticeFlameParticle", "Stop", "", 5.0);
+          Photon.Fire("SND.BruteJusticeFlameATK", "FadeOut", ".25", 5.0);
           CreateTimer(5.0, TimedOperator, 60);
-          FastFire2.Execute("SND.BruteJusticeFlameATK", "StopSound", "", 5.1);
+          Photon.Fire("SND.BruteJusticeFlameATK", "StopSound", "", 5.1);
         }
         case 4: {
-          FastFire2.Execute("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 0.0);
-          FastFire2.Execute("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 3.0);
-          FastFire2.Execute("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 5.0);
+          Photon.Fire("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 0.0);
+          Photon.Fire("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 3.0);
+          Photon.Fire("BruteJusticeGrenadeSpammer", "FireMultiple", "10", 5.0);
         }
         case 5: {
-          FastFire2.Execute("BruteJusticeGrenadeSpammer", "FireMultiple", "50", 0.0);
-          FastFire2.Execute("BruteJusticeJarateSpawner00", "ForceSpawn", "", 0.0);
-          FastFire2.Execute("BruteJusticeJarateSpawner01", "ForceSpawn", "", 2.5);
-          FastFire2.Execute("BruteJusticeJarateSpawner02", "ForceSpawn", "", 5.0);
-          FastFire2.Execute("BruteJusticeJarateSpawner00", "ForceSpawn", "", 9.0);
-          FastFire2.Execute("BruteJusticeJarateSpawner01", "ForceSpawn", "", 12.0);
-          FastFire2.Execute("BruteJusticeJarateSpawner02", "ForceSpawn", "", 15.0);
+          Photon.Fire("BruteJusticeGrenadeSpammer", "FireMultiple", "50", 0.0);
+          Photon.Fire("BruteJusticeJarateSpawner00", "ForceSpawn", "", 0.0);
+          Photon.Fire("BruteJusticeJarateSpawner01", "ForceSpawn", "", 2.5);
+          Photon.Fire("BruteJusticeJarateSpawner02", "ForceSpawn", "", 5.0);
+          Photon.Fire("BruteJusticeJarateSpawner00", "ForceSpawn", "", 9.0);
+          Photon.Fire("BruteJusticeJarateSpawner01", "ForceSpawn", "", 12.0);
+          Photon.Fire("BruteJusticeJarateSpawner02", "ForceSpawn", "", 15.0);
         }
         case 9: {
-          FastFire2.Execute("BruteJusticeRocketSpammer", "FireOnce", "", 0.0);
-          FastFire2.Execute("BruteJusticeRocketSpammer", "FireOnce", "", 5.0);
+          Photon.Fire("BruteJusticeRocketSpammer", "FireOnce", "", 0.0);
+          Photon.Fire("BruteJusticeRocketSpammer", "FireOnce", "", 5.0);
         }
         case 10: {
-          FastFire2.Execute("BruteJusticeRocketSpammer", "FireMultiple", "10", 0.0);
-          FastFire2.Execute("BruteJusticeRocketSpammer", "FireMultiple", "10", 3.0);
-          FastFire2.Execute("BruteJusticeRocketSpammer", "FireMultiple", "10", 5.0);
+          Photon.Fire("BruteJusticeRocketSpammer", "FireMultiple", "10", 0.0);
+          Photon.Fire("BruteJusticeRocketSpammer", "FireMultiple", "10", 3.0);
+          Photon.Fire("BruteJusticeRocketSpammer", "FireMultiple", "10", 5.0);
         }
       }
     }
@@ -187,7 +187,7 @@ public Action SephATK(Handle timer) {
   if (core.waveFlags == 2) {
     float f = GetRandomFloat(5.0, 10.0);
     CreateTimer(f, SephATK);
-    FastFire2.Execute("SephArrows", "FireMultiple", "3", 5.0);
+    Photon.Fire("SephArrows", "FireMultiple", "3", 5.0);
     SephBoss[GetRandomInt(0, 11)].attack();
   }
   return Plugin_Stop;
@@ -195,8 +195,8 @@ public Action SephATK(Handle timer) {
 
 //Boss Health Timer
 public Action BossHPTimer(Handle timer) {
-  int BossEntProxy = (core.waveFlags == 1 ? FastFire2.FindEntityByTargetname("OnslaughterTank", "tank_boss") : core.waveFlags == 2 ? FastFire2.FindEntityByTargetname("SephirothTank", "tank_boss") : -1);
-  int BossEnt = (core.waveFlags == 1 ? FastFire2.FindEntityByTargetname("FB.OnslaughterBase", "base_boss") : core.waveFlags == 2 ? FastFire2.FindEntityByTargetname("FB.SephirothDMGRelay", "func_physbox") : -1);
+  int BossEntProxy = (core.waveFlags == 1 ? Photon.Find("OnslaughterTank", "tank_boss") : core.waveFlags == 2 ? Photon.Find("SephirothTank", "tank_boss") : -1);
+  int BossEnt = (core.waveFlags == 1 ? Photon.Find("FB.OnslaughterBase", "base_boss") : core.waveFlags == 2 ? Photon.Find("FB.SephirothDMGRelay", "func_physbox") : -1);
   if (BossEnt != -1 || BossEntProxy != -1) {
     SetEntProp(BossEntProxy, Prop_Data, "m_iHealth", GetEntProp(BossEnt, Prop_Data, "m_iHealth"));
     CPrintToChatAll((core.waveFlags == 1 ? "{blue}Onslaughter's HP: %i (%i)" : core.waveFlags == 2 ? "{blue}Sephiroth's HP: %i (%i)" : "{blue}Error: Boss not found... core.waveFlags was neither 1 nor 2"), GetEntProp(BossEnt, Prop_Data, "m_iHealth"), GetEntProp(BossEntProxy, Prop_Data, "m_iHealth"));
@@ -209,7 +209,7 @@ public Action BossHPTimer(Handle timer) {
 public Action SENTMeteorTimer(Handle timer) {
   if (core.canSENTMeteors) {
     CreateTimer(5.0, SENTMeteorTimer);
-    FastFire2.Execute(FB_SENT[GetRandomInt(0, 4)], "ForceSpawn"); // replace me with teleportEntity eventually then forcespawn...
+    Photon.Fire(FB_SENT[GetRandomInt(0, 4)], "ForceSpawn"); // replace me with teleportEntity eventually then forcespawn...
   }
   return Plugin_Stop;
 }
@@ -218,7 +218,7 @@ public Action SENTMeteorTimer(Handle timer) {
 public Action SENTStarTimer(Handle timer) {
   PrintToChatAll("Core can sent starts: %i", core.canSENTStars == true ? 1 : 0);
   if (core.canSENTStars) {
-    FastFire2.Execute(FB_SENT[10], "ForceSpawn"); // replace me with teleportEntity eventually then forcespawn...
+    Photon.Fire(FB_SENT[10], "ForceSpawn"); // replace me with teleportEntity eventually then forcespawn...
     CreateTimer(GetRandomFloat(0.75, 1.5), SENTStarTimer);
   }
   return Plugin_Stop;

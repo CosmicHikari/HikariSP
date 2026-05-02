@@ -217,19 +217,19 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
       int i = GetRandomInt(1, 16);
       switch (i) {
         case 1, 3, 10: {
-          FastFire2.Execute("MeteoriteTemplate", "ForceSpawn");
-          FastFire2.SetEntityLife("FB.Meteorite00", 10.0);
-          FastFire2.SetEntityLife("FB.MeteoriteTrain", 10.0);
-          FastFire2.SetEntityLife("MeteoritePath0*", 10.0);
+          Photon.Fire("MeteoriteTemplate", "ForceSpawn");
+          Photon.SetEntityLife("FB.Meteorite00", 10.0);
+          Photon.SetEntityLife("FB.MeteoriteTrain", 10.0);
+          Photon.SetEntityLife("MeteoritePath0*", 10.0);
           CPrintToChatAll("{darkviolet}[{red}WARN{darkviolet}] {white}Uh oh, a {red}METEOR{white}has been spotted coming towards Dovah's Ass!!!");
-          FastFire2.Execute("FB.MeteoriteTrain", "StartForward", "", 0.1);
+          Photon.Fire("FB.MeteoriteTrain", "StartForward", "", 0.1);
         }
         case 2, 5, 16: {
           CreateTimer(0.5, TimedOperator, 71);
-          FastFire2.Execute("FB.TankTrain", "TeleportToPathTrack", "Tank01");
-          FastFire2.Execute("FB.TankTrain", "StartForward", "", 0.25);
-          FastFire2.Execute("FB.TankTrain", "SetSpeed", "1", 0.35);
-          FastFire2.Execute("FB.Tank", "Enable", "", 1.0);
+          Photon.Fire("FB.TankTrain", "TeleportToPathTrack", "Tank01");
+          Photon.Fire("FB.TankTrain", "StartForward", "", 0.25);
+          Photon.Fire("FB.TankTrain", "SetSpeed", "1", 0.35);
+          Photon.Fire("FB.Tank", "Enable", "", 1.0);
         }
         case 6, 9: {
           WeatherManager.setCanTornado(true);
@@ -242,9 +242,9 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
           CreateTimer(30.0, TimedOperator, 12);
         }
         case 11: {
-          FastFire2.Execute("FB.Slice", "Enable");
+          Photon.Fire("FB.Slice", "Enable");
           CustomSoundEmitter("ambient/sawblade_impact1.wav", 65, false, 0, 1.0, 100);
-          FastFire2.Execute("FB.Slice", "Disable", "", 1.0);
+          Photon.Fire("FB.Slice", "Disable", "", 1.0);
         }
       }
       if (SCR_IsAvailable()) SCR_SendEvent("Incorrect Code Entry!", "Client %N has sacrificed themselves with an **INCORRECT KEY ENTRY**!", client);

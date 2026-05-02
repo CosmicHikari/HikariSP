@@ -6,14 +6,14 @@
  *   FIVE..... TIPS AND TRICKS MAY BE ADDED TO THE TIMER, SEE PerformAdverts(Handle timer);
  *        IF IT'S WAR THAT YOU WANT, THEN I'M READY TO PLAY. GLHF!
  */
-public char PLUGIN_VERSION[8] = "10.0.0d";
+public char PLUGIN_VERSION[8] = "10.0.0e";
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
 #include <tf2_stocks>
 #include <hikari/tf2_damagebits>
 #include <hikari/newcolors>
-#include <hikari/fastfire2>
+#include <hikari/photon>
 #include <hikari/lightlogger>
 #include <hikari/hr_discord>
 #include <hikari/hr_database>
@@ -46,7 +46,7 @@ public void OnPluginStart() {
   LightLogger(LOGLVL_INFO, "Starting up Hikari's Framework! Waiting for Map Start...");
 }
 // Begin executing IO when ready
-public void OnFastFire2Ready() {
+public void OnPhotonReady() {
   LightLogger(LOGLVL_INFO, "####### FASTFIRE2 IS READY! INITIATE STARTUP SEQUENCE... PREPARE FOR THE END TIMES #######");
   core.init_pre();
   RegisterAndPrecacheAllFiles();
