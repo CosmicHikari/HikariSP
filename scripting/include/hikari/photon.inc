@@ -1,5 +1,5 @@
 // Hikari's Photon - Map I/O & Entity Management Interface
-char PHOTON_VER[7] = "3.0.0";
+char PHOTON_VER[7] = "3.0.1";
 int photonRef;
 
 enum struct PHOTON_BULK {
@@ -13,7 +13,7 @@ void OnPhotonStartup(const char[] path) {
 }
 
 methodmap PHOTON {
-  public bool CanSummon(int intent) {
+  public bool CanCreate(int intent) {
     int count = 0;
     int maxEntities = GetMaxEntities();
     for (int i = 1; i <= maxEntities; i++) { if (IsValidEntity(i)) { count++; } }
@@ -22,7 +22,7 @@ methodmap PHOTON {
 
   public int Create(char[] classname, char[] targetname) {
     int ent = this.Find(targetname, classname);
-    if (!IsValidEntity(ent) && this.CanSummon(1)) {
+    if (!IsValidEntity(ent) && this.CanCreate(1)) {
       ent = CreateEntityByName(classname);
       if (!IsValidEdict(ent)) { LogError("[Photon] Failed to create %s!", classname); return -2; }
       DispatchSpawn(ent);
@@ -57,7 +57,7 @@ methodmap PHOTON {
 
   public void SetKv(int ent, char[] kv, char[] val) { if (IsValidEntity(ent)) { DispatchKeyValue(ent, kv, val); } }
   
-  public void Kill(const char[] target, float time) { this.Fire(target, "Kill", _, time); }
+  public void SetEntityLife(const char[] target, float time) { this.Fire(target, "Kill", _, time); }
 }
 PHOTON Photon;
 
