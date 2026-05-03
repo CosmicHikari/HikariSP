@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.7.0";
+char HSE_VER[8] = "2.7.1";
 
 // Used to make lasers
 enum struct LaserData {
@@ -1176,7 +1176,7 @@ public Action RestorePower(Handle timer, int surge) {
   return Plugin_Stop;
 }
 
-char LightingPatterns[][25] =  {
+char LightingPatterns[][24] =  {
   /////Allistor/////
   "sduehrjkihwerte",
   "ihqopeiruhiqwer",
@@ -1208,9 +1208,9 @@ public Action SurgePower(Handle timer) {
     PrintToChatAll("Targeting a %s", MapLighting[target].light);
     MapLighting[target].isBroken ? PrintToChatAll("Yes it's broken") : PrintToChatAll("It is not broken");
     if (!MapLighting[target].isBroken) {
-      int rnd = GetRandomInt(0, 7);
+      int rnd = GetRandomInt(0, 9);
       PrintToChatAll("%i", rnd);
-      if (rnd == 5) { MapLighting[target].Explode(); SetupAttackZone(9000.0, DMG_SHOCK, g_Lights[target], false, 20, 0.1, 9999999.0); }
+      if (rnd >= 7) { MapLighting[target].Explode(); SetupAttackZone(9000.0, DMG_SHOCK, g_Lights[target], false, 20, 0.1, 9999999.0); }
       Photon.Fire(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
       Photon.Fire(MapLighting[target].light, "TurnOn");
       Photon.Fire(MapLighting[target].beam, "LightOn");
