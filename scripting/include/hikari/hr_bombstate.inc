@@ -92,6 +92,7 @@ methodmap BOMBCONTROLLER {
     if (SCR_IsAvailable()) SCR_SendEvent("[Bomb State]", "The team is currently pushing a %s.", this.getCurBomb().name);
   }
   public void OnBombReady() {
+    Photon.Fire("BombCart2", "Disable", 0.5);
     Photon.Fire("BombSpawner", "ForceSpawn");
     Photon.Fire("BombTrain", "TeleportToPathTrack", "BombTrain0x00");
     Photon.Fire("BombPush", "Enable", _, 0.5);
