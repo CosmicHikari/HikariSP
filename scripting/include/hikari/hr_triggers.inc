@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.5.3";
+char TR_VER[7] = "1.6.0";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -10,20 +10,25 @@ enum struct Zone {
   float end[3];
   float dmg;
   int dmgType;
+  int team;
   int ticks;
   int tickrate;
   TFCond statuseffect;
-  bool canTick() { return this.shouldTick && (++this.ticks % this.tickrate == 0); }
-  bool isTriggeredByEntityAt(const float pos[3]) { return (pos[0] >= this.start[0] && pos[0] <= this.end[0] && pos[1] >= this.start[1] && pos[1] <= this.end[1] && pos[2] >= this.start[2] && pos[2] <= this.end[2]); }
+  bool canTick() { return !this.isInvalid() && this.shouldTick && (++this.ticks % this.tickrate == 0); }
+  bool isTriggeredByEntityAt(const float pos[3]) {
+    if (pos[0] < Maths().FloatMin(this.start[0], this.end[0]) || pos[0] > Maths().FloatMax(this.start[0], this.end[0])) return false;
+    if (pos[1] < Maths().FloatMin(this.start[1], this.end[1]) || pos[1] > Maths().FloatMax(this.start[1], this.end[1])) return false;
+    if (pos[2] < Maths().FloatMin(this.start[2], this.end[2]) || pos[2] > Maths().FloatMax(this.start[2], this.end[2])) return false;
+    return true;
+  }
   bool isInvalid() { return (this.start[0] == 0.0 && this.end[0] == 0.0 || this.start[1] == 0.0 && this.end[1] == 0.0 || this.start[2] == 0.0 && this.end[2] == 0.0); }
   void Tick() {
     if (this.canTick()) {
       float pos[3];
       for (int i = 0; i < (this.onlyPlayers ? MaxClients : GetMaxEntities()); i++) {
         if (i < MaxClients) {
-          if (!IsValidClient(i)) continue;
-          GetClientAbsOrigin(i, pos);
-          PrintToChatAll("%N triggered the trigger at %f %f %f", i, pos[0], pos[1], pos[2]);
+          if (!(0 < i) || IsClientInvalidForTrigger(i)) continue;
+          if (this.team == 0 || (GetClientTeam(i) == this.team)) GetClientAbsOrigin(i, pos);
           // Tick status effects
           if (this.hasStatusEffect && !TF2_IsPlayerInCondition(i, this.statuseffect) && this.isTriggeredByEntityAt(pos)) {
             switch(this.statuseffect) {
@@ -62,7 +67,7 @@ public void InitAllZones() {
   SetZoneExtents(g_FrontRottenburg, -260.0, -574.0, 1024.0, 3600.0, -4500.0, -256.0);
   SetZoneExtents(g_Special[0], 2500.0, 1550.0, -340.0, 2564.0, 1500.0, -420.0);
   SetZoneExtents(g_Special[1], 700.0, 1940.0, -128.0, 764.0, 2000.0, -192.0);
-  SetZoneExtents(g_Special[2], 420.0, 1332.0, -392.0, 470.0, 1290.0, -325.0)
+  SetZoneExtents(g_Special[2], 420.0, 1332.0, -392.0, 470.0, 1290.0, -325.0);
   SetZoneExtents(g_Special[3], 400.0, -1145.0, -16.0, 450.0, -1092.0, -380.0);// Adds tf cond halloween giant for 60s
   SetZoneExtents(g_Special[4], 1950.0, 1272.0, -316.0, 1890.0, 1332.0, -390.0);
   SetZoneExtents(g_BombPickup, -3860.0, 1970.0, 24.0, -3524.0, 2280.0, -128.0);
@@ -77,7 +82,7 @@ public void InitAllZones() {
   SetZoneExtents(g_Lights[6], 1008.0, 1458.0, 10.0, 880.0, 1586.0, -192.0);
   SetZoneExtents(g_Lights[7], 1038.0, 648.0, -148.0, 900.0, 772.0, -300.0);
   SetZoneExtents(g_Lights[8], 367.0, 1710.0, -224.0, 492.0, 1838.0, -384.0);
-  SetZoneExtents(g_Lights[9], 1704.0, 1832.0, -200.0, 1830.0, 1960.0, -330.0);
+  SetZoneExtents(g_Lights[9], 1704.0, 1780.0, -200.0, 1830.0, 1960.0, -330.0);
   SetZoneExtents(g_Lights[10], 2230.0, 1512.0, -243.0, 2356.0, 1384.0, -384.0);
   SetZoneExtents(g_Lights[11], 2252.0, 967.0, -240.0, 2380.0, 840.0, -376.0);
   g_FrontRottenburg.tickrate = 77;
@@ -85,8 +90,8 @@ public void InitAllZones() {
   g_HatchFire.tickrate = 32;
   g_BombPickup.tickrate = 32;
   g_BombPickup.onlyPlayers = true;
-  for (int i = 0; i < sizeof(g_Lights)-1; i++) { g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
-  for (int i = 0; i < sizeof(g_Special); i++) { g_Special[i].onlyPlayers = true; }
+  for (int i = 0; i < sizeof(g_Lights); i++) { g_Lights[i].tickrate = 33; g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
+  for (int i = 0; i < sizeof(g_Special); i++) { g_Special[i].onlyPlayers = true; g_Special[i].team = 2; }
   g_Special[0].statuseffect = TFCond_OnFire;
   g_Special[3].statuseffect = TFCond_HalloweenGiant;
   g_Special[4].statuseffect = TFCond_MarkedForDeath;
