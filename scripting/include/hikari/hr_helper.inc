@@ -110,7 +110,6 @@ methodmap MATHS {
   public float Adjust(float input, float rate) { return (input + rate); }
   // Returns the lesser of two floats
   public float FloatMin(float a, float b) { return a <= b ? a : b; }
-
   // Returns the greater of two floats
   public float FloatMax(float a, float b) { return a >= b ? a : b; }
 }
