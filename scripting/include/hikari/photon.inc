@@ -1,5 +1,5 @@
 // Hikari's Photon - Map I/O & Entity Management Interface
-char PHOTON_VER[7] = "3.0.1";
+char PHOTON_VER[7] = "3.0.2";
 int photonRef;
 
 enum struct PHOTON_BULK {
@@ -32,11 +32,11 @@ methodmap PHOTON {
     return ent;
   }
 
-  public int Find(char[] targetname, char[] classname) {
+  public int Find(char[] targetname, char[] classname, bool caseSensitive = false) {
     char namebuf[128]; int index = -1;
     while((index = FindEntityByClassname(index, classname)) != -1) { 
       GetEntPropString(index, Prop_Data, "m_iName", namebuf, sizeof(namebuf));
-      if (strcmp(namebuf, targetname) == 0) return index;
+      if (strcmp(namebuf, targetname, caseSensitive) == 0) return index;
     }
     return -1;
   }

@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.5.3";
+char TR_VER[7] = "1.7.0";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -6,40 +6,55 @@ enum struct Zone {
   bool onlyPlayers;
   bool shouldTick;
   bool onlyOnce;
-  float start[3];
-  float end[3];
   float dmg;
+  float min[3];
+  float max[3];
   int dmgType;
+  int team;
   int ticks;
   int tickrate;
+  int wlClass;
   TFCond statuseffect;
-  bool canTick() { return this.shouldTick && (++this.ticks % this.tickrate == 0); }
-  bool isTriggeredByEntityAt(const float pos[3]) { return (pos[0] >= this.start[0] && pos[0] <= this.end[0] && pos[1] >= this.start[1] && pos[1] <= this.end[1] && pos[2] >= this.start[2] && pos[2] <= this.end[2]); }
-  bool isInvalid() { return (this.start[0] == 0.0 && this.end[0] == 0.0 || this.start[1] == 0.0 && this.end[1] == 0.0 || this.start[2] == 0.0 && this.end[2] == 0.0); }
+  bool canTick() { return !this.isInvalid() && this.shouldTick && (++this.ticks % this.tickrate == 0); }
+  bool isClientAffected(int client) { return (view_as<int>(TF2_GetPlayerClass(client)) != this.wlClass); }
+  bool isTriggeredByEntityAt(const float pos[3]) { return (pos[0] >= this.min[0] && pos[0] <= this.max[0] && pos[1] >= this.min[1] && pos[1] <= this.max[1] && pos[2] >= this.min[2] && pos[2] <= this.max[2]); }
+  bool isInvalid() { return (this.min[0] == 0.0 && this.max[0] == 0.0 || this.min[1] == 0.0 && this.max[1] == 0.0 || this.min[2] == 0.0 && this.max[2] == 0.0); }
   void Tick() {
     if (this.canTick()) {
       float pos[3];
-      for (int i = 0; i < (this.onlyPlayers ? MaxClients : GetMaxEntities()); i++) {
-        if (i < MaxClients) {
-          if (!IsValidClient(i)) continue;
-          GetClientAbsOrigin(i, pos);
-          PrintToChatAll("%N triggered the trigger at %f %f %f", i, pos[0], pos[1], pos[2]);
-          // Tick status effects
-          if (this.hasStatusEffect && !TF2_IsPlayerInCondition(i, this.statuseffect) && this.isTriggeredByEntityAt(pos)) {
-            switch(this.statuseffect) {
-              case TFCond_MVMBotRadiowave: { if (GetClientTeam(i) == 3) TF2_AddCondition(i, TFCond_MVMBotRadiowave); }
-              default: { if (this.statuseffect != TFCond_MVMBotRadiowave) TF2_AddCondition(i, this.statuseffect); }
-            }
-          }
+      // Players
+      for (int i = 1; i <= MaxClients; i++) {
+        if (IsClientInvalidForTrigger(i)) continue;
+        if ((this.team != 0 && GetClientTeam(i) != this.team) || !this.isClientAffected(i)) continue;
+        GetClientAbsOrigin(i, pos);
+        if (!this.isTriggeredByEntityAt(pos)) continue;
+        // Triggered by Player
+        if (this.dmg > 0) AttackEntity(i, this.dmg, this.dmgType);
+        if (this.hasStatusEffect && !TF2_IsPlayerInCondition(i, this.statuseffect)) {
+          if (this.statuseffect == TFCond_MVMBotRadiowave) { if (GetClientTeam(i) == 3) TF2_AddCondition(i, TFCond_MVMBotRadiowave); }
+          else { TF2_AddCondition(i, this.statuseffect); }
         }
-        // Tick other entities
-        if (i >= MaxClients && !IsEntityInvalidForTrigger(i)) GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
-        if (!IsEntityInvalidForTrigger(i) && this.isTriggeredByEntityAt(pos)) {
-          if (this.dmg > 0) { AttackEntity(i, this.dmg, this.dmgType); }
-          if (this.onlyOnce) { SetZoneActive(this, false); }
+        if (this.onlyOnce) { SetZoneActive(this, false); return; }
+      }
+      // Other Entities
+      if (!this.onlyPlayers) {
+        int maxEnts = GetMaxEntities();
+        for (int i = MaxClients + 1; i < maxEnts; i++) {
+          if (IsEntityInvalidForTrigger(i)) continue;
+          GetEntPropVector(i, Prop_Send, "m_vecOrigin", pos);
+          if (!this.isTriggeredByEntityAt(pos)) continue;
+          // Triggered by Entity
+          if (this.dmg > 0) AttackEntity(i, this.dmg, this.dmgType);
+          if (this.onlyOnce) { SetZoneActive(this, false); return; }
         }
       }
     }
+  }
+  void UpdateBounds(const float sx, const float sy, const float sz, const float ex, const float ey, const float ez) { 
+    this.min[0] = (sx < ex) ? sx : ex; this.max[0] = (sx > ex) ? sx : ex;
+    this.min[1] = (sy < ey) ? sy : ey; this.max[1] = (sy > ey) ? sy : ey;
+    this.min[2] = (sz < ez) ? sz : ez; this.max[2] = (sz > ez) ? sz : ez;
+    LightLogger(LOGLVL_DEBUG, "[Triggers @ v%s] Set new zone extents %f %f %f to %f %f %f.", TR_VER, this.min[0], this.min[1], this.min[2], this.max[0], this.max[1], this  .max[2]);
   }
 }
 Zone g_IndoorZones[4];
@@ -62,7 +77,7 @@ public void InitAllZones() {
   SetZoneExtents(g_FrontRottenburg, -260.0, -574.0, 1024.0, 3600.0, -4500.0, -256.0);
   SetZoneExtents(g_Special[0], 2500.0, 1550.0, -340.0, 2564.0, 1500.0, -420.0);
   SetZoneExtents(g_Special[1], 700.0, 1940.0, -128.0, 764.0, 2000.0, -192.0);
-  SetZoneExtents(g_Special[2], 420.0, 1332.0, -392.0, 470.0, 1290.0, -325.0)
+  SetZoneExtents(g_Special[2], 420.0, 1332.0, -392.0, 470.0, 1290.0, -325.0);
   SetZoneExtents(g_Special[3], 400.0, -1145.0, -16.0, 450.0, -1092.0, -380.0);// Adds tf cond halloween giant for 60s
   SetZoneExtents(g_Special[4], 1950.0, 1272.0, -316.0, 1890.0, 1332.0, -390.0);
   SetZoneExtents(g_BombPickup, -3860.0, 1970.0, 24.0, -3524.0, 2280.0, -128.0);
@@ -77,7 +92,7 @@ public void InitAllZones() {
   SetZoneExtents(g_Lights[6], 1008.0, 1458.0, 10.0, 880.0, 1586.0, -192.0);
   SetZoneExtents(g_Lights[7], 1038.0, 648.0, -148.0, 900.0, 772.0, -300.0);
   SetZoneExtents(g_Lights[8], 367.0, 1710.0, -224.0, 492.0, 1838.0, -384.0);
-  SetZoneExtents(g_Lights[9], 1704.0, 1832.0, -200.0, 1830.0, 1960.0, -330.0);
+  SetZoneExtents(g_Lights[9], 1704.0, 1780.0, -200.0, 1830.0, 1960.0, -330.0);
   SetZoneExtents(g_Lights[10], 2230.0, 1512.0, -243.0, 2356.0, 1384.0, -384.0);
   SetZoneExtents(g_Lights[11], 2252.0, 967.0, -240.0, 2380.0, 840.0, -376.0);
   g_FrontRottenburg.tickrate = 77;
@@ -85,8 +100,8 @@ public void InitAllZones() {
   g_HatchFire.tickrate = 32;
   g_BombPickup.tickrate = 32;
   g_BombPickup.onlyPlayers = true;
-  for (int i = 0; i < sizeof(g_Lights)-1; i++) { g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; }
-  for (int i = 0; i < sizeof(g_Special); i++) { g_Special[i].onlyPlayers = true; }
+  for (int i = 0; i < sizeof(g_Lights); i++) { g_Lights[i].tickrate = 33; g_Lights[i].statuseffect = TFCond_MVMBotRadiowave; g_Lights[i].hasStatusEffect = true; g_Lights[i].wlClass = view_as<int>(TFClass_Engineer); }
+  for (int i = 0; i < sizeof(g_Special); i++) { g_Special[i].onlyPlayers = true; g_Special[i].team = 2; }
   g_Special[0].statuseffect = TFCond_OnFire;
   g_Special[3].statuseffect = TFCond_HalloweenGiant;
   g_Special[4].statuseffect = TFCond_MarkedForDeath;
@@ -94,7 +109,7 @@ public void InitAllZones() {
 }
 
 // Used to check if client is an invalid trigger candidate
-bool IsClientInvalidForTrigger(int player) { return (IsClientInGame(player) ? !IsPlayerAlive(player) : true); }
+bool IsClientInvalidForTrigger(int player) { return (!IsClientInGame(player) || !IsPlayerAlive(player)); }
 
 // Used to check if entity is an invalid trigger candidate
 bool IsEntityInvalidForTrigger(int ent) { return (IsValidEntity(ent)) ? (!HasEntProp(ent, Prop_Send, "m_vecOrigin")) : true; }
@@ -167,4 +182,4 @@ void SetZoneActive(Zone zone, bool active) { zone.shouldTick = active; }
 // @param ex - End X
 // @param ey - End Y
 // @param ez - End Z
-void SetZoneExtents(Zone zone, float sx, float sy, float sz, float ex, float ey, float ez) { zone.start[0] = sx; zone.start[1] = sy; zone.start[2] = sz; zone.end[0] = ex; zone.end[1] = ey; zone.end[2] = ez; LightLogger(LOGLVL_DEBUG, "[Triggers @ v%s] Set new zone extents %f %f %f to %f %f %f.", TR_VER, zone.start[0], zone.start[1], zone.start[2], zone.end[0], zone.end[1], zone.end[2]); }
+void SetZoneExtents(Zone zone, float sx, float sy, float sz, float ex, float ey, float ez) { zone.UpdateBounds(sx, sy, sz, ex, ey, ez); }
