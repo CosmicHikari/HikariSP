@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.7.2";
+char HSE_VER[8] = "2.7.3";
 
 // Used to make lasers
 enum struct LaserData {
@@ -8,7 +8,6 @@ enum struct LaserData {
   float ePos[3];
 }
 LaserData WBLasers[3][28];
-LaserData Lightning[7];
 
 enum struct LaserColors {
   char cRGB[16];
@@ -685,6 +684,7 @@ enum struct WEATHERDATA {
   int iStormMin;
   int iStormMax;
   int ticks;
+  LaserData Lightning;
 }
 WEATHERDATA WDATA;
 
@@ -695,36 +695,45 @@ methodmap WEATHERMANAGER {
     if (!WaveSystem().IsWaveNull()) WDATA.tickWeather = true; // Start weather system ONLY IF NOT IN GAMEMODE 2.
   }
   public void doLightning() {
-    for (int i = 0; i < sizeof(Lightning); i++) { 
-      Lightning[i].sPos[0] = GetRandomFloat(480.0, 4090.0);
-      Lightning[i].sPos[1] = GetRandomFloat(710.0, 3350.0);
-      Lightning[i].sPos[2] = 1640.0;
-      Lightning[i].ePos[0] = GetRandomFloat(480.0, 4090.0);
-      Lightning[i].ePos[1] = GetRandomFloat(710.0, 3350.0);
-      Lightning[i].sPos[2] = -500.0;
-    }
-    for (int i = 0; i == GetRandomInt(1, 3); i++){
+    for (int i = 0; i < GetRandomInt(1, 4); i++) {
       int ent = CreateEntityByName("env_beam");
       if (ent != -1) {
-        float sPos[3]; sPos = Lightning[GetRandomInt(0, sizeof(Lightning))].sPos;
-        float ePos[3]; ePos = Lightning[GetRandomInt(0, sizeof(Lightning))].ePos;
+        float sPos[3];
+        sPos[0]= GetRandomFloat(WDATA.Lightning.sPos[0], WDATA.Lightning.ePos[0]);
+        sPos[1] = GetRandomFloat(WDATA.Lightning.sPos[1], WDATA.Lightning.ePos[1]);
+        sPos[2] = WDATA.Lightning.sPos[2];
+        float ePos[3];
+        ePos[0]= GetRandomFloat(WDATA.Lightning.sPos[0], WDATA.Lightning.ePos[0]);
+        ePos[1]= GetRandomFloat(WDATA.Lightning.sPos[1], WDATA.Lightning.ePos[1]);
+        ePos[2] = WDATA.Lightning.ePos[2];
         TeleportEntity(ent, sPos, NULL_VECTOR, NULL_VECTOR);
-        SetEntityModel(ent, "sprites/laserbeam.spr"); // This is where you would put the texture, ie "sprites/laser.vmt" or whatever.
+        SetEntityModel(ent, "sprites/laserbeam.spr");
         SetEntPropVector(ent, Prop_Data, "m_vecEndPos", ePos);
         DispatchKeyValue(ent, "targetname", "LightningStrike");
         DispatchKeyValue(ent, "rendercolor", "255 255 255");
         DispatchKeyValue(ent, "renderamt", "255");
+        DispatchKeyValue(ent, "NoiseAmplitude", "32.0");
+        DispatchKeyValue(ent, "TextureScroll", "25");
+        DispatchKeyValue(ent, "framestart", "1");
+        DispatchKeyValue(ent, "texture", "sprites/laserbeam.spr");
+        DispatchKeyValue(ent, "framerate", "100");
+        DispatchKeyValue(ent, "BoltWidth", "16.0");
+        DispatchKeyValue(ent, "damage", "1000000");
+        DispatchKeyValue(ent, "dissolvetype", "0");
         DispatchSpawn(ent);
-        SetEntPropFloat(ent, Prop_Data, "m_fWidth", 16.0); // how big the beam will be, i.e "4.0"
-        SetEntPropFloat(ent, Prop_Data, "m_fEndWidth", 16.0); // same as above
+        SetEntPropFloat(ent, Prop_Data, "m_fWidth", 16.0);
+        SetEntPropFloat(ent, Prop_Data, "m_fEndWidth", 16.0);
+        SetEntPropFloat(ent, Prop_Data, "m_fAmplitude", 32.0);
         ActivateEntity(ent);
         AcceptEntityInput(ent, "TurnOn");
+        TeleportEntity(Photon.Find("MapLighting.StreetLamp.Explosion", "env_explosion"), ePos);
+        Photon.Fire("MapLighting.StreetLamp.Explosion", "Explode");
         for (int c = 1; c <= MaxClients; c++) {
-          if (!IsPlayerAlive(i) || !IsClientInGame(i)) continue;
-          float entPos[3]; GetEntPropVector(i, Prop_Data, "m_vecOrigin", entPos);
+          if (!IsClientInGame(c) || !IsPlayerAlive(c)) continue;
+          float entPos[3]; GetEntPropVector(c, Prop_Data, "m_vecOrigin", entPos);
           if (GetVectorDistance(entPos, ePos) <= 300.0) AttackEntity(i, 10000000.0, DMG_ENERGYBEAM);
         }
-        Photon.SetEntityLife("LightningStrike", 1.0);
+        Photon.SetEntityLife("LightningStrike", GetRandomFloat(0.15, 0.30));
       }
     }
     sudo(1003);
@@ -913,7 +922,7 @@ methodmap WEATHERMANAGER {
       LightLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (WDATA.intensity / 15.0), WDATA.intensity);
       this.doLightning();
       this.updateIntensity();
-      WDATA.mIntensity = WDATA.intensity - 2;
+      WDATA.mIntensity = WDATA.intensity - 1;
       this.SetFogStartQueued(RoundToNearest(float (1000 - (WDATA.intensity * ((1000 - 150) / 15)))));
       this.SetFogEndQueued(RoundToNearest(float (3000 - (WDATA.intensity * ((3000 - 250) / 15)))));
       WDATA.fogTarget = 0.4 + (0.5 * (WDATA.intensity / 15));
@@ -1108,6 +1117,9 @@ methodmap WEATHERMANAGER {
           this.setFogChangeRate(json_object_get_float(jsHeader, "fogChangeRate"));
           this.setFogChangeRateRGB(json_object_get_float(jsHeader, "fogChangeRateRGB"));
           this.setSkyHeight(json_object_get_float(jsHeader, "skyHeight"));
+          LightLogger(LOGLVL_WARN, "[Enhancer:1120] Lightning sPos and ePos should be set via config file rather than being static...");
+          WDATA.Lightning.sPos = {-3650.0, 6144.0, 1640.0}
+          WDATA.Lightning.ePos = {3000.0, -2840.0, -152.0}
           for (int i = 0; i < sizeof(MapLighting); i++) {
             char key[40];
             Format(key, sizeof(key), "MapLighting%iArcs", i); json_object_get_string(jsHeader, key, MapLighting[i].arcs, sizeof(MapLighting[i].arcs));
@@ -1205,12 +1217,8 @@ public Action SurgePower(Handle timer) {
   if (WeatherManager.isPowerSurging()) {
     int target = GetRandomInt(0, 12);
     if (MapLighting[target].isBroken) target = GetRandomInt(0, 12);
-    PrintToChatAll("Targeting a %s", MapLighting[target].light);
-    MapLighting[target].isBroken ? PrintToChatAll("Yes it's broken") : PrintToChatAll("It is not broken");
     if (!MapLighting[target].isBroken) {
-      int rnd = GetRandomInt(0, 9);
-      PrintToChatAll("%i", rnd);
-      if (rnd >= 7) { MapLighting[target].Explode(); SetupAttackZone(9000.0, DMG_SHOCK, g_Lights[target], false, 20, 0.1, 9999999.0); }
+      if (GetRandomInt(0, 9) >= 7) { MapLighting[target].Explode(); SetupAttackZone(9000.0, DMG_SHOCK, g_Lights[target], false, 20, 0.1, 9999999.0); }
       Photon.Fire(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
       Photon.Fire(MapLighting[target].light, "TurnOn");
       Photon.Fire(MapLighting[target].beam, "LightOn");
