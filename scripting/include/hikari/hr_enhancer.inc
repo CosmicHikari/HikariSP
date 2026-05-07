@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.7.1";
+char HSE_VER[8] = "2.7.2";
 
 // Used to make lasers
 enum struct LaserData {
@@ -874,9 +874,9 @@ methodmap WEATHERMANAGER {
     g_IndoorZones[0].tickrate = 77;
     g_IndoorZones[0].shouldTick = true;
     WDATA.fogDensity = 0.50;
-    WDATA.fogColorRTarget = 35.0;
-    WDATA.fogColorGTarget = 55.0;
-    WDATA.fogColorBTarget = 55.0;
+    WDATA.fogColorRTarget = 55.0;
+    WDATA.fogColorGTarget = 47.0;
+    WDATA.fogColorBTarget = 47.0;
     this.Dissipate();
     WDATA.reset = true;
     WDATA.tickWeather = false;
