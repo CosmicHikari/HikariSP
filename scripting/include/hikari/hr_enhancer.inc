@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.7.0";
+char HSE_VER[8] = "2.7.5";
 
 // Used to make lasers
 enum struct LaserData {
@@ -8,7 +8,6 @@ enum struct LaserData {
   float ePos[3];
 }
 LaserData WBLasers[3][28];
-LaserData Lightning[7];
 
 enum struct LaserColors {
   char cRGB[16];
@@ -695,36 +694,46 @@ methodmap WEATHERMANAGER {
     if (!WaveSystem().IsWaveNull()) WDATA.tickWeather = true; // Start weather system ONLY IF NOT IN GAMEMODE 2.
   }
   public void doLightning() {
-    for (int i = 0; i < sizeof(Lightning); i++) { 
-      Lightning[i].sPos[0] = GetRandomFloat(480.0, 4090.0);
-      Lightning[i].sPos[1] = GetRandomFloat(710.0, 3350.0);
-      Lightning[i].sPos[2] = 1640.0;
-      Lightning[i].ePos[0] = GetRandomFloat(480.0, 4090.0);
-      Lightning[i].ePos[1] = GetRandomFloat(710.0, 3350.0);
-      Lightning[i].sPos[2] = -500.0;
-    }
-    for (int i = 0; i == GetRandomInt(1, 3); i++){
+    for (int i = 0; i < GetRandomInt(1, 4); i++) {
       int ent = CreateEntityByName("env_beam");
       if (ent != -1) {
-        float sPos[3]; sPos = Lightning[GetRandomInt(0, sizeof(Lightning))].sPos;
-        float ePos[3]; ePos = Lightning[GetRandomInt(0, sizeof(Lightning))].ePos;
+        float sPos[3];
+        sPos[0]= GetRandomFloat(g_WeatherZone.min[0], g_WeatherZone.max[0]);
+        sPos[1] = GetRandomFloat(g_WeatherZone.min[1], g_WeatherZone.max[1]);
+        sPos[2] = WDATA.skyHeight;
+        float ePos[3];
+        ePos[0]= GetRandomFloat(g_WeatherZone.min[0], g_WeatherZone.max[0]);
+        ePos[1]= GetRandomFloat(g_WeatherZone.min[1], g_WeatherZone.max[1]);
+        ePos[2] = -192.0;
+        LightLogger(LOGLVL_WARN, "[Enhancer:708] ePos[2] should be configurable, as the lowest point where lightning can strike.");
         TeleportEntity(ent, sPos, NULL_VECTOR, NULL_VECTOR);
-        SetEntityModel(ent, "sprites/laserbeam.spr"); // This is where you would put the texture, ie "sprites/laser.vmt" or whatever.
+        SetEntityModel(ent, "sprites/laserbeam.spr");
         SetEntPropVector(ent, Prop_Data, "m_vecEndPos", ePos);
         DispatchKeyValue(ent, "targetname", "LightningStrike");
         DispatchKeyValue(ent, "rendercolor", "255 255 255");
         DispatchKeyValue(ent, "renderamt", "255");
+        DispatchKeyValue(ent, "NoiseAmplitude", "32.0");
+        DispatchKeyValue(ent, "TextureScroll", "25");
+        DispatchKeyValue(ent, "framestart", "1");
+        DispatchKeyValue(ent, "texture", "sprites/laserbeam.spr");
+        DispatchKeyValue(ent, "framerate", "100");
+        DispatchKeyValue(ent, "BoltWidth", "16.0");
+        DispatchKeyValue(ent, "damage", "1000000");
+        DispatchKeyValue(ent, "dissolvetype", "0");
         DispatchSpawn(ent);
-        SetEntPropFloat(ent, Prop_Data, "m_fWidth", 16.0); // how big the beam will be, i.e "4.0"
-        SetEntPropFloat(ent, Prop_Data, "m_fEndWidth", 16.0); // same as above
+        SetEntPropFloat(ent, Prop_Data, "m_fWidth", 16.0);
+        SetEntPropFloat(ent, Prop_Data, "m_fEndWidth", 16.0);
+        SetEntPropFloat(ent, Prop_Data, "m_fAmplitude", 32.0);
         ActivateEntity(ent);
         AcceptEntityInput(ent, "TurnOn");
+        TeleportEntity(Photon.Find("MapLighting.StreetLamp.Explosion", "env_explosion"), ePos);
+        Photon.Fire("MapLighting.StreetLamp.Explosion", "Explode");
         for (int c = 1; c <= MaxClients; c++) {
-          if (!IsPlayerAlive(i) || !IsClientInGame(i)) continue;
-          float entPos[3]; GetEntPropVector(i, Prop_Data, "m_vecOrigin", entPos);
+          if (!IsClientInGame(c) || !IsPlayerAlive(c)) continue;
+          float entPos[3]; GetEntPropVector(c, Prop_Data, "m_vecOrigin", entPos);
           if (GetVectorDistance(entPos, ePos) <= 300.0) AttackEntity(i, 10000000.0, DMG_ENERGYBEAM);
         }
-        Photon.SetEntityLife("LightningStrike", 1.0);
+        Photon.SetEntityLife("LightningStrike", GetRandomFloat(0.15, 0.30));
       }
     }
     sudo(1003);
@@ -874,9 +883,9 @@ methodmap WEATHERMANAGER {
     g_IndoorZones[0].tickrate = 77;
     g_IndoorZones[0].shouldTick = true;
     WDATA.fogDensity = 0.50;
-    WDATA.fogColorRTarget = 35.0;
-    WDATA.fogColorGTarget = 55.0;
-    WDATA.fogColorBTarget = 55.0;
+    WDATA.fogColorRTarget = 55.0;
+    WDATA.fogColorGTarget = 47.0;
+    WDATA.fogColorBTarget = 47.0;
     this.Dissipate();
     WDATA.reset = true;
     WDATA.tickWeather = false;
@@ -913,7 +922,7 @@ methodmap WEATHERMANAGER {
       LightLogger(LOGLVL_DEBUG, "[Hikari's Enhancer] Storm Intensity @ %f% (%i)", (WDATA.intensity / 15.0), WDATA.intensity);
       this.doLightning();
       this.updateIntensity();
-      WDATA.mIntensity = WDATA.intensity - 2;
+      WDATA.mIntensity = WDATA.intensity - 1;
       this.SetFogStartQueued(RoundToNearest(float (1000 - (WDATA.intensity * ((1000 - 150) / 15)))));
       this.SetFogEndQueued(RoundToNearest(float (3000 - (WDATA.intensity * ((3000 - 250) / 15)))));
       WDATA.fogTarget = 0.4 + (0.5 * (WDATA.intensity / 15));
@@ -1001,12 +1010,24 @@ methodmap WEATHERMANAGER {
     int tornado = -1;
     while ((tornado = Photon.Find("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
     if (!found) { PrintToServer("No tornado found."); return; }
-    for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
+    float dest[3];
+    dest[0] = GetRandomFloat(g_WeatherZone.min[0], g_WeatherZone.max[0]);
+    dest[1] = GetRandomFloat(g_WeatherZone.min[1], g_WeatherZone.max[1]);
+    dest[2] = 192.0;
+    float dest2[3];
+    dest2[0] = GetRandomFloat(g_WeatherZone.min[0], g_WeatherZone.max[0]);
+    dest2[1] = GetRandomFloat(g_WeatherZone.min[1], g_WeatherZone.max[1]);
+    dest2[2] = dest[2];
+    TeleportEntity(Photon.Find("TorTrack0x00", "path_track"), dest);
+    TeleportEntity(Photon.Find("TorTrack0x01", "path_track"), dest2);
+    Photon.Fire("tornadotrain", tornadoPos[0] == dest[0] ? "StartBackward" : "StartForward");
+    int maxEntities = GetMaxEntities();
+    for (int i = 0; i <= maxEntities; i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
+      if (i < MaxClients) if (IsValidClient(i)) if (IsClientObserver(i)) continue;
       float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
       float dx = tornadoPos[0] - entPos[0];
       float dy = tornadoPos[1] - entPos[1];
       float distance2D = SquareRoot(dx*dx + dy*dy);
-      if (IsValidClient(i)) PrintToChat(i, "Your distance to the tornado is %f", distance2D);
       float str = 1.0 - ((distance2D / 2150.0) * (distance2D / 2150.0));
       if (distance2D <= 1700.0) {
         float v[3]; GetEntPropVector(i, Prop_Data, "m_vecVelocity", v);
@@ -1176,7 +1197,7 @@ public Action RestorePower(Handle timer, int surge) {
   return Plugin_Stop;
 }
 
-char LightingPatterns[][25] =  {
+char LightingPatterns[][24] =  {
   /////Allistor/////
   "sduehrjkihwerte",
   "ihqopeiruhiqwer",
@@ -1205,12 +1226,8 @@ public Action SurgePower(Handle timer) {
   if (WeatherManager.isPowerSurging()) {
     int target = GetRandomInt(0, 12);
     if (MapLighting[target].isBroken) target = GetRandomInt(0, 12);
-    PrintToChatAll("Targeting a %s", MapLighting[target].light);
-    MapLighting[target].isBroken ? PrintToChatAll("Yes it's broken") : PrintToChatAll("It is not broken");
     if (!MapLighting[target].isBroken) {
-      int rnd = GetRandomInt(0, 7);
-      PrintToChatAll("%i", rnd);
-      if (rnd == 5) { MapLighting[target].Explode(); SetupAttackZone(9000.0, DMG_SHOCK, g_Lights[target], false, 20, 0.1, 9999999.0); }
+      if (GetRandomInt(0, 9) >= 7) { MapLighting[target].Explode(); SetupAttackZone(9000.0, DMG_SHOCK, g_Lights[target], false, 20, 0.1, 9999999.0); }
       Photon.Fire(MapLighting[target].light, "SetPattern", LightingPatterns[GetRandomInt(0, 19)]);
       Photon.Fire(MapLighting[target].light, "TurnOn");
       Photon.Fire(MapLighting[target].beam, "LightOn");
