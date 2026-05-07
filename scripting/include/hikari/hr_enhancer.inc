@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.7.3";
+char HSE_VER[8] = "2.7.4";
 
 // Used to make lasers
 enum struct LaserData {
@@ -1010,7 +1010,8 @@ methodmap WEATHERMANAGER {
     int tornado = -1;
     while ((tornado = Photon.Find("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
     if (!found) { PrintToServer("No tornado found."); return; }
-    for (int i = 0; i <= GetMaxEntities(); i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
+    int maxEntities = GetMaxEntities();
+    for (int i = 0; i <= maxEntities; i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
       float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
       float dx = tornadoPos[0] - entPos[0];
       float dy = tornadoPos[1] - entPos[1];
