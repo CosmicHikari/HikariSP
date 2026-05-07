@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.3.0";
+char SUDO_VER[8] = "1.3.1";
 void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[Sudo @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
@@ -838,7 +838,7 @@ void sudo(int task) {
   //Cycle monitor forward
     case 1009: {
       core.camSel++;
-      if (core.camSel > 5) core.camSel = 0;
+      if (core.camSel > 6) core.camSel = 0;
       Photon.Fire("FB.Monitor", "SetCamera", SelectedCamera[core.camSel]);
       Photon.Fire("FB.MonitorBW", "SetCamera", SelectedCamera[core.camSel]);
     }
