@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.7.4";
+char HSE_VER[8] = "2.7.5";
 
 // Used to make lasers
 enum struct LaserData {
@@ -684,7 +684,6 @@ enum struct WEATHERDATA {
   int iStormMin;
   int iStormMax;
   int ticks;
-  LaserData Lightning;
 }
 WEATHERDATA WDATA;
 
@@ -699,13 +698,14 @@ methodmap WEATHERMANAGER {
       int ent = CreateEntityByName("env_beam");
       if (ent != -1) {
         float sPos[3];
-        sPos[0]= GetRandomFloat(WDATA.Lightning.sPos[0], WDATA.Lightning.ePos[0]);
-        sPos[1] = GetRandomFloat(WDATA.Lightning.sPos[1], WDATA.Lightning.ePos[1]);
-        sPos[2] = WDATA.Lightning.sPos[2];
+        sPos[0]= GetRandomFloat(g_WeatherZone.min[0], g_WeatherZone.max[0]);
+        sPos[1] = GetRandomFloat(g_WeatherZone.min[1], g_WeatherZone.max[1]);
+        sPos[2] = WDATA.skyHeight;
         float ePos[3];
-        ePos[0]= GetRandomFloat(WDATA.Lightning.sPos[0], WDATA.Lightning.ePos[0]);
-        ePos[1]= GetRandomFloat(WDATA.Lightning.sPos[1], WDATA.Lightning.ePos[1]);
-        ePos[2] = WDATA.Lightning.ePos[2];
+        ePos[0]= GetRandomFloat(g_WeatherZone.min[0], g_WeatherZone.max[0]);
+        ePos[1]= GetRandomFloat(g_WeatherZone.min[1], g_WeatherZone.max[1]);
+        ePos[2] = -192.0;
+        LightLogger(LOGLVL_WARN, "[Enhancer:708] ePos[2] should be configurable, as the lowest point where lightning can strike.");
         TeleportEntity(ent, sPos, NULL_VECTOR, NULL_VECTOR);
         SetEntityModel(ent, "sprites/laserbeam.spr");
         SetEntPropVector(ent, Prop_Data, "m_vecEndPos", ePos);
@@ -1010,13 +1010,24 @@ methodmap WEATHERMANAGER {
     int tornado = -1;
     while ((tornado = Photon.Find("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
     if (!found) { PrintToServer("No tornado found."); return; }
+    float dest[3];
+    dest[0] = GetRandomFloat(g_WeatherZone.min[0], g_WeatherZone.max[0]);
+    dest[1] = GetRandomFloat(g_WeatherZone.min[1], g_WeatherZone.max[1]);
+    dest[2] = 192.0;
+    float dest2[3];
+    dest2[0] = GetRandomFloat(g_WeatherZone.min[0], g_WeatherZone.max[0]);
+    dest2[1] = GetRandomFloat(g_WeatherZone.min[1], g_WeatherZone.max[1]);
+    dest2[2] = dest[2];
+    TeleportEntity(Photon.Find("TorTrack0x00", "path_track"), dest);
+    TeleportEntity(Photon.Find("TorTrack0x01", "path_track"), dest2);
+    Photon.Fire("tornadotrain", tornadoPos[0] == dest[0] ? "StartBackward" : "StartForward");
     int maxEntities = GetMaxEntities();
     for (int i = 0; i <= maxEntities; i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
+      if (i < MaxClients) if (IsValidClient(i)) if (IsClientObserver(i)) continue;
       float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
       float dx = tornadoPos[0] - entPos[0];
       float dy = tornadoPos[1] - entPos[1];
       float distance2D = SquareRoot(dx*dx + dy*dy);
-      if (IsValidClient(i)) PrintToChat(i, "Your distance to the tornado is %f", distance2D);
       float str = 1.0 - ((distance2D / 2150.0) * (distance2D / 2150.0));
       if (distance2D <= 1700.0) {
         float v[3]; GetEntPropVector(i, Prop_Data, "m_vecVelocity", v);
@@ -1118,9 +1129,6 @@ methodmap WEATHERMANAGER {
           this.setFogChangeRate(json_object_get_float(jsHeader, "fogChangeRate"));
           this.setFogChangeRateRGB(json_object_get_float(jsHeader, "fogChangeRateRGB"));
           this.setSkyHeight(json_object_get_float(jsHeader, "skyHeight"));
-          LightLogger(LOGLVL_WARN, "[Enhancer:1120] Lightning sPos and ePos should be set via config file rather than being static...");
-          WDATA.Lightning.sPos = {-3650.0, 6144.0, 1640.0}
-          WDATA.Lightning.ePos = {3000.0, -2840.0, -152.0}
           for (int i = 0; i < sizeof(MapLighting); i++) {
             char key[40];
             Format(key, sizeof(key), "MapLighting%iArcs", i); json_object_get_string(jsHeader, key, MapLighting[i].arcs, sizeof(MapLighting[i].arcs));
