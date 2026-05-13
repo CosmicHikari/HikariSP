@@ -1,4 +1,4 @@
-char TR_VER[7] = "1.7.0";
+char TR_VER[7] = "1.7.1a";
 
 // Used to set up zones and allow them to tick
 enum struct Zone {
@@ -65,7 +65,7 @@ Zone g_HatchExplode;
 Zone g_HatchFire;
 Zone g_Special[6];
 Zone g_CustomZone;
-Zone g_CustomZoneArray[7];
+Zone g_CustomZoneArray[32];
 Zone g_Lights[13];
 
 public void InitAllZones() {
@@ -183,3 +183,10 @@ void SetZoneActive(Zone zone, bool active) { zone.shouldTick = active; }
 // @param ey - End Y
 // @param ez - End Z
 void SetZoneExtents(Zone zone, float sx, float sy, float sz, float ex, float ey, float ez) { zone.UpdateBounds(sx, sy, sz, ex, ey, ez); }
+
+// A command to set your own triggers!
+public Action Command_SetTriggerState(int client, int args) {
+  if (GetCmdArgs() < 7) { ReplyToCommand(client, "Usage: sm_settriggerstate <int index> <float x> <float y> <float z> <float end_x> <float end_y> <float end_z>"); return Plugin_Handled; }
+  SetZoneExtents(g_CustomZoneArray[GetCmdArgInt(1)], GetCmdArgFloat(2), GetCmdArgFloat(3), GetCmdArgFloat(4), GetCmdArgFloat(5), GetCmdArgFloat(6), GetCmdArgFloat(7));
+  return Plugin_Handled;
+}

@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.3.0";
+char SUDO_VER[8] = "1.3.2a";
 void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[Sudo @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
@@ -10,6 +10,10 @@ void sudo(int task) {
       CreateTimer(10.0, TimedOperator, 100);
     }
     case 1111: { WaveSystem().run(); }
+    case 2222: { WeatherManager.doLightning(); }
+    case 3333: { Photon.Fire("hr_cannon_template", "ForceSpawn"); }
+    case 4444: { CustomSoundEmitter(SFXArray[122].realPath, SFXArray[122].SNDLVL, false, 0, 1.0, 100); sudo(4445); CreateTimer(5.5, TimedOperator, 4444); }
+    case 4445: { tt = !tt; Photon.Fire("envglow", tt ? "ShowSprite" : "HideSprite"); }
     //Prepare yourself!
     case 1: {
       WaveSystem().init();
@@ -838,7 +842,7 @@ void sudo(int task) {
   //Cycle monitor forward
     case 1009: {
       core.camSel++;
-      if (core.camSel > 5) core.camSel = 0;
+      if (core.camSel > 6) core.camSel = 0;
       Photon.Fire("FB.Monitor", "SetCamera", SelectedCamera[core.camSel]);
       Photon.Fire("FB.MonitorBW", "SetCamera", SelectedCamera[core.camSel]);
     }
@@ -1002,6 +1006,7 @@ public Action TimedOperator(Handle timer, int job) {
     case 0: {
       for (int i = 1; i < MaxClients; ++i) if(IsValidClient(i)) CPrintToChat(i, AudioState[i].VIPBGM >= 0 && AudioState[i].VIPIndex > 0 ? "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}Wave %i: {forestgreen}%s{white} (requested by VIP {forestgreen}%N{white})" : "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}Wave %i: {forestgreen}%s", WaveSystem().GetWave(), AudioState[i].songName, AudioState[i].VIPIndex);
     }
+    case 4444: { sudo(4445); mIndex = -1; }
     //Boss script
     case 2: {
       sudo(1001); // Stop all bgm.
