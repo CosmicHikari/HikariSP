@@ -1,5 +1,5 @@
 // Hikari's Boss Handler
-char HRBOSS_VER[8] = "1.3.0";
+char HRBOSS_VER[8] = "1.4.0";
 
 bool canCrusaderNuke = false;
 bool crusader = false;
@@ -18,6 +18,7 @@ char ClassDefinitions[][32] = {
   "engineer",
   ""
 };
+
 //Crusader Incoming Timer for Crusader
 public Action CRUSADERINCOMING(Handle timer) {
   if (crusader && INCOMINGDISPLAYED < 17) {
@@ -28,6 +29,11 @@ public Action CRUSADERINCOMING(Handle timer) {
   if (INCOMINGDISPLAYED == 17) INCOMINGDISPLAYED = 0;
   return Plugin_Stop;
 }
+
+// TEMPORARY VARS
+bool tt;
+int glowEnt;
+// END TEMPORARY VARS
 
 public int iDmgHealingTotal;
 enum struct EMNITYMANAGER {
@@ -114,6 +120,7 @@ public int GetEmnityMax() {
   return result;
 }
 
+int yes;
 enum struct BOSSHANDLER {
   int bossID;
   bool bTargetInRange[MAXPLAYERS + 1];
@@ -217,6 +224,7 @@ enum struct BOSSHANDLER {
   }
   //For tracking model and skipping player ready check if boss is alive
   void Tick() {
+    if (tt) { if (yes++ % 7 == 0) FireMissilesSequentially(); }
     if (!this.shouldTick) return;
     //PrintToServer("Boss %i, hp %i/%i", this.bossID, this.iBossEntHealth, this.iBossEntMaxHealth);
     if (this.shouldTickBGM) this.TickBGM();
@@ -598,7 +606,26 @@ enum struct BOSSHANDLER {
       }
     }
   }
-  void OnStartup() { LightLogger(LOGLVL_INFO, "[BossHandler @ v%s] Setting up bosses...", HRBOSS_VER); }
+  void OnStartup() {
+    LightLogger(LOGLVL_INFO, "[BossHandler @ v%s] Setting up bosses...", HRBOSS_VER);
+    PrecacheModel("sprites/glow01.vmt", true);
+    int ent = Photon.Find("envglow", "env_sprite");
+    if (!IsValidEntity(ent)) {
+    ent = CreateEntityByName("env_sprite");
+    if (ent != -1) {
+        DispatchKeyValue(ent, "targetname", "envglow");
+        DispatchKeyValue(ent, "model", "sprites/glow01.vmt"); // Standard glow sprite
+        DispatchKeyValue(ent, "rendercolor", "255 180 0");
+        DispatchKeyValue(ent, "renderamt", "255");
+        DispatchKeyValue(ent, "rendermode", "5"); 
+        DispatchKeyValue(ent, "scale", "10.5"); 
+        DispatchKeyValue(ent, "GlowProxySize", "40.0"); 
+        DispatchSpawn(ent);
+        ActivateEntity(ent);
+      }
+    }
+    glowEnt = EntIndexToEntRef(ent);
+  }
 }
 BOSSHANDLER BossHandler;
 BOSSHANDLER Get_Boss_Handler() { return BossHandler; }
@@ -616,7 +643,7 @@ enum struct CUSTOMBOSS {
       CreateTimer(1.0, NukeTimer, 2);
       CreateTimer(7.0, TimedOperator, 11);
     }
-    if (!StrEqual(this.ChatMessage, ""))CPrintToChatAll(this.ChatMessage);
+    if (!StrEqual(this.ChatMessage, "")) CPrintToChatAll(this.ChatMessage);
     for (int i = 0; i < this.fireCount; i++) Photon.Fire(this.fireString[this.index + i]);
   }
   void Reset() {
@@ -874,4 +901,28 @@ public int GetBossHealthModifier(int baseHP) {
   float tD = GetTotalWeaponDamageBonus();
   PrintToServer("Got Attribute Damage Bonus %f", tD);
   return RoundFloat(baseHP * (tD / 1.5));
+}
+
+int mIndex = -1;
+void FireMissilesSequentially() {
+  if (!IsValidEntity(EntRefToEntIndex(glowEnt))) return;
+  Photon.Fire("FB.ShakeCore", "StartShake");
+  mIndex < 17 ? (mIndex++) : (mIndex = 0);
+  char t[64]; Format(t, sizeof(t), "hr_cannon%i_ammo%i", RoundToFloor(mIndex / 6.0), (mIndex > 5 && mIndex < 12) ? (mIndex-6) : (mIndex > 11 && mIndex < 18) ? (mIndex-12) : mIndex);
+  LightLogger(LOGLVL_WARN, "[BossHandler:886] %i mIndex, op got %s", mIndex, t);
+  TeleportSpriteToBrush(t);
+}
+
+void TeleportSpriteToBrush(char[] brush) {
+  int brush_index = Photon.Find(brush, "func_brush");
+  if (brush_index == -1 || !IsValidEntity(brush_index)) return;
+  float fPos[3], fAngles[3], fRight[3], sPos[3];
+  GetEntPropVector(brush_index, Prop_Data, "m_vecOrigin", fPos);
+  GetEntPropVector(brush_index, Prop_Data, "m_angRotation", fAngles);
+  GetAngleVectors(fAngles, NULL_VECTOR, fRight, NULL_VECTOR);
+  // Offset along the brush's local Y-axis
+  sPos[0] = fPos[0] + (fRight[0] * -72.0);
+  sPos[1] = fPos[1] + (fRight[1] * -72.0);
+  sPos[2] = fPos[2] + (fRight[2] * -72.0);
+  TeleportEntity(EntRefToEntIndex(glowEnt), sPos, NULL_VECTOR, NULL_VECTOR);
 }
