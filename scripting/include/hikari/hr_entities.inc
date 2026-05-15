@@ -25,6 +25,15 @@ public void OnEntityDamaged(const char[] output, int caller, int activator, floa
   }
   // Mini Meteor made landfall!
   if (Photon.MatchEntName(caller, "FB.MiniMeteor")) OnMeteoriteImpact();
+  // Goobbue or Blue Kirby slammed into the planet!
+  if (Photon.MatchEntName(caller, "GiantGoobPhys") || Photon.MatchEntName(caller, "BlueBall")) {
+    CustomSoundEmitter(SFXArray[35].realPath, SFXArray[35].SNDLVL, false, 0, 1.0, 100);
+    Photon.Fire("FrontMapShake", "Amplitude", "16");
+    Photon.Fire("FrontMapShake", "Frequency", "100");
+    Photon.Fire("FrontMapShake", "StartShake");
+    Photon.Fire("GiantGoob*", "Kill");
+    SetupAttackZone(777777.777, (isGoobbue ? DMG_ACID : DMG_PARALYZE), g_FrontRottenburg, _, GetRandomInt(35, 75), 0.1, 2.1);
+  }
 }
 
 // Called when a path_track has been passed
