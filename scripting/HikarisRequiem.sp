@@ -5,7 +5,7 @@
  *   FOUR..... THE DURATION OF MUSIC TIMERS SHOULD BE SET DEPENDING WHAT SONG IS USED. SET THIS USING THE CONFIG FILES. SONG DUR IN SECONDS / 0.0151515151515 = REFIRE TIME.
  *   FIVE..... TIPS AND TRICKS MAY BE ADDED TO THE TIMER, SEE PerformAdverts(Handle timer);
  */
-public char PLUGIN_VERSION[8] = "10.0.0i";
+public char PLUGIN_VERSION[8] = "10.0.0j";
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
