@@ -1,6 +1,6 @@
  //ASS_CONFIGSYSTEM - Contains the config loaders and all the plugin core data entries.
 #include <smjansson> // Needed for JSON parsing
-char HRCFG_VERSION[8] = "2.1.1";
+char HRCFG_VERSION[8] = "2.2.0";
 
 //Default values per wave
 enum struct DEFAULTS {
@@ -126,16 +126,7 @@ enum struct COREDATA {
     strcopy(this.configWaveNull, sizeof(this.configWaveNull), "addons/sourcemod/configs/HikarisRequiem/Core/WaveDefaults_WaveNull.ini");
     WaveSystem().SetActive(false);
     WaveSystem().SetWave(0);
-    ass[0].name = "[10] Bath Salts";
-    ass[1].name = "[20] Summon Goobbue or Kirby";
-    ass[2].name = "[30] Robot Trap (Wave Fail-safe)";
-    ass[3].name = "[40] Explosives Paradise";
-    ass[4].name = "[50] Banish Tornadoes";
-    ass[5].name = "[60] Ass Gas";
-    ass[6].name = "[70] Instant Fat Man";
-    ass[7].name = "[80] Meteorites";
-    ass[8].name = "[90) 300,000 UbUp Cash";
-    ass[9].name = "[100] Professor Fartsalot";
+    SetupASShop();
     for (int i = 0; i < sizeof(ass); i++) ass[i].price = 10 + (10 * i);
     for (int i = 0; i < sizeof(ass); i++) ass[i].purchase = 30 + i;
     LightLogger(1, "[ConfigSystem @ v%s] Setting up Crusader...", HRCFG_VERSION);
@@ -332,10 +323,8 @@ char SelectedCamera[][32] = {
 // Register other commands.
 void RegisterMiscCommands() {
   LightLogger(1, "Registering misc commands...");
-  RegConsoleCmd("sm_bombstatus", Command_FBBombStatus, "Check bomb status");
   RegConsoleCmd("sm_stats", Command_MyStats, "Print current statistics");
   RegConsoleCmd("sm_return", Command_Return, "Return to Spawn");
-  RegConsoleCmd("sm_sacpoints", Command_SacrificePointShop, "Hikari's Annihilation Supply Shop");
   RegConsoleCmd("sm_discord", Command_Discord, "Join our Discord server!");
   RegConsoleCmd("sm_aoe", Command_AOE, "[TESTING] Dispatch AOE Effect");
 }

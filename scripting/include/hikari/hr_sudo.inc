@@ -1,5 +1,13 @@
-char SUDO_VER[8] = "1.3.4";
+char SUDO_VER[8] = "1.3.5";
 void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[Sudo @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
+
+/** Interfaces our command to the actual netcode */
+public Action Command_Operator(int args) {
+  char arg1[16]; GetCmdArg(1, arg1, sizeof(arg1));
+  sudo(StringToInt(arg1));
+  return Plugin_Continue;
+}
+
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
   LightLogger(LOGLVL_DEBUG, "Calling sudo with %i", task);
