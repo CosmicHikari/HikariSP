@@ -1,19 +1,14 @@
-// Entity Hooks / Outputs
+// Hikari's Entity Hooks / Outputs v1.0.0 
+// Hook all spawned entities, automatically unhooking them when they poof.
 public void OnEntityCreated(int ent, const char[] classname) { SDKHookEx(ent, SDKHook_SpawnPost, OnEntitySpawned); }
 
 // A wild CBaseEntity appeared!
 public void OnEntitySpawned(int ent) {
-  char classname[64], targetname[128];
-  GetEntityClassname(ent, classname, sizeof(classname));
-  GetEntPropString(ent, Prop_Data, "m_iName", targetname, sizeof(targetname));
-  // func_physbox spawned
-  if (strcmp(classname, "func_physbox") == 0) {
-    if (strcmp(targetname, "FallingStar") == 0) {
-      HookSingleEntityOutput(ent, "OnDamaged", OnEntityDamaged, true);
-    }
-  }
+  char classname[64]; GetEntityClassname(ent, classname, sizeof(classname));
+  if (strcmp(classname, "func_physbox") == 0) { HookSingleEntityOutput(ent, "OnDamaged", OnEntityDamaged, true); } // func_physbox spawned
 }
 
+// Called when entities are damaged
 public void OnEntityDamaged(const char[] output, int caller, int activator, float delay) {
   // Falling Star did a thing
   if (Photon.MatchEntName(caller, "FallingStar")) {
