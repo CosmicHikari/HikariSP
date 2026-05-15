@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.3.2a";
+char SUDO_VER[8] = "1.3.3";
 void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[Sudo @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
@@ -11,9 +11,15 @@ void sudo(int task) {
     }
     case 1111: { WaveSystem().run(); }
     case 2222: { WeatherManager.doLightning(); }
-    case 3333: { Photon.Fire("hr_cannon_template", "ForceSpawn"); }
+    case 3333: { Photon.Fire("hr_cannon_template", "ForceSpawn"); Photon.Fire("hr_cannon0_yaw", "SetPosition", "0.5", 0.1); }
     case 4444: { CustomSoundEmitter(SFXArray[122].realPath, SFXArray[122].SNDLVL, false, 0, 1.0, 100); sudo(4445); CreateTimer(5.5, TimedOperator, 4444); }
     case 4445: { tt = !tt; Photon.Fire("envglow", tt ? "ShowSprite" : "HideSprite"); }
+    case 5555: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "0.5"); }
+    case 5556: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "1.0"); }
+    case 5557: { Photon.Fire("hr_cannon*_pitch", "SetPosition", "0.5"); }
+    case 5600: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "0.0"); }
+    case 5750: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "-0.5"); }
+    case 5900: { Photon.Fire("hr_cannon*_pitch", "SetPosition", "0.0"); }
     //Prepare yourself!
     case 1: {
       WaveSystem().init();
@@ -305,8 +311,10 @@ void sudo(int task) {
       EmitSoundToAll(SFXArray[36].realPath);
       CreateTimer(4.0, TimedOperator, 21);
       CreateTimer(7.0, TimedOperator, 37);
+      Photon.Fire("FrontMapShake", "Frequency", "16", 6.9);
+      Photon.Fire("FrontMapShake", "Amplitude", "20", 6.9);
       Photon.Fire("LargeExplosion", "Explode", "", 7.0);
-      Photon.Fire("LargeExploShake", "StartShake", "", 7.0);
+      Photon.Fire("FrontMapShake", "StartShake", "", 7.0);
       Photon.Fire("NukeAll", "Enable", "", 7.0);
       Photon.Fire("FB.Fade", "Fade", "", 7.0);
       Photon.Fire("Bombs.TheHindenburg", "Disable", "", 7.0);
@@ -435,10 +443,6 @@ void sudo(int task) {
       Photon.Fire("ShakeBOOM", "StartShake", "", 10.3);
       Photon.Fire("HUGEExplosion", "Explode", "", 10.3);
       Photon.Fire("FB.Fade", "Fade", "", 10.3);
-    }
-  //Medium Explosion (defined again, but we aren't using a bomb this time)
-    case 51: {
-      CustomSoundEmitter(SFXArray[3].realPath, 65, false, 0, 1.0, 100);
     }
   //Probably for the hindenburg... EDIT: NOPE. THIS IS FOR KIRB LANDING ON THE GROUND
     case 52: {
@@ -993,10 +997,9 @@ void sudo(int task) {
   return;
 }
 
-public Action CommandOverride(int client, const char[] command, int argc)
-{
+public Action CommandOverride(int client, const char[] command, int argc) {
   ServerCommand(GetRandomInt(0, 1 == 1) ? "sm_slay #%i" : "sm_smite #i", GetClientUserId(client));
-  PrintToChatAll ("[FARTSY.DLL] Did you REALLY think I would let you cheat, %N? How about instead of using %s you actually play the game, loser!", client, command);
+  PrintToChatAll("[FARTSY.DLL] Did you REALLY think I would let you cheat, %N? How about instead of using %s you actually play the game, loser!", client, command);
   return Plugin_Handled;
 }
 
