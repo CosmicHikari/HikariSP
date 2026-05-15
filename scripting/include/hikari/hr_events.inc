@@ -1,6 +1,7 @@
+char HRE_VER[8] = "1.0.0";
 // Hooks all events used for the plugin
 public void HookAllEvents() {
-  LightLogger(1, "Hooking game events...");
+  LightLogger(1, "[Events @ v%s] Hooking game events...", HRE_VER);
   HookEvent("player_death", EventDeath);
   HookEvent("player_spawn", EventSpawn);
   HookEvent("server_cvar", Event_Cvar, EventHookMode_Pre);
@@ -218,10 +219,7 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
       switch (i) {
         case 1, 3, 10: {
           Photon.Fire("MeteoriteTemplate", "ForceSpawn");
-          Photon.SetEntityLife("FB.Meteorite00", 10.0);
-          Photon.SetEntityLife("FB.MeteoriteTrain", 10.0);
-          Photon.SetEntityLife("MeteoritePath0*", 10.0);
-          CPrintToChatAll("{darkviolet}[{red}WARN{darkviolet}] {white}Uh oh, a {red}METEOR{white}has been spotted coming towards Dovah's Ass!!!");
+          CPrintToChatAll("{darkviolet}[{red}WARN{darkviolet}] {white}Uh oh, a {red}METEOR{white}has been spotted coming towards the map!!!");
           Photon.Fire("FB.MeteoriteTrain", "StartForward", "", 0.1);
         }
         case 2, 5, 16: {

@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.3.2a";
+char SUDO_VER[8] = "1.3.4";
 void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[Sudo @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 /** This is the plugin netcode. This handles literally everything. */
 void sudo(int task) {
@@ -11,9 +11,15 @@ void sudo(int task) {
     }
     case 1111: { WaveSystem().run(); }
     case 2222: { WeatherManager.doLightning(); }
-    case 3333: { Photon.Fire("hr_cannon_template", "ForceSpawn"); }
+    case 3333: { Photon.Fire("hr_cannon_template", "ForceSpawn"); Photon.Fire("hr_cannon0_yaw", "SetPosition", "0.5", 0.1); }
     case 4444: { CustomSoundEmitter(SFXArray[122].realPath, SFXArray[122].SNDLVL, false, 0, 1.0, 100); sudo(4445); CreateTimer(5.5, TimedOperator, 4444); }
     case 4445: { tt = !tt; Photon.Fire("envglow", tt ? "ShowSprite" : "HideSprite"); }
+    case 5555: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "0.5"); }
+    case 5556: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "1.0"); }
+    case 5557: { Photon.Fire("hr_cannon*_pitch", "SetPosition", "0.5"); }
+    case 5600: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "0.0"); }
+    case 5750: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "-0.5"); }
+    case 5900: { Photon.Fire("hr_cannon*_pitch", "SetPosition", "0.0"); }
     //Prepare yourself!
     case 1: {
       WaveSystem().init();
@@ -305,8 +311,10 @@ void sudo(int task) {
       EmitSoundToAll(SFXArray[36].realPath);
       CreateTimer(4.0, TimedOperator, 21);
       CreateTimer(7.0, TimedOperator, 37);
+      Photon.Fire("FrontMapShake", "Frequency", "16", 6.9);
+      Photon.Fire("FrontMapShake", "Amplitude", "20", 6.9);
       Photon.Fire("LargeExplosion", "Explode", "", 7.0);
-      Photon.Fire("LargeExploShake", "StartShake", "", 7.0);
+      Photon.Fire("FrontMapShake", "StartShake", "", 7.0);
       Photon.Fire("NukeAll", "Enable", "", 7.0);
       Photon.Fire("FB.Fade", "Fade", "", 7.0);
       Photon.Fire("Bombs.TheHindenburg", "Disable", "", 7.0);
@@ -402,6 +410,7 @@ void sudo(int task) {
     }
   //Found blue ball
     case 40: {
+      isGoobbue = false;
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}What on earth IS that? It appears to be a... \x075050FFBLUE BALL{white}!");
       CustomSoundEmitter(SFXArray[21].realPath, 65, false, 0, 1.0, 100);
       Photon.Fire("FB.BlueKirbTemplate", "ForceSpawn", "", 4.0);
@@ -432,31 +441,10 @@ void sudo(int task) {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Oh no, someone has found and (probably) consumed a {red}WAFFLE OF MASS DESTRUCTION{white}!");
       // Yup, another one for the explosion array
       SetupAttackZone(2000000.0, DMG_RADIATION, g_FrontRottenburg, _, GetRandomInt(10, 50), 10.3, 13.7);
-      Photon.Fire("ShakeBOOM", "StartShake", "", 10.3);
-      Photon.Fire("HUGEExplosion", "Explode", "", 10.3);
+      Photon.Fire("ShakeGlobal", "Amplitude", "16", 10.1);
+      Photon.Fire("ShakeGlobal", "Frequency", "32", 10.1);
+      Photon.Fire("ShakeGlobal", "StartShake", _, 10.3);
       Photon.Fire("FB.Fade", "Fade", "", 10.3);
-    }
-  //Medium Explosion (defined again, but we aren't using a bomb this time)
-    case 51: {
-      CustomSoundEmitter(SFXArray[3].realPath, 65, false, 0, 1.0, 100);
-    }
-  //Probably for the hindenburg... EDIT: NOPE. THIS IS FOR KIRB LANDING ON THE GROUND
-    case 52: {
-      EmitSoundToAll(SFXArray[35].realPath);
-      Photon.Fire("FB.BOOM", "StartShake");
-      Photon.Fire("BlueBall*", "Kill");
-      Photon.Fire("HUGEExplosion", "Explode");
-      Photon.Fire("BlueKirb", "Kill");
-      SetupAttackZone(777777.777, DMG_PARALYZE, g_FrontRottenburg, _, GetRandomInt(35, 75), 0.1, 2.1);
-      isGoobbue = false;
-    }
-  //Giant Goobbue
-    case 53: {
-      EmitSoundToAll(SFXArray[35].realPath);
-      Photon.Fire("FB.BOOM", "StartShake");
-      Photon.Fire("GiantGoob*", "Kill");
-      Photon.Fire("HUGEExplosion", "Explode");
-      SetupAttackZone(777777.777, DMG_ACID, g_FrontRottenburg, _, GetRandomInt(35, 75), 0.1, 2.1);
     }
     case 75:{
       char onsHP[32];
@@ -993,10 +981,9 @@ void sudo(int task) {
   return;
 }
 
-public Action CommandOverride(int client, const char[] command, int argc)
-{
+public Action CommandOverride(int client, const char[] command, int argc) {
   ServerCommand(GetRandomInt(0, 1 == 1) ? "sm_slay #%i" : "sm_smite #i", GetClientUserId(client));
-  PrintToChatAll ("[FARTSY.DLL] Did you REALLY think I would let you cheat, %N? How about instead of using %s you actually play the game, loser!", client, command);
+  PrintToChatAll("[FARTSY.DLL] Did you REALLY think I would let you cheat, %N? How about instead of using %s you actually play the game, loser!", client, command);
   return Plugin_Handled;
 }
 

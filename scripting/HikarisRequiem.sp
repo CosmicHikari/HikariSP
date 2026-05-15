@@ -4,9 +4,8 @@
  *   THREE..... THIS MOD IS INTENDED FOR USE ON THE HYDROGENHOSTING SERVERS ONLY.
  *   FOUR..... THE DURATION OF MUSIC TIMERS SHOULD BE SET DEPENDING WHAT SONG IS USED. SET THIS USING THE CONFIG FILES. SONG DUR IN SECONDS / 0.0151515151515 = REFIRE TIME.
  *   FIVE..... TIPS AND TRICKS MAY BE ADDED TO THE TIMER, SEE PerformAdverts(Handle timer);
- *        IF IT'S WAR THAT YOU WANT, THEN I'M READY TO PLAY. GLHF!
  */
-public char PLUGIN_VERSION[8] = "10.0.0h";
+public char PLUGIN_VERSION[8] = "10.0.0i";
 #include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
@@ -27,6 +26,7 @@ public char PLUGIN_VERSION[8] = "10.0.0h";
 #include <hikari/hr_configsystem>
 #include <hikari/hr_helper>
 #include <hikari/hr_commands>
+#include <hikari/hr_entities>
 #include <hikari/hr_events>
 #include <hikari/hr_sudo>
 #include <hikari/hr_wavesystem>

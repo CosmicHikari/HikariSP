@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.7.5";
+char HSE_VER[8] = "2.7.6";
 
 // Used to make lasers
 enum struct LaserData {
@@ -577,7 +577,7 @@ enum struct MAPLIGHTING {
   char zap[32];
   void Explode() {
     if (this.isBroken) return;
-    float dest[3]; GetEntPropVector(Photon.Find(this.light, "light_spot"), Prop_Send, "m_vecOrigin", dest);
+    float dest[3]; GetEntPropVector(Photon.Find(this.light, "light_spot"), Prop_Send, "m_vecAbsOrigin", dest);
     dest[2] = dest[2] - 8.0;
     TeleportEntity(Photon.Find("MapLighting.StreetLamp.Explosion", "env_explosion"), dest, _, _);
     LightLogger(LOGLVL_WARN, "[Enhancer:584] MAPLIGHTING SHOULD NOT BE A CONSTANT HERE."); // In favor of configs
@@ -730,7 +730,7 @@ methodmap WEATHERMANAGER {
         Photon.Fire("MapLighting.StreetLamp.Explosion", "Explode");
         for (int c = 1; c <= MaxClients; c++) {
           if (!IsClientInGame(c) || !IsPlayerAlive(c)) continue;
-          float entPos[3]; GetEntPropVector(c, Prop_Data, "m_vecOrigin", entPos);
+          float entPos[3]; GetEntPropVector(c, Prop_Data, "m_vecAbsOrigin", entPos);
           if (GetVectorDistance(entPos, ePos) <= 300.0) AttackEntity(i, 10000000.0, DMG_ENERGYBEAM);
         }
         Photon.SetEntityLife("LightningStrike", GetRandomFloat(0.15, 0.30));
@@ -1008,7 +1008,7 @@ methodmap WEATHERMANAGER {
     float tornadoPos[3];
     bool found = false;
     int tornado = -1;
-    while ((tornado = Photon.Find("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecOrigin", tornadoPos); found = true; break; }
+    while ((tornado = Photon.Find("tornadotrain", "func_tracktrain")) != -1) { GetEntPropVector(tornado, Prop_Send, "m_vecAbsOrigin", tornadoPos); found = true; break; }
     if (!found) { PrintToServer("No tornado found."); return; }
     float dest[3];
     dest[0] = GetRandomFloat(g_WeatherZone.min[0], g_WeatherZone.max[0]);
@@ -1022,9 +1022,9 @@ methodmap WEATHERMANAGER {
     TeleportEntity(Photon.Find("TorTrack0x01", "path_track"), dest2);
     Photon.Fire("tornadotrain", tornadoPos[0] == dest[0] ? "StartBackward" : "StartForward");
     int maxEntities = GetMaxEntities();
-    for (int i = 0; i <= maxEntities; i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecOrigin")) {
+    for (int i = 0; i <= maxEntities; i++) if (IsValidEntity(i)) if (HasEntProp(i, Prop_Send, "m_vecAbsOrigin")) {
       if (i < MaxClients) if (IsValidClient(i)) if (IsClientObserver(i)) continue;
-      float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecOrigin", entPos);
+      float entPos[3]; GetEntPropVector(i, Prop_Send, "m_vecAbsOrigin", entPos);
       float dx = tornadoPos[0] - entPos[0];
       float dy = tornadoPos[1] - entPos[1];
       float distance2D = SquareRoot(dx*dx + dy*dy);
