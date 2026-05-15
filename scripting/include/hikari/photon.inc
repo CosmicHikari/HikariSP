@@ -1,5 +1,5 @@
 // Hikari's Photon - Map I/O & Entity Management Interface
-char PHOTON_VER[7] = "3.0.2";
+char PHOTON_VER[7] = "3.0.3";
 int photonRef;
 
 enum struct PHOTON_BULK {
@@ -53,6 +53,12 @@ methodmap PHOTON {
     SetVariantString(fireStr);
     AcceptEntityInput(ent, "AddOutput");
     AcceptEntityInput(ent, "FireUser1");
+  }
+
+  public bool MatchEntName(int ent, const char[] name) {
+    bool valid = IsValidEntity(ent);
+    if (valid) { char targetname[128]; GetEntPropString(ent, Prop_Data, "m_iName", targetname, sizeof(targetname)); return (strcmp(targetname, name) == 0); }
+    return false;
   }
 
   public void SetKv(int ent, char[] kv, char[] val) { if (IsValidEntity(ent)) { DispatchKeyValue(ent, kv, val); } }

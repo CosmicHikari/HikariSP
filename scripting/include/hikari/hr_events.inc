@@ -1,6 +1,7 @@
+char HRE_VER[8] = "1.0.0";
 // Hooks all events used for the plugin
 public void HookAllEvents() {
-  LightLogger(1, "Hooking game events...");
+  LightLogger(1, "[Events @ v%s] Hooking game events...", HRE_VER);
   HookEvent("player_death", EventDeath);
   HookEvent("player_spawn", EventSpawn);
   HookEvent("server_cvar", Event_Cvar, EventHookMode_Pre);

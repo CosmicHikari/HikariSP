@@ -1,5 +1,5 @@
 // Hikari's Boss Handler
-char HRBOSS_VER[8] = "1.4.0";
+char HRBOSS_VER[8] = "1.4.1";
 
 bool canCrusaderNuke = false;
 bool crusader = false;
@@ -240,8 +240,8 @@ enum struct BOSSHANDLER {
         int BossEnt = Photon.Find("FB.BruteJusticeTrain", "func_tracktrain");
         int BossTP = Photon.Find("FB.OnslaughterBase", "base_boss");
         if (!IsValidEntity(BossTP)) { sudo(13); this.OnKilled(); }
-        GetEntPropVector(BossEnt, Prop_Send, "m_vecOrigin", pos);
-        GetEntPropVector(BossEnt, Prop_Data, "m_angRotation", ang);
+        GetEntPropVector(BossEnt, Prop_Send, "m_vecAbsOrigin", pos);
+        GetEntPropVector(BossEnt, Prop_Data, "m_angAbsRotation", ang);
         newPos[0] = pos[0];
         newPos[1] = pos[1];
         newPos[2] = pos[2] + 0.0;
@@ -255,8 +255,8 @@ enum struct BOSSHANDLER {
           this.iBossEntHealth = GetEntProp(this.iBossEnt, Prop_Data, "m_iHealth");
           this.iBossEntMaxHealth = GetEntProp(this.iBossEnt, Prop_Data, "m_iMaxHealth");
           this.iBossEntTarget = Photon.Find("FB.MetalFace.Train", "func_tracktrain");
-          GetEntPropVector(this.iBossEntTarget, Prop_Send, "m_vecOrigin", this.fPos);
-          GetEntPropVector(this.iBossEntTarget, Prop_Data, "m_angRotation", this.fAng);
+          GetEntPropVector(this.iBossEntTarget, Prop_Send, "m_vecAbsOrigin", this.fPos);
+          GetEntPropVector(this.iBossEntTarget, Prop_Data, "m_angAbsRotation", this.fAng);
           float vel[3];
           float newPos[3];
           vel[0] = 0.0;
@@ -407,7 +407,7 @@ enum struct BOSSHANDLER {
   //Tank buster thing
   void TickBuster() {
     float cPos[3]; //Client's Position
-    float pPos[3]; //Ground Particle Target Position
+    float launchAng[3]; //Ground Particle Target Position
     float sPos[3]; //Sign/Arrow's Target Position
     float rPos[3];
     float fVelocity[3]; //Velocity for teleporting entities, used for angles as well so we don't need two vectors.
@@ -423,18 +423,18 @@ enum struct BOSSHANDLER {
       rPos[0] = cPos[0];
       rPos[1] = cPos[1];
       rPos[2] = cPos[2] + 50.0;
-      pPos[0] = cPos[0];
-      pPos[1] = cPos[1];
-      pPos[2] = cPos[2] + 25.0;
+      launchAng[0] = cPos[0];
+      launchAng[1] = cPos[1];
+      launchAng[2] = cPos[2] + 25.0;
       sPos[0] = cPos[0];
       sPos[1] = cPos[1];
       sPos[2] = cPos[2] + 150.0;
       TeleportEntity(iAirParticle, rPos, fVelocity, fVelocity);
-      TeleportEntity(iParticle, pPos, fVelocity, fVelocity);
-      TeleportEntity(iExploParticle, pPos, fVelocity, fVelocity);
+      TeleportEntity(iParticle, launchAng, fVelocity, fVelocity);
+      TeleportEntity(iExploParticle, launchAng, fVelocity, fVelocity);
       TeleportEntity(iBuster, cPos, fVelocity, fVelocity);
       TeleportEntity(iSign, sPos, fVelocity, fVelocity);
-      TeleportEntity(iSpin, pPos, fVelocity, fVelocity);
+      TeleportEntity(iSpin, launchAng, fVelocity, fVelocity);
     }
   }
   //Tick client post
@@ -463,7 +463,7 @@ enum struct BOSSHANDLER {
   // Tank buster - Potato cannon edition!
   void TickBusterNuclear() {
     float cPos[3]; //Client's Position
-    float pPos[3]; //Ground Particle Target Position
+    float launchAng[3]; //Ground Particle Target Position
     float sPos[3]; //Sign/Arrow's Target Position
     float rPos[3];
     float nPos[3];
@@ -479,9 +479,9 @@ enum struct BOSSHANDLER {
     rPos[0] = cPos[0];
     rPos[1] = cPos[1];
     rPos[2] = cPos[2] + 50.0;
-    pPos[0] = cPos[0];
-    pPos[1] = cPos[1];
-    pPos[2] = cPos[2] + 25.0;
+    launchAng[0] = cPos[0];
+    launchAng[1] = cPos[1];
+    launchAng[2] = cPos[2] + 25.0;
     sPos[0] = cPos[0];
     sPos[1] = cPos[1];
     sPos[2] = cPos[2] + 150.0;
@@ -489,11 +489,11 @@ enum struct BOSSHANDLER {
     nPos[1] = cPos[1];
     nPos[2] = cPos[2] + 750.0;
     TeleportEntity(iAirParticle, rPos, fVelocity, fVelocity);
-    TeleportEntity(iParticle, pPos, fVelocity, fVelocity);
-    TeleportEntity(iExploParticle, pPos, fVelocity, fVelocity);
+    TeleportEntity(iParticle, launchAng, fVelocity, fVelocity);
+    TeleportEntity(iExploParticle, launchAng, fVelocity, fVelocity);
     TeleportEntity(iBuster, cPos, fVelocity, fVelocity);
     TeleportEntity(iSign, sPos, fVelocity, fVelocity);
-    TeleportEntity(iSpin, pPos, fVelocity, fVelocity);
+    TeleportEntity(iSpin, launchAng, fVelocity, fVelocity);
     TeleportEntity(iNukeTemplate, nPos, fVelocity, fVelocity);
   }
 
@@ -504,13 +504,13 @@ enum struct BOSSHANDLER {
     float bossOrigin[3];
     float targetOrigin[3];
     int targetEnt = Photon.Find("capturezone_blue", "func_capturezone");
-    GetEntPropVector(targetEnt, Prop_Send, "m_vecOrigin", targetOrigin);
+    GetEntPropVector(targetEnt, Prop_Send, "m_vecAbsOrigin", targetOrigin);
     switch (this.bossID) {
       //Onslaughter Won
       case 0: {
         int bossEnt = Photon.Find("FB.MetalBase", "base_boss");
         if (bossEnt == -1)return;
-        GetEntPropVector(bossEnt, Prop_Send, "m_vecOrigin", bossOrigin);
+        GetEntPropVector(bossEnt, Prop_Send, "m_vecAbsOrigin", bossOrigin);
         if (GetVectorDistance(bossOrigin, targetOrigin) < 2200) {
           //Do something here because Onslaughter is at the pit, victory for boss.
         }
@@ -523,7 +523,7 @@ enum struct BOSSHANDLER {
       case 2: {
         int bossEnt = Photon.Find("FB.MetalBase", "base_boss");
         if (bossEnt == -1)return;
-        GetEntPropVector(bossEnt, Prop_Send, "m_vecOrigin", bossOrigin);
+        GetEntPropVector(bossEnt, Prop_Send, "m_vecAbsOrigin", bossOrigin);
         if (GetVectorDistance(bossOrigin, targetOrigin) < 2200) {
           //Do something here because Metal Face is at the pit, victory for boss.
         }
@@ -908,21 +908,31 @@ void FireMissilesSequentially() {
   if (!IsValidEntity(EntRefToEntIndex(glowEnt))) return;
   Photon.Fire("FB.ShakeCore", "StartShake");
   mIndex < 17 ? (mIndex++) : (mIndex = 0);
-  char t[64]; Format(t, sizeof(t), "hr_cannon%i_ammo%i", RoundToFloor(mIndex / 6.0), (mIndex > 5 && mIndex < 12) ? (mIndex-6) : (mIndex > 11 && mIndex < 18) ? (mIndex-12) : mIndex);
+  int cannon = RoundToFloor(mIndex / 6.0);
+  char t[64]; Format(t, sizeof(t), "hr_cannon%i_ammo%i", cannon, (mIndex > 5 && mIndex < 12) ? (mIndex-6) : (mIndex > 11 && mIndex < 18) ? (mIndex-12) : mIndex);
+  char c[64]; Format(c, sizeof(c), "hr_cannon%i_main", cannon);
   LightLogger(LOGLVL_WARN, "[BossHandler:886] %i mIndex, op got %s", mIndex, t);
   TeleportSpriteToBrush(t);
 }
 
 void TeleportSpriteToBrush(char[] brush) {
   int brush_index = Photon.Find(brush, "func_brush");
-  if (brush_index == -1 || !IsValidEntity(brush_index)) return;
-  float fPos[3], fAngles[3], fRight[3], sPos[3];
-  GetEntPropVector(brush_index, Prop_Data, "m_vecOrigin", fPos);
-  GetEntPropVector(brush_index, Prop_Data, "m_angRotation", fAngles);
-  GetAngleVectors(fAngles, NULL_VECTOR, fRight, NULL_VECTOR);
-  // Offset along the brush's local Y-axis
-  sPos[0] = fPos[0] + (fRight[0] * -72.0);
-  sPos[1] = fPos[1] + (fRight[1] * -72.0);
-  sPos[2] = fPos[2] + (fRight[2] * -72.0);
-  TeleportEntity(EntRefToEntIndex(glowEnt), sPos, NULL_VECTOR, NULL_VECTOR);
+  if (!IsValidEntity(brush_index)) { LightLogger(LOGLVL_ERROR, "Brush %s is not valid!", brush); return; }
+  float fPos[3], fAngles[3], sPos[3], fForward[3], fRight[3], fUp[3], forwardOffset = -32.0, rightOffset = 0.0, upOffset = 0.0;
+  GetEntPropVector(brush_index, Prop_Data, "m_vecAbsOrigin", fPos);
+  GetEntPropVector(brush_index, Prop_Data, "m_angAbsRotation", fAngles);
+  PrintToChatAll("%f %f %f", fAngles[0], fAngles[1], fAngles[2]);
+  GetAngleVectors(fAngles, fForward, fRight, fUp);
+  sPos[0] = fPos[0] + (fForward[0] * forwardOffset) + (fRight[0] * rightOffset) + (fUp[0] * upOffset);
+  sPos[1] = fPos[1] + (fForward[1] * forwardOffset) + (fRight[1] * rightOffset) + (fUp[1] * upOffset);
+  sPos[2] = fPos[2] + (fForward[2] * forwardOffset) + (fRight[2] * rightOffset) + (fUp[2] * upOffset);
+  int g = EntRefToEntIndex(glowEnt);
+  if (IsValidEntity(g)) TeleportEntity(g, sPos, NULL_VECTOR, NULL_VECTOR);
+  int projectile_index = Photon.Find("hr_cannon_missile_launcher", "tf_point_weapon_mimic");
+  if (IsValidEntity(projectile_index)) {
+    float launchAng[3];
+    launchAng[0] = -fAngles[0]; launchAng[1] = fAngles[1] + 180.0; launchAng[2] = fAngles[2];
+    TeleportEntity(projectile_index, sPos, launchAng, NULL_VECTOR);
+    Photon.Fire("hr_cannon_missile_launcher", "FireOnce");
+  }
 }
