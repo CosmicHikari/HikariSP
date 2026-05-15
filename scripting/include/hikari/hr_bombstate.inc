@@ -18,8 +18,12 @@ enum struct BOMBREGISTRY {
   float explShakeDly;
   float FadeDly;
   float NukeStart;
+  int explMagnitude;
+  int explRadius;
   int sacVal;
   int stateMax;
+  int shakeFreq;
+  int shakeAmp;
 }
 BOMBREGISTRY BombRegistry[9];
 
@@ -40,6 +44,9 @@ methodmap BOMBCONTROLLER {
   public void explode(int index, bool realExplosion) {
     BOMBREGISTRY bomb; bomb = BombRegistry[index];
     LightLogger(LOGLVL_DEBUG, "Exploding a %s - isRealExplosion: %d canHinden: %d, canStars: %d, canShark: %d, isNuclear: %d, shouldFreezeBots: %d, explEnt: %s, explShake: %s, explSnd: %s, identifier: %s, explDly: %f, explShakeDly: %f, fadeDly: %f, NukeStart: %f, sacVal: %i...", bomb.name, realExplosion, bomb.canHindenburg, bomb.canSENTStars, bomb.canSENTShark, bomb.isNuclear, bomb.freezeBots, bomb.explEnt, bomb.explShake, bomb.explSnd, bomb.identifier, bomb.explDly, bomb.explShakeDly, bomb.FadeDly, bomb.NukeStart, bomb.sacVal);
+    if (!IsValidEntity(Photon.Find(bomb.explEnt, "env_explosion"))) { if (Photon.CanCreate(1)) { int explosion = Photon.Create("env_explosion", "FrontMapExplosion"); TeleportEntity(explosion, {2414.0, -1617.0, -640.0}); LightLogger(LOGLVL_WARN, "[BombState:47] The float[3] used here should be configurable for use in other maps"); }}
+    Photon.Fire(bomb.explShake, "Amplitude", "%i", _, _, bomb.shakeAmp); Photon.Fire(bomb.explShake, "Frequency", "%i", _, _, bomb.shakeFreq);
+    Photon.SetKv(Photon.Find(bomb.explEnt, "env_explosion"), "iMagnitude", "%i", bomb.explMagnitude); Photon.SetKv(Photon.Find(bomb.explEnt, "env_explosion"), "iRadiusOverride", "%i", bomb.explMagnitude);
     //Freeze bots?
     if (bomb.freezeBots) {
       ServerCommand("sm_freeze @blue 10");
@@ -129,6 +136,32 @@ void SetupBombSystem() {
   BombRegistry[4].canSENTStars = true;
   BombRegistry[6].canSENTShark = true;
   BombRegistry[5].explDly = 1.7;
+  for (int i = 0; i < sizeof(BombRegistry); i++) BombRegistry[i].explShake = "FrontMapShake";
+  for (int i = 0; i < sizeof(BombRegistry); i++) BombRegistry[i].shakeAmp = (i < 5) ? 8 : 16;
+  BombRegistry[1].explMagnitude = 192000;
+  BombRegistry[1].explRadius = 3072;
+  BombRegistry[2].explMagnitude = 256000;
+  BombRegistry[2].explRadius = 4096;
+  BombRegistry[3].explMagnitude = 384000;
+  BombRegistry[3].explRadius = 5120;
+  BombRegistry[4].explMagnitude = 384000;
+  BombRegistry[4].explRadius = 6144;
+  BombRegistry[5].explMagnitude = 512000;
+  BombRegistry[5].explRadius = 7168;
+  BombRegistry[6].explMagnitude = 640000;
+  BombRegistry[6].explRadius = 8192;
+  BombRegistry[7].explMagnitude = 712000;
+  BombRegistry[7].explRadius = 9216;
+  BombRegistry[8].explMagnitude = 8192000;
+  BombRegistry[8].explRadius = 10240;
+  BombRegistry[1].shakeFreq = 255;
+  BombRegistry[2].shakeFreq = 160;
+  BombRegistry[3].shakeFreq = 160;
+  BombRegistry[4].shakeFreq = 160;
+  BombRegistry[5].shakeFreq = 20;
+  BombRegistry[6].shakeFreq = 20;
+  BombRegistry[7].shakeFreq = 10;
+  BombRegistry[8].shakeFreq = 10;
   BombRegistry[1].explEnt = "SmallExplosion";
   BombRegistry[2].explEnt = "MediumExplosion";
   BombRegistry[3].explEnt = "MediumExplosion";
@@ -137,14 +170,6 @@ void SetupBombSystem() {
   BombRegistry[6].explEnt = "LargeExplosion";
   BombRegistry[7].explEnt = "LargeExplosion";
   BombRegistry[8].explEnt = "LargeExplosion";
-  BombRegistry[1].explShake = "SmallExploShake";
-  BombRegistry[2].explShake = "MedExploShake";
-  BombRegistry[3].explShake = "MedExploShake";
-  BombRegistry[4].explShake = "MedExploShake";
-  BombRegistry[5].explShake = "LargeExploShake";
-  BombRegistry[6].explShake = "LargeExploShake";
-  BombRegistry[7].explShake = "LargeExploShake";
-  BombRegistry[8].explShake = "LargeExploShake";
   BombRegistry[5].explShakeDly = 1.7;
   BombRegistry[1].explSnd = SFXArray[1].realPath;
   BombRegistry[2].explSnd = SFXArray[2].realPath;
