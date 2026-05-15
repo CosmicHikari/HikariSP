@@ -1,4 +1,4 @@
-char WaveSystem_Version[8] = "1.3.0";
+char WaveSystem_Version[8] = "1.3.1";
 const int WaveTypes_NORMAL = 0;
 const int WaveTypes_TACOBELL = 1;
 const int WaveTypes_WAVENULL = 2;
@@ -323,4 +323,12 @@ public Action SelectAdminTimer(Handle timer) {
     CreateTimer(GetRandomFloat(40.0, 120.0), SelectAdminTimer);
   }
   return Plugin_Stop;
+}
+
+// Debug Commands
+public Action Command_AOE(int client, int args) {
+  float pos[3]; for (int i = 0; i < 3; i++) pos[i] = GetCmdArgFloat(i+1);
+  PrintToChat(client, "pos %f %f %f", pos[0], pos[1], pos[2]);
+  DispatchCircleAOE(pos);
+  return Plugin_Handled;
 }

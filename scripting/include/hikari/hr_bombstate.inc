@@ -1,4 +1,5 @@
- // Bomb states (note to self, any additions made to this array for custom things like shop purchases or boss events should be at the END of the array, prioritize actual bombs first so as not to break anything in the event we add more bombs.. and remember to adjust bombstate[x].explode(false) in the .sp file)
+// Bomb states (note to self, any additions made to this array for custom things like shop purchases or boss events should be at the END of the array, prioritize actual bombs first so as not to break anything in the event we add more bombs.. and remember to adjust bombstate[x].explode(false) in the .sp file)
+char HRBS_VER[8] = "1.0.0";
 int g_BombIndex;
 bool isGoobbue;
 enum struct BOMBREGISTRY {
@@ -133,6 +134,8 @@ public Action BombStatusUpdater(Handle timer) {
 }
 
 void SetupBombSystem() {
+  LightLogger(LOGLVL_INFO, "[BombState @ v%s] Setting up BombStates...", HRBS_VER);
+  RegConsoleCmd("sm_bombstatus", Command_FBBombStatus, "Check bomb status");
   BombRegistry[8].canHindenburg = true;
   BombRegistry[4].canSENTStars = true;
   BombRegistry[6].canSENTShark = true;
@@ -256,4 +259,11 @@ public Action BombStatusAddTimer(Handle timer) {
     CreateTimer(GetRandomFloat(10.0, 45.0), BombStatusAddTimer);
   }
   return Plugin_Stop;
+}
+
+// Determine which bomb has been recently pushed and tell the client if a bomb is ready or not.
+public Action Command_FBBombStatus(int client, int args) {
+  char bombStatusMsg[256]; Format(bombStatusMsg, sizeof(bombStatusMsg), (BombRegistry[0].isMoving ? "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}(%i/%i) Your team is currently pushing a %s!" : BombRegistry[0].isReady ? "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}(%i/%i) Your team's %s is ready!" : "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}(%i/%i) Your team recently deployed a %s! Please wait for the next bomb."), g_BombIndex, BombRegistry[0].stateMax, BombRegistry[Bombs.getCurBombID()].name);
+  CPrintToChat(client, bombStatusMsg);
+  return Plugin_Handled;
 }

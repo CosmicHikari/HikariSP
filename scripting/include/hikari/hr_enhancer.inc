@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.7.6";
+char HSE_VER[8] = "2.7.7";
 
 // Used to make lasers
 enum struct LaserData {
@@ -1294,4 +1294,32 @@ public Action Command_SetVolumeReal(int client, int args) {
   if (StrContains(arg1, "music", false) > -1) { AudioManager.SetVolumeReal(client, (StringToInt(arg2) * 1.0) / 100.0); return Plugin_Handled; }
   if (StrContains(arg1, "sfx", false)> -1) { AudioManager.SetVolumeRealSFX(client, (StringToInt(arg2) * 1.0) / 100.0); return Plugin_Handled; }
   ReplyToCommand(client, "Usage: sm_setvolumereal <sfx / music> <int 0-100>"); return Plugin_Handled;
+}
+
+// Debug Commands
+public Action Command_GetCurrentSong(int client, int args) {
+  char buffer[16], tbuffer[16];
+  int  sPos = RoundToFloor(AudioManager.engineSecondsAdjusted(client) - AudioState[client].timeSeconds);
+  int  tPos = RoundToFloor(AudioState[client].loopSeconds);
+  Format(buffer, 16, "%02d:%02d", sPos / 60, sPos % 60);
+  Format(tbuffer, 16, "%02d:%02d", tPos / 60, tPos % 60);
+  CPrintToChat(client, "The current song (%i) is: {limegreen}%s {orange}(%s / %s)", AudioState[client].indexBGM, AudioState[client].songName, buffer, tbuffer);
+  return Plugin_Handled;
+}
+
+public Action Command_SetFogDensity(int client, int args) {
+  char arg1[5]; GetCmdArg(1, arg1, sizeof(arg1));
+  WeatherManager.setFogTarget(StringToFloat(arg1));
+  PrintToChatAll("Changing fog density to %s", arg1);
+  return Plugin_Handled;
+}
+
+public Action Command_SetFogSEU(int client, int args) {
+  char arg01[5], arg02[5], arg03[5];
+  GetCmdArg(1, arg01, sizeof(arg01)); GetCmdArg(2, arg02, sizeof(arg02)); GetCmdArg(3, arg03, sizeof(arg03));
+  WeatherManager.SetFogStartQueued(StringToInt(arg01));
+  WeatherManager.SetFogEndQueued(StringToInt(arg02));
+  if (StringToInt(arg03) == 1) WeatherManager.StartFogTransition();
+  PrintToChatAll("Received fog start: %s, fog end: %s, begin transition: %s", arg01, arg02, arg03);
+  return Plugin_Handled;
 }
