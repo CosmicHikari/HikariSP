@@ -19,7 +19,6 @@ public char PLUGIN_VERSION[8] = "10.0.0i";
 #include <hikari/hr_serverutils>
 #include <hikari/hr_triggers>
 #include <hikari/hr_enhancer>
-#include <hikari/hr_entities>
 #include <hikari/hr_asshop>
 #include <hikari/hr_bombstate>
 #include <hikari/hr_bosshandler>
@@ -27,6 +26,7 @@ public char PLUGIN_VERSION[8] = "10.0.0i";
 #include <hikari/hr_configsystem>
 #include <hikari/hr_helper>
 #include <hikari/hr_commands>
+#include <hikari/hr_entities>
 #include <hikari/hr_events>
 #include <hikari/hr_sudo>
 #include <hikari/hr_wavesystem>
