@@ -210,7 +210,8 @@ public Action BossHPTimer(Handle timer) {
 public Action SENTMeteorTimer(Handle timer) {
   if (core.canSENTMeteors) {
     CreateTimer(5.0, SENTMeteorTimer);
-    Photon.Fire(FB_SENT[GetRandomInt(0, 4)], "ForceSpawn"); // replace me with teleportEntity eventually then forcespawn...
+    Photon.Fire("MiniMeteor", "ForceSpawn");
+    LightLogger(LOGLVL_WARN, "[Helper:214] Replace me with teleportEntity eventually then forcespawn...");
   }
   return Plugin_Stop;
 }
