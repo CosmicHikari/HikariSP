@@ -44,9 +44,10 @@ methodmap BOMBCONTROLLER {
   public void explode(int index, bool realExplosion) {
     BOMBREGISTRY bomb; bomb = BombRegistry[index];
     LightLogger(LOGLVL_DEBUG, "Exploding a %s - isRealExplosion: %d canHinden: %d, canStars: %d, canShark: %d, isNuclear: %d, shouldFreezeBots: %d, explEnt: %s, explShake: %s, explSnd: %s, identifier: %s, explDly: %f, explShakeDly: %f, fadeDly: %f, NukeStart: %f, sacVal: %i...", bomb.name, realExplosion, bomb.canHindenburg, bomb.canSENTStars, bomb.canSENTShark, bomb.isNuclear, bomb.freezeBots, bomb.explEnt, bomb.explShake, bomb.explSnd, bomb.identifier, bomb.explDly, bomb.explShakeDly, bomb.FadeDly, bomb.NukeStart, bomb.sacVal);
-    if (!IsValidEntity(Photon.Find(bomb.explEnt, "env_explosion"))) { if (Photon.CanCreate(1)) { int explosion = Photon.Create("env_explosion", "FrontMapExplosion"); TeleportEntity(explosion, {2414.0, -1617.0, -640.0}); LightLogger(LOGLVL_WARN, "[BombState:47] The float[3] used here should be configurable for use in other maps"); }}
+    int expl = Photon.Find(bomb.explEnt, "env_explosion"); if (!IsValidEntity(expl)) { if (Photon.CanCreate(1)) { expl = Photon.Create("env_explosion", "FrontMapExplosion"); }}
+    TeleportEntity(expl, {2414.0, -1617.0, -640.0}); LightLogger(LOGLVL_WARN, "[BombState:48] The float[3] used here should be configurable for use in other maps");
     Photon.Fire(bomb.explShake, "Amplitude", "%i", _, _, bomb.shakeAmp); Photon.Fire(bomb.explShake, "Frequency", "%i", _, _, bomb.shakeFreq);
-    Photon.SetKv(Photon.Find(bomb.explEnt, "env_explosion"), "iMagnitude", "%i", bomb.explMagnitude); Photon.SetKv(Photon.Find(bomb.explEnt, "env_explosion"), "iRadiusOverride", "%i", bomb.explMagnitude);
+    Photon.SetKv(expl, "iMagnitude", "%i", bomb.explMagnitude); Photon.SetKv(expl, "iRadiusOverride", "%i", bomb.explMagnitude);
     //Freeze bots?
     if (bomb.freezeBots) {
       ServerCommand("sm_freeze @blue 10");
@@ -77,7 +78,7 @@ methodmap BOMBCONTROLLER {
         CPrintToChatAll("The {red}HINDENBURG {forestgreen}is now ready for flight!");
       }
     }
-    Photon.Fire(bomb.explEnt, "Explode", "", bomb.explDly);
+    Photon.Fire(bomb.explEnt, "Explode", _, bomb.explDly);
     CustomSoundEmitter(bomb.explSnd, 65, false, 0, 1.0, 100);
     Photon.Fire(bomb.explShake, "StartShake", "", bomb.explShakeDly);
     if (realExplosion) {
