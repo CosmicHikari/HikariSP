@@ -19,8 +19,8 @@ void sudo(int task) {
     }
     case 1111: { WaveSystem().run(); }
     case 2222: { WeatherManager.doLightning(); }
-    case 3333: { Photon.Fire("hr_cannon_template", "ForceSpawn"); Photon.Fire("hr_cannon0_yaw", "SetPosition", "0.5", 0.1); }
-    case 4444: { CustomSoundEmitter(SFXArray[122].realPath, SFXArray[122].SNDLVL, false, 0, 1.0, 100); sudo(4445); CreateTimer(5.5, TimedOperator, 4444); }
+    case 3333: { Photon.Fire("hr_cannon_template", "ForceSpawn"); Photon.Fire("hr_cannon*_yaw", "SetPosition", "0.5", 0.1); }
+    case 4444: { CustomSoundEmitter(SFXArray[122].realPath, SFXArray[122].SNDLVL, false, 0, 1.0, 100); sudo(4445); CreateTimer(5.55, TimedOperator, 4444); }
     case 4445: { tt = !tt; Photon.Fire("envglow", tt ? "ShowSprite" : "HideSprite"); }
     case 5555: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "0.5"); }
     case 5556: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "1.0"); }

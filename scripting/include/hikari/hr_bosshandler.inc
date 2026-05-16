@@ -1,5 +1,5 @@
 // Hikari's Boss Handler
-char HRBOSS_VER[8] = "1.4.1";
+char HRBOSS_VER[8] = "1.4.2";
 
 bool canCrusaderNuke = false;
 bool crusader = false;
@@ -906,12 +906,12 @@ public int GetBossHealthModifier(int baseHP) {
 int mIndex = -1;
 void FireMissilesSequentially() {
   if (!IsValidEntity(EntRefToEntIndex(glowEnt))) return;
-  Photon.Fire("FB.ShakeCore", "StartShake");
+  Photon.Fire("hr_cannon_shake", "StartShake");
   mIndex < 17 ? (mIndex++) : (mIndex = 0);
   int cannon = RoundToFloor(mIndex / 6.0);
   char t[64]; Format(t, sizeof(t), "hr_cannon%i_ammo%i", cannon, (mIndex > 5 && mIndex < 12) ? (mIndex-6) : (mIndex > 11 && mIndex < 18) ? (mIndex-12) : mIndex);
   char c[64]; Format(c, sizeof(c), "hr_cannon%i_main", cannon);
-  LightLogger(LOGLVL_WARN, "[BossHandler:886] %i mIndex, op got %s", mIndex, t);
+  LightLogger(LOGLVL_DEBUG, "[BossHandler:914] %i mIndex, op got %s", mIndex, t);
   TeleportSpriteToBrush(t);
 }
 
@@ -921,7 +921,6 @@ void TeleportSpriteToBrush(char[] brush) {
   float fPos[3], fAngles[3], sPos[3], fForward[3], fRight[3], fUp[3], forwardOffset = -32.0, rightOffset = 0.0, upOffset = 0.0;
   GetEntPropVector(brush_index, Prop_Data, "m_vecAbsOrigin", fPos);
   GetEntPropVector(brush_index, Prop_Data, "m_angAbsRotation", fAngles);
-  PrintToChatAll("%f %f %f", fAngles[0], fAngles[1], fAngles[2]);
   GetAngleVectors(fAngles, fForward, fRight, fUp);
   sPos[0] = fPos[0] + (fForward[0] * forwardOffset) + (fRight[0] * rightOffset) + (fUp[0] * upOffset);
   sPos[1] = fPos[1] + (fForward[1] * forwardOffset) + (fRight[1] * rightOffset) + (fUp[1] * upOffset);
