@@ -1,4 +1,7 @@
-// Hikari's Entity Hooks / Outputs v1.0.0 
+// Hikari's Entity Hooks / Outputs v1.1.0 
+
+// Hook entities for the map / plugin
+public void HookAllEntities() { HookSingleEntityOutput(Photon.Find("SlotMachine", "func_door_rotating"), "OnOpen", OnSlotMachine_Start); }
 
 // Hook all spawned entities, automatically unhooking them when they poof.
 public void OnEntityCreated(int ent, const char[] classname) { SDKHookEx(ent, SDKHook_SpawnPost, OnEntitySpawned); }
@@ -14,7 +17,7 @@ public void OnEntitySpawned(int ent) {
 public void OnEntityDamaged(const char[] output, int caller, int activator, float delay) {
   // Falling Star did a thing
   if (Photon.MatchEntName(caller, "FallingStar")) {
-    CustomSoundEmitter(SFXArray[3].realPath, 65, false, 0, 1.0, 100);
+    CustomSoundEmitterEX(SFXArray[3].realPath, _, _, 65, false, 0, 1.0, 100);
     Photon.Fire("FallingStar", "Break");
     Photon.Fire("FallingStarSprite", "Kill");
     Photon.Fire("FrontMapShake", "Amplitude", "16");
@@ -27,7 +30,7 @@ public void OnEntityDamaged(const char[] output, int caller, int activator, floa
   if (Photon.MatchEntName(caller, "FB.MiniMeteor")) OnMeteoriteImpact();
   // Goobbue or Blue Kirby slammed into the planet!
   if (Photon.MatchEntName(caller, "GiantGoobPhys") || Photon.MatchEntName(caller, "BlueBall")) {
-    CustomSoundEmitter(SFXArray[35].realPath, SFXArray[35].SNDLVL, false, 0, 1.0, 100);
+    CustomSoundEmitterEX(SFXArray[35].realPath, _, _, SFXArray[35].SNDLVL, false, 0, 1.0, 100);
     Photon.Fire("FrontMapShake", "Amplitude", "16");
     Photon.Fire("FrontMapShake", "Frequency", "100");
     Photon.Fire("FrontMapShake", "StartShake");
@@ -45,9 +48,14 @@ public void OnPassTrack(const char[] output, int caller, int activator, float de
 // The dinosaurs are extinct! (again)
 public void OnMeteoriteImpact() {
   Photon.Fire("ShakeGlobal", "StartShake"); Photon.Fire("ShakeGlobal", "StopShake", _, 0.5);
-  CustomSoundEmitter(SFXArray[124].realPath, SFXArray[124].SNDLVL, false, 0, 1.0, 100);
+  CustomSoundEmitterEX(SFXArray[124].realPath, _, _, SFXArray[124].SNDLVL, false, 0, 1.0, 100);
   Photon.Fire("FB.Meteorite00", "Kill"); Photon.Fire("FB.MiniMeteor", "Kill");
   Photon.Fire("MeteoritePath*", "Kill");
   Photon.Fire("FB.MeteoriteTrain", "Kill");
   SetupAttackZone(50000.0, DMG_CRUSH, g_FrontRottenburg, _, 3, _, 0.5);
+}
+
+// Someone's gambling!
+public void OnSlotMachine_Start(const char[] output, int caller, int activator, float delay) {
+  CustomSoundEmitterEX("", Photon.Find("SlotMachine.Display02", "func_brush"), _, 75, false, 0, 1.0, 100, {-3418.0, -89.0, -220.0});
 }

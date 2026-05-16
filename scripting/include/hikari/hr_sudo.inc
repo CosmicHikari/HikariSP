@@ -1,4 +1,4 @@
-char SUDO_VER[8] = "1.3.5";
+char SUDO_VER[8] = "1.4.0";
 void OnSudoStartup() { LightLogger(LOGLVL_INFO, "[Sudo @ v%s] Module is starting up!", SUDO_VER); RegServerCmd("hr_send", Command_Operator, "Serverside only. Does nothing when executed as client."); }
 
 /** Interfaces our command to the actual netcode */
@@ -20,7 +20,7 @@ void sudo(int task) {
     case 1111: { WaveSystem().run(); }
     case 2222: { WeatherManager.doLightning(); }
     case 3333: { Photon.Fire("hr_cannon_template", "ForceSpawn"); Photon.Fire("hr_cannon*_yaw", "SetPosition", "0.5", 0.1); }
-    case 4444: { CustomSoundEmitter(SFXArray[122].realPath, SFXArray[122].SNDLVL, false, 0, 1.0, 100); sudo(4445); CreateTimer(5.55, TimedOperator, 4444); }
+    case 4444: { CustomSoundEmitterEX(SFXArray[122].realPath, _, _, SFXArray[122].SNDLVL, false, 0, 1.0, 100); sudo(4445); CreateTimer(5.55, TimedOperator, 4444); }
     case 4445: { tt = !tt; Photon.Fire("envglow", tt ? "ShowSprite" : "HideSprite"); }
     case 5555: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "0.5"); }
     case 5556: { Photon.Fire("hr_cannon*_yaw", "SetPosition", "1.0"); }
@@ -346,7 +346,7 @@ void sudo(int task) {
       if (i == 1) CreateTimer(1.5, TimedOperator, 21);
       Photon.Fire(i == 1 ? "FB.GiantGoobTemplate" : "FB.BlueKirbTemplate", "ForceSpawn");
       CPrintToChatAll(i == 1 ? "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}GOOBBUE COMING IN FROM ORBIT! ({red}-20 pts{white})" : "{darkviolet}[{forestgreen}CORE{darkviolet}] {white}BLUE KIRBY FALLING OUT OF THE SKY! ({red}-20 pts{white})");
-      CustomSoundEmitter(i == 1 ? SFXArray[51].realPath : SFXArray[21].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(i == 1 ? SFXArray[51].realPath : SFXArray[21].realPath, _, _, 65, false, 0, 1.0, 100);
       ass_sacPoints -= 20;
     }
   //35K ubup cash spend
@@ -359,7 +359,7 @@ void sudo(int task) {
     }
   //Explosive paradise spend
     case 33: {
-      CustomSoundEmitter(SFXArray[10].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[10].realPath, _, _, 65, false, 0, 1.0, 100);
       Photon.Fire("FB.FadeBLCK", "Fade");
       ServerCommand("sm_evilrocket @blue");
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {white}We're spending most our lives living in an EXPLOSIVE PARADISE! Robots will be launched into orbit, too! ({red}-40 pts{white})");
@@ -420,32 +420,32 @@ void sudo(int task) {
     case 40: {
       isGoobbue = false;
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}What on earth IS that? It appears to be a... \x075050FFBLUE BALL{white}!");
-      CustomSoundEmitter(SFXArray[21].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[21].realPath, _, _, 65, false, 0, 1.0, 100);
       Photon.Fire("FB.BlueKirbTemplate", "ForceSpawn", "", 4.0);
       CreateTimer(4.0, TimedOperator, 21);
     }
   //Found burrito
     case 41: {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Why would you even eat {red}The Forbidden Burrito{white}?");
-      CustomSoundEmitter("vo/sandwicheat09.mp3", 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX("vo/sandwicheat09.mp3", _, _, 65, false, 0, 1.0, 100);
       SetupAttackZone(2400.0, DMG_BURN, g_FrontRottenburg, true, GetRandomInt(25, 75), 4.0, 8.0);
     }
   //Found goobbue
     case 42: {
       isGoobbue = true;
-      CustomSoundEmitter(SFXArray[51].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[51].realPath, _, _, 65, false, 0, 1.0, 100);
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}ALL HAIL \x07FF00FFGOOBBUE{forestgreen}!");
       CreateTimer(4.0, TimedOperator, 21);
       Photon.Fire("FB.GiantGoobTemplate","ForceSpawn", "", 4.0);
     }
   //Found Mario
     case 43: {
-      CustomSoundEmitter(SFXArray[52].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[52].realPath, _, _, 65, false, 0, 1.0, 100);
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Welp, someone is playing \x0700FF00Mario{white}...");
     }
   //Found Waffle
     case 44: {
-      CustomSoundEmitter(SFXArray[53].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[53].realPath, _, _, 65, false, 0, 1.0, 100);
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Oh no, someone has found and (probably) consumed a {red}WAFFLE OF MASS DESTRUCTION{white}!");
       // Yup, another one for the explosion array
       SetupAttackZone(2000000.0, DMG_RADIATION, g_FrontRottenburg, _, GetRandomInt(10, 50), 10.3, 13.7);
@@ -490,7 +490,7 @@ void sudo(int task) {
     case 100: {
       if (core.CodeEntry == 17) {
         Photon.Fire("FB.BOOM", "StartShake");
-        CustomSoundEmitter(SFXArray[3].realPath, 65, false, 0, 1.0, 100);
+        CustomSoundEmitterEX(SFXArray[3].realPath, _, _, 65, false, 0, 1.0, 100);
         Photon.Fire("FB.CodeCorrectKill", "Enable");
         Photon.Fire("FB.KP*", "Lock");
         Photon.Fire("FB.CodeCorrectKill", "Disable", "", 1.0);
@@ -498,7 +498,7 @@ void sudo(int task) {
         core.CodeEntry = 0;
         Photon.Fire("FB.CodeFailedKill", "Enable");
         Photon.Fire("FB.CodeFailedKill", "Disable", "", 1.0);
-        CustomSoundEmitter("fartsy/memes/priceisright_fail.wav", 65, false, 0, 1.0, 100);
+        CustomSoundEmitterEX("fartsy/memes/priceisright_fail.wav", _, _, 65, false, 0, 1.0, 100);
       }
     }
     case 101: {
@@ -588,7 +588,7 @@ void sudo(int task) {
     }
   //Metal Face reached spawn point
     case 133: {
-      CustomSoundEmitter(SFXArray[3].realPath, 45, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[3].realPath, _, _, 45, false, 0, 1.0, 100);
       Photon.Fire("FB.MetalFace.Train", "Stop");
       Photon.Fire("FB.MetalFace.Train", "SetSpeedReal", "50", 3.0);
       Photon.Fire("FB.MetalFace.SpawnShake", "StartShake");
@@ -877,61 +877,61 @@ void sudo(int task) {
       CreateTimer(10.0, BossHPTimer);
     }
   /*case 9010: {
-    CustomSoundEmitter(TBGM6, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM4, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM5, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM3, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM6, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM4, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM5, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM3, 65, true, 1, 0.05, 100);
   }
   case 9011: {
-    CustomSoundEmitter(TBGM6, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM4, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM5, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM3, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM6, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM4, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM5, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM3, 65, true, 1, 0.05, 100);
   }
   case 9012: {
-    CustomSoundEmitter(TBGM6, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM4, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM5, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM3, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM6, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM4, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM5, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM3, 65, true, 1, 0.05, 100);
   }
   case 9013: {
-    CustomSoundEmitter(TBGM6, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM4, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM5, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM3, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM6, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM4, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM5, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM3, 65, true, 1, 1.0, 100);
   }
   case 9014: {
-    CustomSoundEmitter(TBGM6, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM4, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM5, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM3, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM6, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM4, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM5, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM3, 65, true, 1, 1.0, 100);
   }
   case 9015: {
-    CustomSoundEmitter(TBGM6, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM4, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM5, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM3, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM6, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM4, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM5, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM3, 65, true, 1, 1.0, 100);
   }
   case 9016: {
-    CustomSoundEmitter(TBGM6, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM4, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM5, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM3, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM6, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM4, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM5, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM3, 65, true, 1, 1.0, 100);
   }
   //Play Instrumental
   case 9020: {
-    CustomSoundEmitter(TBGM0, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM1, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM0, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM1, 65, true, 1, 0.05, 100);
   }
   //Play Both
   case 9021: {
-    CustomSoundEmitter(TBGM0, 65, true, 1, 1.0, 100);
-    CustomSoundEmitter(TBGM1, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM0, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM1, 65, true, 1, 1.0, 100);
   }
   //Play vocal only
   case 9022: {
-    CustomSoundEmitter(TBGM0, 65, true, 1, 0.05, 100);
-    CustomSoundEmitter(TBGM1, 65, true, 1, 1.0, 100);
+    CustomSoundEmitterEX(TBGM0, 65, true, 1, 0.05, 100);
+    CustomSoundEmitterEX(TBGM1, 65, true, 1, 1.0, 100);
   }*/
   //Test
     case 10000:{
@@ -1019,18 +1019,18 @@ public Action TimedOperator(Handle timer, int job) {
     }
     //Boss script pt 3
     case 4: {
-      CustomSoundEmitter(SFXArray[9].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[9].realPath, _, _, 65, false, 0, 1.0, 100);
       CreateTimer(4.1, TimedOperator, 5);
     }
     //Boss script pt 4
     case 5: {
-      CustomSoundEmitter(SFXArray[58].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[58].realPath, _, _, 65, false, 0, 1.0, 100);
       Photon.Fire("SephNuke", "ForceSpawn", "", 3.0);
       CreateTimer(3.2, TimedOperator, 6);
     }
     //Boss script pt 5
     case 6: {
-      CustomSoundEmitter(SFXArray[35].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[35].realPath, _, _, 65, false, 0, 1.0, 100);
       Photon.Fire("FB.Fade", "Fade");
       CreateTimer(1.0, SephATK);
       CreateTimer(1.7, TimedOperator, 7);
@@ -1043,7 +1043,7 @@ public Action TimedOperator(Handle timer, int job) {
     }
     //Signal boss to actually spawn after delay.
     case 8: {
-      CustomSoundEmitter(SFXArray[57].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[57].realPath, _, _, 65, false, 0, 1.0, 100);
       CPrintToChatAll("{darkgreen}[CORE] You did it!!! {darkred}Or... did you...?");
       Photon.Fire("FB.FadeBLCK", "Fade");
       CreateTimer(4.8, TimedOperator, 2);
@@ -1075,7 +1075,7 @@ public Action TimedOperator(Handle timer, int job) {
     }
     //Incoming
     case 21: {
-      CustomSoundEmitter(SFXArray[37].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[37].realPath, _, _, 65, false, 0, 1.0, 100);
       return Plugin_Stop;
     }
     case 37: {
@@ -1097,18 +1097,18 @@ public Action TimedOperator(Handle timer, int job) {
       sudo(1004);
     }
     case 60: {
-      CustomSoundEmitter(SFXArray[40].realPath, SFXArray[40].SNDLVL, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[40].realPath, _, _, SFXArray[40].SNDLVL, false, 0, 1.0, 100);
       return Plugin_Stop;
     }
     case 70: {
       if (WaveSystem().IsActive()) {
         Photon.Fire("FB.KP*", "Unlock");
-        CustomSoundEmitter(SFXArray[0].realPath, SFXArray[0].SNDLVL, false, 0, 1.0, 100);
+        CustomSoundEmitterEX(SFXArray[0].realPath, _, _, SFXArray[0].SNDLVL, false, 0, 1.0, 100);
       }
       return Plugin_Stop;
     }
     case 71: {
-      CustomSoundEmitter(SFXArray[62].realPath, SFXArray[62].SNDLVL, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[62].realPath, _, _, SFXArray[62].SNDLVL, false, 0, 1.0, 100);
       return Plugin_Stop;
     }
     case 78: {
@@ -1153,7 +1153,7 @@ public Action TimedOperator(Handle timer, int job) {
       return Plugin_Stop;
     }
     case 202:{
-      CustomSoundEmitter(SFXArray[60].realPath, SFXArray[60].SNDLVL, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[60].realPath, _, _, SFXArray[60].SNDLVL, false, 0, 1.0, 100);
       return Plugin_Stop;
     }
     case 42690: {
