@@ -1,3 +1,4 @@
+// Hikari's System Stats - Used for HikarisRequiem MvM Helper Plugin (include/hikari/hr_serverutils.inc)
 const os = require('os');
 const fs = require('fs');
 const { execSync } = require('child_process');
