@@ -1,5 +1,5 @@
 // Bomb states (note to self, any additions made to this array for custom things like shop purchases or boss events should be at the END of the array, prioritize actual bombs first so as not to break anything in the event we add more bombs.. and remember to adjust bombstate[x].explode(false) in the .sp file)
-char HRBS_VER[8] = "1.0.0";
+char HRBS_VER[8] = "1.1.0";
 int g_BombIndex;
 bool isGoobbue;
 enum struct BOMBREGISTRY {
@@ -80,13 +80,13 @@ methodmap BOMBCONTROLLER {
       }
     }
     Photon.Fire(bomb.explEnt, "Explode", _, bomb.explDly);
-    CustomSoundEmitter(bomb.explSnd, 65, false, 0, 1.0, 100);
+    CustomSoundEmitterEX(bomb.explSnd, _, _, 65, false, 0, 1.0, 100);
     Photon.Fire(bomb.explShake, "StartShake", "", bomb.explShakeDly);
     if (realExplosion) {
       CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] %s {forestgreen}successfully deployed! {white}({limegreen}+%i pts{white})", bomb.name, bomb.sacVal);
       ass_sacPoints += bomb.sacVal;
       CreateTimer(3.0, BombStatusAddTimer);
-      CustomSoundEmitter(SFXArray[6].realPath, 65, false, 0, 1.0, 100);
+      CustomSoundEmitterEX(SFXArray[6].realPath, _, _, 65, false, 0, 1.0, 100);
       Photon.Fire("RareSpells", "Enable");
     }
   }
@@ -123,7 +123,7 @@ public Action BombStatusUpdater(Handle timer) {
           Photon.Fire("Bombs*", "Disable");
           Photon.Fire("Delivery", "Unlock");
           Photon.Fire(BombRegistry[curBomb].identifier, "Enable");
-          CustomSoundEmitter(SFXArray[56].realPath, 65, false, 0, 1.0, 100);
+          CustomSoundEmitterEX(SFXArray[56].realPath, _, _, 65, false, 0, 1.0, 100);
           CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {forestgreen}Your team's %s {forestgreen}is now available for deployment!", BombRegistry[curBomb].name);
           if (SCR_IsAvailable()) SCR_SendEvent("[Bomb State]", "The team's %s is now available for deployment!", Bombs.getCurBomb().name);
         }
@@ -246,7 +246,7 @@ public Action SharkTimer(Handle timer) {
     PrintToChatAll("TODO: DISABLE SHARK BOMB WHEN IT DEPLOYS. ENABLE IT WHEN BOMB IS READY.");
     Photon.Fire("SentSharkTorpedo", "ForceSpawn");
     CreateTimer(GetRandomFloat(2.0, 5.0), SharkTimer);
-    CustomSoundEmitter(SFXArray[GetRandomInt(43, 50)].realPath, 65, false, 0, 1.0, 100);
+    CustomSoundEmitterEX(SFXArray[GetRandomInt(43, 50)].realPath, _, _, 65, false, 0, 1.0, 100);
   }
   return Plugin_Stop;
 }

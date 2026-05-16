@@ -42,13 +42,13 @@ public Action Command_Return(int client, int args) {
   if (!IsPlayerAlive(client)) { CPrintToChat(client, "{red}[Core] You must be alive to use this command..."); return Plugin_Handled; }
   char name[128]; GetClientName(client, name, sizeof(name));
   CPrintToChatAll("{darkviolet}[{forestgreen}CORE{darkviolet}] {white}Client {red}%s {white}began casting {darkviolet}/return{white}.", name);
-  CustomSoundEmitter(SFXArray[41].realPath, 65, false, 0, 1.0, 100);
+  CustomSoundEmitterEX(SFXArray[41].realPath, _, _, 65, false, 0, 1.0, 100);
   CreateTimer(5.0, ReturnClient, client);
   return Plugin_Handled;
 }
 public Action ReturnClient(Handle timer, int clientID) {
   TeleportEntity(clientID, Return, NULL_VECTOR, NULL_VECTOR);
-  CSEClient(clientID, SFXArray[42].realPath, 65, false, 0, 1.0, 100);
+  CSEClientEX(clientID, SFXArray[42].realPath, _, _, 65, false, 0, 1.0, 100);
   return Plugin_Handled;
 }
 

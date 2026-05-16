@@ -1,4 +1,4 @@
-char HRE_VER[8] = "1.0.0";
+char HRE_VER[8] = "1.1.0";
 // Hooks all events used for the plugin
 public void HookAllEvents() {
   LightLogger(1, "[Events @ v%s] Hooking game events...", HRE_VER);
@@ -192,7 +192,7 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
         case 3: {
           CPrintToChatAll("{darkviolet}[{red}CORE{darkviolet}] {white}Client %N was {red}%s{white}! ({limegreen}+1 pt{white})", client, DeathMessage[GetRandomInt(0, 5)]);
           ass_sacPoints++;
-          CustomSoundEmitter(SFXArray[GetRandomInt(11, 26)].realPath, 65, false, 0, 1.0, 100);
+          CustomSoundEmitterEX(SFXArray[GetRandomInt(11, 26)].realPath, _, _, 65, false, 0, 1.0, 100);
         }
       }
     } else {
@@ -241,7 +241,7 @@ void SendDeathLog(int attacker, int client, int damagebits, const char[] wep) {
         }
         case 11: {
           Photon.Fire("FB.Slice", "Enable");
-          CustomSoundEmitter("ambient/sawblade_impact1.wav", 65, false, 0, 1.0, 100);
+          CustomSoundEmitterEX("ambient/sawblade_impact1.wav", _, _, 65, false, 0, 1.0, 100);
           Photon.Fire("FB.Slice", "Disable", "", 1.0);
         }
       }

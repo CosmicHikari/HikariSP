@@ -128,7 +128,7 @@ public Action OnslaughterATK(Handle timer) {
       switch (GetRandomInt(1, 10)) {
         case 1, 6: {
           Photon.Fire("BruteJusticeLaserParticle", "Start");
-          CustomSoundEmitter(SFXArray[38].realPath, 65, false, 0, 1.0, 100);
+          CustomSoundEmitterEX(SFXArray[38].realPath, _, _, 65, false, 0, 1.0, 100);
           Photon.Fire("BruteJusticeLaser", "TurnOn", "", 1.40);
           Photon.Fire("BruteJusticeLaserHurtAOE", "Enable", "", 1.40);
           Photon.Fire("BruteJusticeLaserParticle", "Stop", "", 3.00);
@@ -146,7 +146,7 @@ public Action OnslaughterATK(Handle timer) {
         case 3, 7: {
           Photon.Fire("BruteJusticeFlameParticle", "Start");
           Photon.Fire("BruteJusticeFlamethrowerHurtAOE", "Enable");
-          CustomSoundEmitter(SFXArray[39].realPath, 65, false, 0, 1.0, 100);
+          CustomSoundEmitterEX(SFXArray[39].realPath, _, _, 65, false, 0, 1.0, 100);
           Photon.Fire("SND.BruteJusticeFlameATK", "PlaySound", "", 1.25);
           Photon.Fire("BruteJusticeFlamethrowerHurtAOE", "Disable", "", 5.0);
           Photon.Fire("BruteJusticeFlameParticle", "Stop", "", 5.0);

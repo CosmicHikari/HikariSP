@@ -1,5 +1,5 @@
 // Hikari's Boss Handler
-char HRBOSS_VER[8] = "1.4.2";
+char HRBOSS_VER[8] = "1.5.0";
 
 bool canCrusaderNuke = false;
 bool crusader = false;
@@ -156,7 +156,7 @@ enum struct BOSSHANDLER {
         sudo(1001);
         AudioManager.Stop(true);
         AudioManager.setBGM_Global(20, true);
-        CustomSoundEmitter(SFXArray[106].realPath, 65, false, 0, 1.0, 100); //DJMM SFX
+        CustomSoundEmitterEX(SFXArray[106].realPath, _, _, 65, false, 0, 1.0, 100); //DJMM SFX
         CreateTimer(1.5, DelayedMetalFace);
       }
     }
@@ -393,12 +393,12 @@ enum struct BOSSHANDLER {
       }
       for (int i = 0; i < MaxClients; i++) {
         if (EmnityManager[i].IsAboveEmnityThreshold(SuggestEmnityThreshold())) {
-          CSEClient(i, BGMArray[iBGM1].realPath, BGMArray[iBGM1].SNDLVL, true, 1, 1.0, 100);
-          CSEClient(i, BGMArray[iBGM0].realPath, BGMArray[iBGM0].SNDLVL, true, 1, 0.05, 100);
+          CSEClientEX(i, BGMArray[iBGM1].realPath, _, _, BGMArray[iBGM1].SNDLVL, true, 1, 1.0, 100);
+          CSEClientEX(i, BGMArray[iBGM0].realPath, _, _, BGMArray[iBGM0].SNDLVL, true, 1, 0.05, 100);
         }
         else {
-          CSEClient(i, BGMArray[iBGM1].realPath, BGMArray[iBGM1].SNDLVL, true, 1, 0.05, 100);
-          CSEClient(i, BGMArray[iBGM0].realPath, BGMArray[iBGM0].SNDLVL, true, 1, 1.0, 100);
+          CSEClientEX(i, BGMArray[iBGM1].realPath, _, _, BGMArray[iBGM1].SNDLVL, true, 1, 0.05, 100);
+          CSEClientEX(i, BGMArray[iBGM0].realPath, _, _, BGMArray[iBGM0].SNDLVL, true, 1, 1.0, 100);
         }
       }
       AudioManager.setBGM_Global(iBGM0, false);
@@ -658,7 +658,7 @@ CUSTOMBOSS HWBoss[12];
 //Used for nukes, obviously
 public Action NukeTimer(Handle timer, int type) {
   if (canCrusaderNuke || SephBoss[0].shouldNuke) {
-    CustomSoundEmitter(SFXArray[8].realPath, 65, false, 0, 1.0, 100);
+    CustomSoundEmitterEX(SFXArray[8].realPath, _, _, 65, false, 0, 1.0, 100);
     Photon.Fire(type == 1 ? "FB.CrusaderNuke" : "SephNuke", "ForceSpawn");
     CreateTimer(GetRandomFloat(1.5, 3.0), NukeTimer, type);
   }
@@ -701,139 +701,139 @@ stock int SuggestEmnityThreshold() {
   return -1;
 }
 
-//Used for emitting boss sounds
+// Used for emitting boss sounds
 public Action QueueBossSound(Handle timer, int sound) {
   LightLogger(LOGLVL_DEBUG, "QueueBossSound played %i", sound);
   switch (sound) {
     case 2: {
     }
     case 10: {
-      CustomSoundEmitter(SFXArray[71].realPath, 65, false, 0, 1.0, 100); //Interrupting
+      CustomSoundEmitterEX(SFXArray[71].realPath, _, _, 65, false, 0, 1.0, 100); //Interrupting
       CreateTimer(3.1, QueueBossSound, GetRandomInt(16, 22));
     }
     case 11: {
-      CustomSoundEmitter(SFXArray[69].realPath, 65, false, 0, 1.0, 100); //FunnyLooking
+      CustomSoundEmitterEX(SFXArray[69].realPath, _, _, 65, false, 0, 1.0, 100); //FunnyLooking
       CreateTimer(3.0, QueueBossSound, GetRandomInt(18, 21));
     }
     case 12: {
-      CustomSoundEmitter(SFXArray[75].realPath, 65, false, 0, 1.0, 100); //Racket
+      CustomSoundEmitterEX(SFXArray[75].realPath, _, _, 65, false, 0, 1.0, 100); //Racket
       CreateTimer(3.2, QueueBossSound, GetRandomInt(16, 22));
     }
     case 13: {
-      CustomSoundEmitter(SFXArray[78].realPath, 65, false, 0, 1.0, 100); //WhatDoing
+      CustomSoundEmitterEX(SFXArray[78].realPath, _, _, 65, false, 0, 1.0, 100); //WhatDoing
     }
     case 14: {
-      CustomSoundEmitter(SFXArray[79].realPath, 65, false, 0, 1.0, 100); //WhateverDoing
+      CustomSoundEmitterEX(SFXArray[79].realPath, _, _, 65, false, 0, 1.0, 100); //WhateverDoing
       CreateTimer(4.3, QueueBossSound, GetRandomInt(16, 17));
     }
     case 15: {
-      CustomSoundEmitter(SFXArray[72].realPath, 65, false, 0, 1.0, 100); //Join In
+      CustomSoundEmitterEX(SFXArray[72].realPath, _, _, 65, false, 0, 1.0, 100); //Join In
       CreateTimer(3.2, QueueBossSound, 16);
     }
     //pt 2
     case 16: {
-      CustomSoundEmitter(SFXArray[70].realPath, 65, false, 0, 1.0, 100); //Good show
+      CustomSoundEmitterEX(SFXArray[70].realPath, _, _, 65, false, 0, 1.0, 100); //Good show
     }
     case 17: {
-      CustomSoundEmitter(SFXArray[67].realPath, 65, false, 0, 1.0, 100); //Carryon
+      CustomSoundEmitterEX(SFXArray[67].realPath, _, _, 65, false, 0, 1.0, 100); //Carryon
     }
     case 18: {
-      CustomSoundEmitter(SFXArray[66].realPath, 65, false, 0, 1.0, 100); //Carnage
+      CustomSoundEmitterEX(SFXArray[66].realPath, _, _, 65, false, 0, 1.0, 100); //Carnage
     }
     case 19: {
-      CustomSoundEmitter(SFXArray[73].realPath, 65, false, 0, 1.0, 100); //Lets Start
+      CustomSoundEmitterEX(SFXArray[73].realPath, _, _, 65, false, 0, 1.0, 100); //Lets Start
     }
     case 20: {
-      CustomSoundEmitter(SFXArray[74].realPath, 65, false, 0, 1.0, 100); //Make Way
+      CustomSoundEmitterEX(SFXArray[74].realPath, _, _, 65, false, 0, 1.0, 100); //Make Way
     }
     //Attack sounds, but also shared with spawn sounds
     case 21: {
-      CustomSoundEmitter(SFXArray[76].realPath, 65, false, 0, 1.0, 100); //SliceYou
+      CustomSoundEmitterEX(SFXArray[76].realPath, _, _, 65, false, 0, 1.0, 100); //SliceYou
     }
     case 22: {
-      CustomSoundEmitter(SFXArray[77].realPath, 65, false, 0, 1.0, 100); //Stroll
+      CustomSoundEmitterEX(SFXArray[77].realPath, _, _, 65, false, 0, 1.0, 100); //Stroll
     }
     //Attack sounds, used for random grunts
     case 23: {
-      CustomSoundEmitter(SFXArray[80].realPath, 65, false, 0, 1.0, 100); //gah
+      CustomSoundEmitterEX(SFXArray[80].realPath, _, _, 65, false, 0, 1.0, 100); //gah
     }
     case 24: {
-      CustomSoundEmitter(SFXArray[81].realPath, 65, false, 0, 1.0, 100); //guh
+      CustomSoundEmitterEX(SFXArray[81].realPath, _, _, 65, false, 0, 1.0, 100); //guh
     }
     case 25: {
-      CustomSoundEmitter(SFXArray[82].realPath, 65, false, 0, 1.0, 100); //hah
+      CustomSoundEmitterEX(SFXArray[82].realPath, _, _, 65, false, 0, 1.0, 100); //hah
     }
     //Defeats
     case 26: {
-      CustomSoundEmitter(SFXArray[83].realPath, 65, false, 0, 1.0, 100); //BadSide
+      CustomSoundEmitterEX(SFXArray[83].realPath, _, _, 65, false, 0, 1.0, 100); //BadSide
     }
     case 27: {
-      CustomSoundEmitter(SFXArray[84].realPath, 65, false, 0, 1.0, 100); //NotFair
+      CustomSoundEmitterEX(SFXArray[84].realPath, _, _, 65, false, 0, 1.0, 100); //NotFair
     }
     case 28: {
-      CustomSoundEmitter(SFXArray[85].realPath, 65, false, 0, 1.0, 100); //Nothing
+      CustomSoundEmitterEX(SFXArray[85].realPath, _, _, 65, false, 0, 1.0, 100); //Nothing
     }
     case 29: {
-      CustomSoundEmitter(SFXArray[86].realPath, 65, false, 0, 1.0, 100); //Scream
+      CustomSoundEmitterEX(SFXArray[86].realPath, _, _, 65, false, 0, 1.0, 100); //Scream
     }
     case 30: {
-      CustomSoundEmitter(SFXArray[87].realPath, 65, false, 0, 1.0, 100); //ToGo
+      CustomSoundEmitterEX(SFXArray[87].realPath, _, _, 65, false, 0, 1.0, 100); //ToGo
     }
     //Special attack sounds like phase changes
     case 31: {
-      CustomSoundEmitter(SFXArray[88].realPath, 65, false, 0, 1.0, 100); //Clever
+      CustomSoundEmitterEX(SFXArray[88].realPath, _, _, 65, false, 0, 1.0, 100); //Clever
     }
     case 32: {
-      CustomSoundEmitter(SFXArray[89].realPath, 65, false, 0, 1.0, 100); //Cmon
+      CustomSoundEmitterEX(SFXArray[89].realPath, _, _, 65, false, 0, 1.0, 100); //Cmon
     }
     case 33: {
-      CustomSoundEmitter(SFXArray[90].realPath, 65, false, 0, 1.0, 100); //Die
+      CustomSoundEmitterEX(SFXArray[90].realPath, _, _, 65, false, 0, 1.0, 100); //Die
     }
     case 34: {
-      CustomSoundEmitter(SFXArray[91].realPath, 65, false, 0, 1.0, 100); //GetOff
+      CustomSoundEmitterEX(SFXArray[91].realPath, _, _, 65, false, 0, 1.0, 100); //GetOff
     }
     case 35: {
-      CustomSoundEmitter(SFXArray[92].realPath, 65, false, 0, 1.0, 100); //HearYouScream
+      CustomSoundEmitterEX(SFXArray[92].realPath, _, _, 65, false, 0, 1.0, 100); //HearYouScream
     }
     case 36: {
-      CustomSoundEmitter(SFXArray[93].realPath, 65, false, 0, 1.0, 100); //IsntOver
+      CustomSoundEmitterEX(SFXArray[93].realPath, _, _, 65, false, 0, 1.0, 100); //IsntOver
     }
     case 37: {
-      CustomSoundEmitter(SFXArray[94].realPath, 65, false, 0, 1.0, 100); //Like
+      CustomSoundEmitterEX(SFXArray[94].realPath, _, _, 65, false, 0, 1.0, 100); //Like
     }
     case 38: {
-      CustomSoundEmitter(SFXArray[95].realPath, 65, false, 0, 1.0, 100); //Little
+      CustomSoundEmitterEX(SFXArray[95].realPath, _, _, 65, false, 0, 1.0, 100); //Little
     }
     case 39: {
-      CustomSoundEmitter(SFXArray[96].realPath, 65, false, 0, 1.0, 100); //Pay
+      CustomSoundEmitterEX(SFXArray[96].realPath, _, _, 65, false, 0, 1.0, 100); //Pay
     }
     case 40: {
-      CustomSoundEmitter(SFXArray[97].realPath, 65, false, 0, 1.0, 100); //Pointers
+      CustomSoundEmitterEX(SFXArray[97].realPath, _, _, 65, false, 0, 1.0, 100); //Pointers
     }
     case 41: {
-      CustomSoundEmitter(SFXArray[98].realPath, 65, false, 0, 1.0, 100); //Seat
+      CustomSoundEmitterEX(SFXArray[98].realPath, _, _, 65, false, 0, 1.0, 100); //Seat
     }
     case 42: {
-      CustomSoundEmitter(SFXArray[99].realPath, 65, false, 0, 1.0, 100); //Size
+      CustomSoundEmitterEX(SFXArray[99].realPath, _, _, 65, false, 0, 1.0, 100); //Size
     }
     case 43: {
-      CustomSoundEmitter(SFXArray[100].realPath, 65, false, 0, 1.0, 100); //There
+      CustomSoundEmitterEX(SFXArray[100].realPath, _, _, 65, false, 0, 1.0, 100); //There
     }
     case 44: {
-      CustomSoundEmitter(SFXArray[101].realPath, 65, false, 0, 1.0, 100); //TimeToDie
+      CustomSoundEmitterEX(SFXArray[101].realPath, _, _, 65, false, 0, 1.0, 100); //TimeToDie
     }
     case 45: {
-      CustomSoundEmitter(SFXArray[102].realPath, 65, false, 0, 1.0, 100); //Way
+      CustomSoundEmitterEX(SFXArray[102].realPath, _, _, 65, false, 0, 1.0, 100); //Way
     }
     //Ultimates
     case 46: {
-      CustomSoundEmitter(SFXArray[103].realPath, 65, false, 0, 1.0, 100); //FinalWords
+      CustomSoundEmitterEX(SFXArray[103].realPath, _, _, 65, false, 0, 1.0, 100); //FinalWords
     }
     case 47: {
-      CustomSoundEmitter(SFXArray[104].realPath, 65, false, 0, 1.0, 100); //PartingGift
+      CustomSoundEmitterEX(SFXArray[104].realPath, _, _, 65, false, 0, 1.0, 100); //PartingGift
     }
     case 48: {
-      CustomSoundEmitter(SFXArray[105].realPath, 65, false, 0, 1.0, 100); //WatchAndLearn
+      CustomSoundEmitterEX(SFXArray[105].realPath, _, _, 65, false, 0, 1.0, 100); //WatchAndLearn
     }
   }
   return Plugin_Stop;
@@ -889,7 +889,7 @@ public Action ResetTickBuster(Handle time) {
 //Spawn metal face
 public Action DelayedMetalFace(Handle timer) {
   AudioManager.setBGM_Global(20, true);
-  CustomSoundEmitter(SFXArray[68].realPath, 65, false, 0, 1.0, 100); //Evil Laugh
+  CustomSoundEmitterEX(SFXArray[68].realPath, _, _, 65, false, 0, 1.0, 100); //Evil Laugh
   CreateTimer(3.2, QueueBossSound, GetRandomInt(10, 14));
   sudo(1000);
   BossHandler.shouldTickBGM = true;

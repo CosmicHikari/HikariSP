@@ -1,5 +1,5 @@
 // Hikari's Scene Enhancer (Inspired by Mrbt0907/Weather2Remastered)
-char HSE_VER[8] = "2.7.7";
+char HSE_VER[8] = "2.8.0";
 
 // Used to make lasers
 enum struct LaserData {
@@ -196,7 +196,7 @@ methodmap AUDIOMANAGER {
       AudioState[client].savedIntroSeconds = AudioState[client].introSeconds;
       AudioState[client].savedLoops = AudioState[client].loops;
       AudioState[client].eventMode = true;
-      CSEClientEx(client, BGMArray[curBGM].realPath, -2, g_chanBGM, BGMArray[curBGM].SNDLVL, true, 1, 0.05, 100); // Set old bgm to low volume
+      CSEClientEX(client, BGMArray[curBGM].realPath, -2, g_chanBGM, BGMArray[curBGM].SNDLVL, true, 1, 0.05, 100); // Set old bgm to low volume
       LightLogger(LOGLVL_WARN, "[Enhancer @ v%s] Entering event mode with song %s", HSE_VER, BGMArray[bgm].songName);
       this.setBGM(client, bgm, true);
     }
@@ -208,7 +208,7 @@ methodmap AUDIOMANAGER {
       AudioState[client].loopSeconds = AudioState[client].savedLoopSeconds;
       AudioState[client].timeSeconds = AudioState[client].savedTimeSeconds;
       int new_bgm = AudioState[client].indexBGM;
-      CSEClientEx(client, BGMArray[new_bgm].realPath, -2, g_chanBGM, BGMArray[new_bgm].SNDLVL, true, 1, 1.0, 100);
+      CSEClientEX(client, BGMArray[new_bgm].realPath, -2, g_chanBGM, BGMArray[new_bgm].SNDLVL, true, 1, 1.0, 100);
       AudioState[client].eventMode = false;
       LightLogger(LOGLVL_WARN, "[Enhancer @ v%s] Exiting event mode with song %s", HSE_VER, BGMArray[new_bgm].songName);
     }
@@ -256,7 +256,7 @@ methodmap AUDIOMANAGER {
       }
       int index = AudioState[client].indexBGM;
       AudioState[client].stopBGM = StrContains(BGMArray[index].realPath, "mp3", false) != -1;
-      CSEClientEx(client, BGMArray[index].realPath, -2, g_chanBGM, BGMArray[index].SNDLVL, true, 1, 1.0, 100);
+      CSEClientEX(client, BGMArray[index].realPath, -2, g_chanBGM, BGMArray[index].SNDLVL, true, 1, 1.0, 100);
       strcopy(AudioState[client].cachedPath, sizeof(AudioState[client].cachedPath), BGMArray[index].realPath);
       strcopy(AudioState[client].songName, sizeof(AudioState[client].songName), BGMArray[index].songName);
       AudioState[client].introSeconds = AudioState[client].loops >= 1 ? BGMArray[index].introSeconds : 0.0;
@@ -444,7 +444,12 @@ public Action EnableAudio(Handle timer) {
   return Plugin_Stop;
 }
 
-// Custom sound emitter, I don't know how many f-ing times I've rewritten this! +2! See potato.sp
+// Custom sound emitter, I don't know how many f-ing times I've rewritten this! +3! See potato.sp
+// @param sndName The path to the sound to be played
+// @param entity The entity to play from
+// @param channel The channel to play to
+// @param TSNDLVL The soundlevel to use
+// @param isBGM Is it bgm?
 // @param flags
 //  `SND_NOFLAGS (0)` Nothing,
 //  `SND_CHANGEVOL (1)` Changes volume,
@@ -455,21 +460,18 @@ public Action EnableAudio(Handle timer) {
 //  `SND_STOPLOOPING (6)` Stop looping all sounds on the entity,
 //  `SND_SPEAKER (7)` Being played by a mic through a speaker,
 //  `SND_SHOULDPAUSE (8)` Pause if game is paused.
-void CustomSoundEmitter(char[] sndName, int TSNDLVL, bool isBGM, int flags, float vol, int pitch) {
+// @param vol Float 0.0 to 1.0 representing the volume
+// @param pitch Int 0 to 255 representing the pitch
+// @param pos pos[3] x y z where to play the sound
+void CustomSoundEmitterEX(char[] sndName, int entity = -2, int channel = SNDCHAN_AUTO, int TSNDLVL, bool isBGM, int flags, float vol, int pitch, float pos[3] = NULL_VECTOR) {
   for (int i = 1; i <= MaxClients; i++) {
     if (!IsValidClient(i)) continue;
-    if (isBGM && (soundPreference[i] == 1 || soundPreference[i] == 3) || !isBGM && soundPreference[i] >= 2) EmitSoundToClient(i, sndName, _, isBGM ? g_chanBGM : 0, GetSNDLVL(i, isBGM, TSNDLVL), flags, GetVolume(i, isBGM, vol), pitch, _, _, _, _, _);
+    if (isBGM && (soundPreference[i] == 1 || soundPreference[i] == 3) || !isBGM && soundPreference[i] >= 2) EmitSoundToClient(i, sndName, entity, isBGM ? g_chanBGM : channel, GetSNDLVL(i, isBGM, TSNDLVL), flags, GetVolume(i, isBGM, vol), pitch, _, pos, _, _, _);
   }
 }
 
-// Play sound to client. Ripped straight from potato. Allows us to play sounds directly to people when they join.
-void CSEClient(int client, char[] sndName, int TSNDLVL, bool isBGM, int flags, float vol, int pitch) {
-  if (!IsValidClient(client)) return;
-  if (isBGM && (soundPreference[client] == 1 || soundPreference[client] == 3) || !isBGM && soundPreference[client] >= 2) EmitSoundToClient(client, sndName, _, isBGM ? g_chanBGM : 0, GetSNDLVL(client, isBGM, TSNDLVL), flags, GetVolume(client, isBGM, vol), pitch, _, _, _, _, _);
-}
-
-// Play sound to client. Now supports source entities, channels, and positions.
-void CSEClientEx(int client, char[] sndName, int entity = -2, int channel, int TSNDLVL, bool isBGM, int flags, float vol, int pitch, float pos[3] = NULL_VECTOR) {
+// Play sound to client. Originally ripped straight out of potato. Now supports source entities, channels, and positions.
+void CSEClientEX(int client, char[] sndName, int entity = -2, int channel = SNDCHAN_AUTO, int TSNDLVL, bool isBGM, int flags, float vol, int pitch, float pos[3] = NULL_VECTOR) {
   if (!IsValidClient(client)) return;
   if (isBGM && (soundPreference[client] == 1 || soundPreference[client] == 3) || !isBGM && soundPreference[client] >= 2) EmitSoundToClient(client, sndName, entity, channel, GetSNDLVL(client, isBGM, TSNDLVL), flags, GetVolume(client, isBGM, vol), pitch, _, pos, _, _, _);
 }
@@ -739,7 +741,7 @@ methodmap WEATHERMANAGER {
     sudo(1003);
     //Photon.Fire(lightningStrike[GetRandomInt(0, sizeof(lightningStrike) - 1)].fireStr);
     //Photon.Fire("Weather.LightningHurt*", "Disable", "", 0.07);
-    CustomSoundEmitter(SFXArray[GetRandomInt(27, 34)].realPath, 65, false, 0, 1.0, 100);
+    CustomSoundEmitterEX(SFXArray[GetRandomInt(27, 34)].realPath, _, _, 65, false, 0, 1.0, 100);
     // Affect lights
     int i = GetRandomInt(WDATA.intensity, 15);
     LightLogger(LOGLVL_DEBUG, "Doing light interactions with %i", i);
@@ -797,72 +799,72 @@ methodmap WEATHERMANAGER {
   // Emits storm sounds
   public void EmitStormSounds() {
     switch (GetRandomInt(WDATA.mIntensity, WDATA.intensity)) {
-        case 0: { CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); } // 0-3: Rain, no wind, reduced volume
-        case 1: { CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); }
-        case 2: { CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); }
-        case 3: { CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); }
+        case 0: { CustomSoundEmitterEX(SFXArray[108].realPath, _, _, 65, false, 1, 0.1, 100); } // 0-3: Rain, no wind, reduced volume
+        case 1: { CustomSoundEmitterEX(SFXArray[108].realPath, _, _, 65, false, 1, 0.1, 100); }
+        case 2: { CustomSoundEmitterEX(SFXArray[108].realPath, _, _, 65, false, 1, 0.1, 100); }
+        case 3: { CustomSoundEmitterEX(SFXArray[108].realPath, _, _, 65, false, 1, 0.1, 100); }
         case 4: {
-          CustomSoundEmitter(SFXArray[108].realPath, 45, false, 1, 1.0, 100); //Rain, no wind, increased volume
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.1, 100); //Rain, wind, decreased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.01, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[108].realPath, _, _, 45, false, 1, 1.0, 100); //Rain, no wind, increased volume
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.1, 100); //Rain, wind, decreased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.01, 100); //Extra wind
         }
         case 5: {
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.1, 100); //Rain, no wind, decreased volume
-          CustomSoundEmitter(SFXArray[107].realPath, 45, false, 1, 0.15, 100); //Rain, wind
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.05, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[108].realPath, _, _, 65, false, 1, 0.1, 100); //Rain, no wind, decreased volume
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 45, false, 1, 0.15, 100); //Rain, wind
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.05, 100); //Extra wind
         }
         case 6: {
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.21, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.125, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[108].realPath, _, _, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.21, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.125, 100); //Extra wind
         }
         case 7: {
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 0);
-          CustomSoundEmitter(SFXArray[108].realPath, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.26, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.25, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[108].realPath, _, _, 65, false, 1, 0.05, 100); //Rain, no wind, decreased volume
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.26, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.25, 100); //Extra wind
         }
         case 8: {
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 1);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.37, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.35, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.37, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.35, 100); //Extra wind
         }
         case 9: {
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 2);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.41, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.42, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.41, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.42, 100); //Extra wind
         }
         case 10: {
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 3);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.45, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.56, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.45, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.56, 100); //Extra wind
         }
         case 11: {
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 4);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.63, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.69, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.63, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.69, 100); //Extra wind
         }
         case 12: {
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 5);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.72, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.76, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.72, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.76, 100); //Extra wind
         }
         case 13: {
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 6);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.85, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.83, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.85, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.83, 100); //Extra wind
         }
         case 14: {
           Photon.Fire("rain", "Alpha", "255");
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 0.9, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 0.92, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 0.9, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 0.92, 100); //Extra wind
         }
         case 15: {
           Photon.Fire("rain", "Alpha", "255");
           CreateTimer(GetRandomFloat(0.1, 1.25), GetRandomWind, 7);
-          CustomSoundEmitter(SFXArray[107].realPath, 65, false, 1, 1.0, 100); //Rain, wind, increased volume
-          //CustomSoundEmitter(SFXArray[109].realPath, 45, false, 1, 1.0, 100); //Extra wind
+          CustomSoundEmitterEX(SFXArray[107].realPath, _, _, 65, false, 1, 1.0, 100); //Rain, wind, increased volume
+          //CustomSoundEmitterEX(SFXArray[109].realPath, 45, false, 1, 1.0, 100); //Extra wind
         }
       }
   }
@@ -895,17 +897,11 @@ methodmap WEATHERMANAGER {
     Photon.Fire("Weather.FogSky", "Enable", "", 2.0);
     for (int i = 0; i < sizeof(MapLighting); i++) { MapLighting[i].Repair(); SetZoneActive(g_Lights[i], false); }
     WDATA.sirenPos = {-2305.0, 2095.0, 1102.0};
-    int siren = Photon.Find("WeatherSiren", "info_target");
-    if (!IsValidEntity(siren)) {
-      siren = CreateEntityByName("info_target");
-      if (!IsValidEdict(siren)) SetFailState("Could not inject Siren Entity, aborting!!!");
-      DispatchSpawn(siren);
-      DispatchKeyValue(siren, "targetname", "WeatherSiren");
-      ActivateEntity(siren);
-      TeleportEntity(siren, WDATA.sirenPos, NULL_VECTOR, NULL_VECTOR);
-      LightLogger(LOGLVL_INFO, "Injected info_target WeatherSiren to map!");
-    }
+    int siren = Photon.Create("WeatherSiren", "info_target");
+    if (!IsValidEntity(siren)) SetFailState("Could not inject Siren Entity, aborting!!!");
+    TeleportEntity(siren, WDATA.sirenPos, NULL_VECTOR, NULL_VECTOR);
     sirenRef = EntIndexToEntRef(siren);
+    LightLogger(LOGLVL_INFO, "Located info_target WeatherSiren!");
   }
   public void SetFogStartQueued(int fsq) { Photon.Fire("Weather.FogOutdoor", "SetStartDistLerpTo", "%i", _, _, fsq); }
   public void SetFogEndQueued(int feq) { Photon.Fire("Weather.FogOutdoor", "SetEndDistLerpTo","%i", _, _, feq); }
@@ -967,7 +963,7 @@ methodmap WEATHERMANAGER {
     if (WDATA.TornadoWarning) {
       if (!WDATA.sirenExploded && (WDATA.sirenPitch > 165.0)) {
         Photon.Fire("Weather.Siren.ExplodeParticle", "Start");
-        CustomSoundEmitter(SFXArray[121].realPath, SFXArray[121].SNDLVL, false, 0, 1.0, 100);
+        CustomSoundEmitterEX(SFXArray[121].realPath, _, _, SFXArray[121].SNDLVL, false, 0, 1.0, 100);
         for (int i = 0; i < MaxClients; i++) if (IsValidClient(i) && g_SirenEnabled[i]) {
           StopSound(i, 10, SFXArray[119].realPath);
           StopSound(i, 10, SFXArray[120].realPath);
@@ -986,14 +982,14 @@ methodmap WEATHERMANAGER {
         WDATA.sirenPitch = (WDATA.sirenPitch < WDATA.sirenPitchTarget) ? Maths().FloatMin(WDATA.sirenPitch += WDATA.sirenPitchRate, WDATA.sirenPitchTarget) : Maths().FloatMax(WDATA.sirenPitch -= WDATA.sirenPitchRate, WDATA.sirenPitchTarget);
         int siren = EntRefToEntIndex(sirenRef);
         for (int i = 0; i < MaxClients; i++) if (IsValidClient(i) && g_SirenEnabled[i]) {
-          CSEClientEx(i, SFXArray[119].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
-          CSEClientEx(i, SFXArray[120].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
-          CSEClientEx(i, SFXArray[119].realPath, siren, 3, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
-          CSEClientEx(i, SFXArray[120].realPath, siren, 3, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
-          CSEClientEx(i, SFXArray[119].realPath, siren, 2, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
-          CSEClientEx(i, SFXArray[120].realPath, siren, 2, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
-          CSEClientEx(i, SFXArray[119].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 0.7, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
-          CSEClientEx(i, SFXArray[120].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
+          CSEClientEX(i, SFXArray[119].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
+          CSEClientEX(i, SFXArray[120].realPath, siren, 10, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
+          CSEClientEX(i, SFXArray[119].realPath, siren, 3, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
+          CSEClientEX(i, SFXArray[120].realPath, siren, 3, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
+          CSEClientEX(i, SFXArray[119].realPath, siren, 2, SNDLEVEL_RAIDSIREN, false, 1026, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
+          CSEClientEX(i, SFXArray[120].realPath, siren, 2, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
+          CSEClientEX(i, SFXArray[119].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 0.7, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos); 
+          CSEClientEX(i, SFXArray[120].realPath, siren, 6, SNDLEVEL_RAIDSIREN, false, 2, 1.0, RoundFloat(WDATA.sirenPitch), WDATA.sirenPos);
         }
       }
       if (WDATA.ticks % GetRandomInt(70, 224) == 0) {
@@ -1177,7 +1173,7 @@ WEATHERMANAGER GetWeatherManager() { return WeatherManager; }
 
 //Timers
 public Action GetRandomWind(Handle timer, int intensity) {
-  CustomSoundEmitter(SFXArray[GetRandomInt(113, intensity <  3 ? 114 : intensity < 6 ? 115 : 116)].realPath, intensity < 2 ? 35 : intensity < 4 ? 42 : intensity < 6 ? 45 : 50, true, 1, 0.125, 100);
+  CustomSoundEmitterEX(SFXArray[GetRandomInt(113, intensity <  3 ? 114 : intensity < 6 ? 115 : 116)].realPath, _, _, intensity < 2 ? 35 : intensity < 4 ? 42 : intensity < 6 ? 45 : 50, true, 1, 0.125, 100);
   return Plugin_Stop;
 }
 

@@ -1,5 +1,5 @@
 // Hikari's Photon - Map I/O & Entity Management Interface
-char PHOTON_VER[7] = "3.0.4";
+char PHOTON_VER[7] = "3.0.5";
 int photonRef;
 
 enum struct PHOTON_BULK {
@@ -24,7 +24,7 @@ methodmap PHOTON {
     int ent = this.Find(targetname, classname);
     if (!IsValidEntity(ent) && this.CanCreate(1)) {
       ent = CreateEntityByName(classname);
-      if (!IsValidEdict(ent)) { LogError("[Photon] Failed to create %s!", classname); return -2; }
+      if (!IsValidEdict(ent)) { LogError("[Photon] Failed to create %s!", classname); return -1; }
       DispatchSpawn(ent);
       DispatchKeyValue(ent, "targetname", targetname);
       ActivateEntity(ent);
@@ -46,10 +46,8 @@ methodmap PHOTON {
     char buffers[3][128];
     for (int i = 0; i < 3; i++) { strcopy(buffers[i], sizeof(buffers[]), i == 0 ? target : i == 1 ? input : param); }
     for (int i = 0; i < 3; i++) { if (StrContains(buffers[i], "%") != -1) VFormat(buffers[i], sizeof(buffers[]), i == 0 ? target : i == 1 ? input : param, 7); }
-    
     char fireStr[512];
     FormatEx(fireStr, sizeof(fireStr), (StrContains(target, "OnUser1", true) != -1 ? target : "OnUser1 %s,%s,%s,%f,%i"), buffers[0], buffers[1], buffers[2], delay, refire);
-    
     SetVariantString(fireStr);
     AcceptEntityInput(ent, "AddOutput");
     AcceptEntityInput(ent, "FireUser1");
